@@ -1,0 +1,17 @@
+<a class="tcart-add" href="javascript:;" data-pid="<?php echo $this->productId; ?>"><?php echo $this->translate('Add to cart'); ?></a>
+<script type="text/javascript">
+	<?php $this->jQuery()->onLoadCaptureStart();?>
+	(function($) {
+		$('.tcart-add').on('click', function(e) {
+			e.preventDefault();
+			var pid  = $(this).data('pid');
+			$.post('<?php echo $this->websiteUrl;?>plugin/cart/run/cart/', {
+				pid     : pid,
+				options : $('div[data-productid=' + pid + '] *').serialize()
+			}, function() {
+				window.location.href = '<?php echo $this->websiteUrl, $this->checkOutPageUrl; ?>';
+			})
+		})
+	})(jQuery);
+	<?php $this->jQuery()->onLoadCaptureEnd();?>
+</script>

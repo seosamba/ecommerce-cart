@@ -1,0 +1,1 @@
+E-commerce shopping cart plugin for the SEOTOASTER 2.0

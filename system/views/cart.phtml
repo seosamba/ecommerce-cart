@@ -1,0 +1,48 @@
+<script data-main="<?php echo $this->websiteUrl;?>plugins/cart/web/js/bootstrap.js" src="<?php echo $this->websiteUrl;?>plugins/cart/web/js/libs/require/require.js"></script>
+<table id="toaster-cart" class="toaster-cart-content"></table>
+<script id="cart-template" type="text/template">
+	<tr>
+		<th><?php echo $this->translate('Photo'); ?></th>
+		<th><?php echo $this->translate('Item ID'); ?></th>
+		<th><?php echo $this->translate('Description'); ?></th>
+		<th><?php echo $this->translate('Quantity'); ?></th>
+		<th><?php echo $this->translate('Unit price'); ?></th>
+		<th><?php echo $this->translate('Tax'); ?></th>
+		<th><?php echo $this->translate('Price'); ?></th>
+		<th><?php echo $this->translate('Remove'); ?></th>
+	</tr>
+	<% if(collection.length) { %>
+		<% _.each(collection, function(el) { %>
+			<tr>
+				<td ><img src="<% if(el.photo){ %>/media/<%= el.photo.replace('/', '/product/')%> <% ;} %>" alt="<%= el.name %>" /></td>
+				<td >
+					<%= el.name %>
+				</td>
+				<td ><%= el.description %></td>
+				<td>
+					<input type="number" class="product-qty" min="0" data-sid="<%= el.sid %>" data-pid="<%= el.id %>" value="<%= el.qty %>" />
+				</td>
+				<td>
+					<% if(!el.taxIncluded) { %>
+						<%= el.price %>
+		            <% } else { %>
+						<%= el.taxPrice %>
+					<% } %>
+				</td>
+				<% if(!el.taxIncluded) { %>
+					<td><%= el.tax %></td>
+				<% } %>
+				<td><%= (el.taxPrice * el.qty) %></td>
+				<td align="center">
+					<a href="javascript:;" class="remove-item" data-sid="<%= el.sid %>" title="<?php echo $this->translate('remove ') ?> <%= el.name %> <?php echo $this->translate(' from cart') ?>"><img src="<?php echo $this->websiteUrl;?>plugins/cart/web/images/trash.png" alt="<?php echo $this->translate('Remove'); ?> "></a>
+				</td>
+			</tr>
+		<% }); %>
+	<% } else { %>
+		<tr>
+			<td colspan="8" align="center">
+				<?php echo $this->translate('Your cart is empty'); ?>
+			</td>
+		</tr>
+	<% } %>
+</script>
