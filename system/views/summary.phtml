@@ -1,18 +1,18 @@
 <div id="cart-summary">
 	<div class="cart-summary-row">
 		<span><?php echo $this->translate('Subtotal'); ?></span>
-		<span id="subtotal-val"><?php echo $this->currencySymbol, ' ', $this->toasterCurrency($this->summary['subTotal']); ?></span>
+		<span id="subtotal-val"><?php echo $this->currency($this->summary['subTotal']); ?></span>
 	</div>
 	<div class="cart-summary-row">
 		<span><?php echo $this->translate('Total Tax'); ?></span>
-		<span id="totaltax-val"><?php echo $this->currencySymbol, ' ', $this->toasterCurrency($this->summary['totalTax']);?></span>
+		<span id="totaltax-val"><?php echo $this->currency($this->summary['totalTax']);?></span>
 	</div>
 	<div class="cart-summary-row">
 		<span><?php echo $this->translate('Shipping'); ?></span>
-		<span id="sipping-val"><?php echo $this->currencySymbol, ' ', $this->toasterCurrency($this->summary['shipping']); ?></span>
+		<span id="sipping-val"><?php echo $this->currency($this->summary['shipping']); ?></span>
 	</div>
 	<div class="cart-summary-row">
 		<span><?php echo $this->translate('Total'); ?></span>
-		<span id="total-val"><?php echo $this->currencySymbol, ' ', $this->toasterCurrency($this->summary['total']); ?></span>
+		<span id="total-val"><?php echo $this->currency($this->summary['total']); ?></span>
 	</div>
 </div>
