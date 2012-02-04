@@ -26,16 +26,13 @@ define([
 		removeItem: function(ev) {
 			var cartView  = this;
 			var cartModel = this.model;
-			smoke.confirm('You are about to remove a product from you cart. Are you sure?', function(e) {
-				if(e) {
-                	$.when(cartModel.removeItem($(ev.target).parent().data('sid'))).then(function() {
-						cartView.render();
-						cartView.refreshSummury();
-					});
-				} else {
-
-				}
-			}, {classname:"errors", 'ok':'Yes', 'cancel':'No'});
+			showConfirm('You are about to remove a product from you cart. Are you sure?', function() {
+				$.when(cartModel.removeItem($(ev.target).parent().data('sid'))).then(function() {
+					cartView.render();
+					cartView.refreshSummury();
+					hideSpinner();
+				});
+			});
 		},
 		render: function() {
 			var cartModel = this.model;

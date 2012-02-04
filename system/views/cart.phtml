@@ -1,5 +1,7 @@
+<?php $this->headLink()->appendStylesheet($this->websiteUrl . 'plugins/cart/web/css/cart.css'); ?>
 <script data-main="<?php echo $this->websiteUrl;?>plugins/cart/web/js/bootstrap.js" src="<?php echo $this->websiteUrl;?>plugins/cart/web/js/libs/require/require.js"></script>
 <table id="toaster-cart" class="toaster-cart-content"></table>
+
 <script id="cart-template" type="text/template">
 	<tr>
 		<th><?php echo $this->translate('Photo'); ?></th>
@@ -24,15 +26,15 @@
 				</td>
 				<td>
 					<% if(!el.taxIncluded) { %>
-						<%= el.price %>
+						<%= parseFloat(el.price) %>
 		            <% } else { %>
-						<%= el.taxPrice %>
+						<%= parseFloat(el.taxPrice) %>
 					<% } %>
 				</td>
 				<% if(!el.taxIncluded) { %>
 					<td><%= el.tax %></td>
 				<% } %>
-				<td><%= (el.taxPrice * el.qty) %></td>
+				<td><%= (parseFloat(el.taxPrice) * el.qty) %></td>
 				<td align="center">
 					<a href="javascript:;" class="remove-item" data-sid="<%= el.sid %>" title="<?php echo $this->translate('remove ') ?> <%= el.name %> <?php echo $this->translate(' from cart') ?>"><img src="<?php echo $this->websiteUrl;?>plugins/cart/web/images/trash.png" alt="<?php echo $this->translate('Remove'); ?> "></a>
 				</td>

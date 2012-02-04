@@ -23,7 +23,6 @@ define([
 				this.destroy({success: hideSpinner});
 			});
 		}
-
 	});
 
 	return CartItem;
