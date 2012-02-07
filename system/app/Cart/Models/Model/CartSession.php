@@ -1,6 +1,6 @@
 <?php
 
-class Models_Model_CartSession extends Application_Model_Models_Abstract {
+class Cart_Models_Model_CartSession extends Application_Model_Models_Abstract {
 
 	protected $_cartContent = '';
 

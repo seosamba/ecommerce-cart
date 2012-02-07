@@ -1,50 +1,61 @@
 <?php $this->headLink()->appendStylesheet($this->websiteUrl . 'plugins/cart/web/css/cart.css'); ?>
-<script data-main="<?php echo $this->websiteUrl;?>plugins/cart/web/js/bootstrap.js" src="<?php echo $this->websiteUrl;?>plugins/cart/web/js/libs/require/require.js"></script>
-<table id="toaster-cart" class="toaster-cart-content"></table>
-
-<script id="cart-template" type="text/template">
+<table id="toaster-cart" class="toaster-cart-content">
 	<tr>
 		<th><?php echo $this->translate('Photo'); ?></th>
 		<th><?php echo $this->translate('Item ID'); ?></th>
 		<th><?php echo $this->translate('Description'); ?></th>
 		<th><?php echo $this->translate('Quantity'); ?></th>
 		<th><?php echo $this->translate('Unit price'); ?></th>
-		<th><?php echo $this->translate('Tax'); ?></th>
+        <?php if($this->showTaxCol): ?>
+			<th><?php echo $this->translate('Tax'); ?></th>
+		<?php endif; ?>
 		<th><?php echo $this->translate('Price'); ?></th>
 		<th><?php echo $this->translate('Remove'); ?></th>
 	</tr>
-	<% if(collection.length) { %>
-		<% _.each(collection, function(el) { %>
+	 	<?php if(!isset($this->cartContent) || empty($this->cartContent)): ?>
 			<tr>
-				<td ><img src="<% if(el.photo){ %>/media/<%= el.photo.replace('/', '/product/')%> <% ;} %>" alt="<%= el.name %>" /></td>
-				<td >
-					<%= el.name %>
-				</td>
-				<td ><%= el.description %></td>
-				<td>
-					<input type="number" class="product-qty" min="0" data-sid="<%= el.sid %>" data-pid="<%= el.id %>" value="<%= el.qty %>" />
-				</td>
-				<td>
-					<% if(!el.taxIncluded) { %>
-						<%= parseFloat(el.price) %>
-		            <% } else { %>
-						<%= parseFloat(el.taxPrice) %>
-					<% } %>
-				</td>
-				<% if(!el.taxIncluded) { %>
-					<td><%= el.tax %></td>
-				<% } %>
-				<td><%= (parseFloat(el.taxPrice) * el.qty) %></td>
-				<td align="center">
-					<a href="javascript:;" class="remove-item" data-sid="<%= el.sid %>" title="<?php echo $this->translate('remove ') ?> <%= el.name %> <?php echo $this->translate(' from cart') ?>"><img src="<?php echo $this->websiteUrl;?>plugins/cart/web/images/trash.png" alt="<?php echo $this->translate('Remove'); ?> "></a>
+				<td colspan="<?php echo ($this->showTaxCol) ? '8' : '7'; ?>" align="center">
+					<?php echo $this->translate('Your cart is empty'); ?>
 				</td>
 			</tr>
-		<% }); %>
-	<% } else { %>
-		<tr>
-			<td colspan="8" align="center">
-				<?php echo $this->translate('Your cart is empty'); ?>
-			</td>
-		</tr>
-	<% } %>
-</script>
+		<?php else: ?>
+			<?php foreach($this->cartContent as $sid => $cartItem): ?>
+				<tr>
+					<td><img src="/media/<?php echo str_replace('/', '/product/', $cartItem['photo']);?>" alt="<?php echo $cartItem['name']; ?>"></td>
+					<td>
+						<?php echo $cartItem['name']; ?>
+						<?php if(isset($cartItem['options'])): ?>
+						    <?php foreach($cartItem['options'] as $name => $optData): ?>
+							    <div class="options">
+								    <span><?php echo $name; ?>:&nbsp;</span><span><?php echo $optData['title']; ?></span>
+								    <?php if(intval($optData['priceValue'])): ?>
+								        <span>(<?php echo $optData['priceSign'], (($optData['priceType'] == 'unit') ? $this->currencySymbol : '%'), ' ', $optData['priceValue']; ?>)</span>
+									<?php endif; ?>
+								    <?php if(intval($optData['weightValue'])): ?>
+	                                    <span>(<?php echo $optData['weightSign'], ' ', $optData['weightValue'],' ', $this->weightSign; ?>)</span>
+	                                <?php endif; ?>
+							    </div>
+							<?php endforeach; ?>
+						<?php endif; ?>
+					</td>
+					<td><?php echo Tools_Text_Tools::cutText($cartItem['description'], 100); ?></td>
+					<td><input type="number" class="product-qty" min="0" data-sid="<?php echo $sid; ?>" data-pid="<?php echo $cartItem['id']; ?>" value="<?php echo $cartItem['qty']; ?>" /></td>
+					<td><?php echo $this->currency($cartItem['price']); ?></td>
+					<?php if($this->showTaxCol): ?>
+						<td><?php echo $cartItem['tax']; ?></td>
+					<?php endif; ?>
+					<td><?php echo $this->currency($cartItem['price'] * $cartItem['qty']); ?></td>
+					<td align="center">
+						<a href="javascript:;" class="remove-item" data-sid="<?php echo $sid; ?>" title="<?php echo $this->translate('remove ') ?> <?php echo $cartItem['name']; ?> <?php echo $this->translate(' from the cart') ?>"><img src="<?php echo $this->websiteUrl;?>plugins/cart/web/images/trash.png" alt="<?php echo $this->translate('Remove'); ?> "></a>
+					</td>
+				</tr>
+		    <?php endforeach; ?>
+		<?php endif; ?>
+	</tr>
+</table>
+<?php if($this->config['shippingType'] != 'pickup'): ?>
+	SHIPPING FORM
+<?php endif; ?>
+
+</div>
+<?php $this->jQuery()->addJavascriptFile($this->websiteUrl . 'plugins/cart/web/js/cart.js'); ?>

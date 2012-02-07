@@ -6,7 +6,7 @@
  * Depends on shopping (e-commerce) plugin
  *
  */
-class Cart extends Tools_Plugins_Abstract {
+class Cart extends Tools_Cart_Cart {
 
 	const DEFAULT_LOCALE        = 'en_US';
 
@@ -106,6 +106,7 @@ class Cart extends Tools_Plugins_Abstract {
 				$data = $this->_updateCart();
 			break;
 			case 'DELETE':
+				$this->_getParamsFromRawHttp();
 				$this->_removeFromCart();
 			break;
 			default:
@@ -119,6 +120,13 @@ class Cart extends Tools_Plugins_Abstract {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
 		$this->_responseHelper->success($this->_makeOptionSummary());
+	}
+
+	public function cartcontentAction() {
+		if(!$this->_request->isPost()) {
+			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+		}
+		$this->_responseHelper->success($this->_makeOptionCart());
 	}
 
 	protected function _addToCart() {
@@ -153,12 +161,11 @@ class Cart extends Tools_Plugins_Abstract {
 		if(!$this->_request->isDelete()) {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
-		$uri = trim($this->_request->getRequestUri(), '/\ ');
-		$uri = substr($uri, strrpos($uri, '/'));
-		$id = filter_var($uri, FILTER_SANITIZE_NUMBER_INT);
-		$this->_cartStorage->remove($this->_cartStorage->findSidById($id));
-		$this->_saveCartSession();
-		return array('removed' => true);
+		if($this->_cartStorage->remove($this->_requestedParams['sid'])) {
+			$this->_saveCartSession();
+			$this->_responseHelper->success($this->_translator->translate('Removed.'));
+		}
+		$this->_responseHelper->fail($this->_translator->translate('Cant remove product.'));
 	}
 
 	protected function _getCart() {
@@ -182,26 +189,24 @@ class Cart extends Tools_Plugins_Abstract {
 	}
 
 	protected function _makeOptionCartblock() {
-
-	}
-
-	protected function _makeOptionCart() {
-		$this->_view->showTaxCol = isset($this->_shoppingConfig['showPriceIncTax']) ? $this->_shoppingConfig['showPriceIncTax'] : 0;
-		return $this->_view->render('cart.phtml');
-	}
-
-	protected function _makeOptionCartsmall() {
-		$itemsCount   = 0;
 		$cartContent = $this->_cartStorage->getContent();
+		$itemsCount  = 0;
 		if(is_array($cartContent) && !empty($cartContent)) {
-			foreach($cartContent as $cartItem) {
+			array_walk($cartContent, function($cartItem) use(&$itemsCount) {
 				$itemsCount += $cartItem['qty'];
-			}
+			});
 		}
 		$this->_view->itemsCount = $itemsCount;
 		$this->_view->summary    = $this->_cartStorage->calculate();
 		$this->_getCheckoutPage();
-		return $this->_view->render('cartsmall.phtml');
+		return $this->_view->render('cartblock.phtml');
+	}
+
+	protected function _makeOptionCart() {
+		$this->_view->showTaxCol  = isset($this->_shoppingConfig['showPriceIncTax']) ? $this->_shoppingConfig['showPriceIncTax'] : 0;
+		$this->_view->config      = $this->_shoppingConfig;
+		$this->_view->cartContent = $this->_cartStorage->getContent();
+		return $this->_view->render('cart.phtml');
 	}
 
 	protected function _makeOptionCheckout() {
@@ -214,11 +219,11 @@ class Cart extends Tools_Plugins_Abstract {
 	}
 
 	protected function _saveCartSession() {
-		$cartSession = new Models_Model_CartSession();
+		$cartSession = new Cart_Models_Model_CartSession();
 		$cartSession->setId(Zend_Session::getId())
 			->setCartContent(serialize($this->_cartStorage->getContent()))
 			->setIpAddress($_SERVER['REMOTE_ADDR']);
-        return Models_Mapper_CartSessionMapper::getInstance()->save($cartSession);
+        return Cart_Models_Mapper_CartSessionMapper::getInstance()->save($cartSession);
 	}
 
 	protected function _parseProductOtions($productId, $options) {
@@ -233,9 +238,6 @@ class Cart extends Tools_Plugins_Abstract {
 	}
 
 	protected function _getParamsFromRawHttp() {
-		$rawHttpBody = json_decode($this->_request->getRawBody(), true);
-		if(is_array($rawHttpBody)) {
-	        $this->_requestedParams = array_merge($this->_requestedParams, $rawHttpBody);
-		}
+		parse_str($this->_request->getRawBody(), $this->_requestedParams);
 	}
 }

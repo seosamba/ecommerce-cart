@@ -1,13 +1,13 @@
 <?php
 
-class Models_Mapper_CartSessionMapper extends Application_Model_Mappers_Abstract {
+class Cart_Models_Mapper_CartSessionMapper extends Application_Model_Mappers_Abstract {
 
-	protected $_dbTable	= 'Models_DbTable_CartSession';
+	protected $_dbTable	= 'Cart_Models_DbTable_CartSession';
 
-	protected $_model	= 'Models_Model_CartSession';
+	protected $_model	= 'Cart_Models_Model_CartSession';
 
 	public function save($model) {
-		if(!$model instanceof Models_Model_CartSession) {
+		if(!$model instanceof Cart_Models_Model_CartSession) {
 			throw new Exceptions_SeotoasterPluginException('Wrong model type given.');
 		}
 		$data = array(
