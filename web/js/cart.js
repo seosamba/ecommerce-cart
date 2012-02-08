@@ -60,7 +60,7 @@ function refreshCartSummary() {
 }
 
 function refreshCart() {
-	var cart = $('#toaster-cart');
+	var cart = $('#toaster-cart-holder');
     if(cart.length) {
         $.post('/plugin/cart/run/cartcontent/', function(response) {
 	        cart.replaceWith(response.responseText);

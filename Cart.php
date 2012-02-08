@@ -69,7 +69,7 @@ class Cart extends Tools_Cart_Cart {
 		$this->_view->currencyShortName = $correctCurrency;
 	}
 
-	private function _getCheckoutPage() {
+	protected function _getCheckoutPage() {
 		$checkoutPage = Tools_Page_Tools::getCheckoutPage();
 		if(!$checkoutPage instanceof Application_Model_Models_Page) {
 			if(Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_ADMINPANEL)) {
@@ -127,6 +127,10 @@ class Cart extends Tools_Cart_Cart {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
 		$this->_responseHelper->success($this->_makeOptionCart());
+	}
+
+	public function caclculateshippingAction() {
+
 	}
 
 	protected function _addToCart() {
@@ -203,9 +207,10 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionCart() {
-		$this->_view->showTaxCol  = isset($this->_shoppingConfig['showPriceIncTax']) ? $this->_shoppingConfig['showPriceIncTax'] : 0;
-		$this->_view->config      = $this->_shoppingConfig;
-		$this->_view->cartContent = $this->_cartStorage->getContent();
+		$this->_view->showTaxCol   = isset($this->_shoppingConfig['showPriceIncTax']) ? $this->_shoppingConfig['showPriceIncTax'] : 0;
+		$this->_view->config       = $this->_shoppingConfig;
+		$this->_view->cartContent  = $this->_cartStorage->getContent();
+		$this->_view->shippingForm = ($this->_shoppingConfig['shippingType'] != 'pickup') ? new Forms_Shipping() : null;
 		return $this->_view->render('cart.phtml');
 	}
 
