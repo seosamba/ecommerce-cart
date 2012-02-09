@@ -129,10 +129,6 @@ class Cart extends Tools_Cart_Cart {
 		$this->_responseHelper->success($this->_makeOptionCart());
 	}
 
-	public function caclculateshippingAction() {
-
-	}
-
 	protected function _addToCart() {
 		if(!$this->_request->isPost()) {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
@@ -210,11 +206,11 @@ class Cart extends Tools_Cart_Cart {
 		$this->_view->showTaxCol   = isset($this->_shoppingConfig['showPriceIncTax']) ? $this->_shoppingConfig['showPriceIncTax'] : 0;
 		$this->_view->config       = $this->_shoppingConfig;
 		$this->_view->cartContent  = $this->_cartStorage->getContent();
-		$this->_view->shippingForm = ($this->_shoppingConfig['shippingType'] != 'pickup') ? new Forms_Shipping() : null;
 		return $this->_view->render('cart.phtml');
 	}
 
 	protected function _makeOptionCheckout() {
+		$this->_view->shippingForm = ($this->_shoppingConfig['shippingType'] != 'pickup') ? new Forms_Shipping() : null;
 		return $this->_view->render('checkout.phtml');
 	}
 

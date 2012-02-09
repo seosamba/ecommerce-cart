@@ -1,5 +1,12 @@
-<!-- checkout button -->
-<a href="javascript:void(0);" class="btn-checkout" title="<?php echo $this->translate('Start checkout'); ?>"><?php echo $this->translate('Checkout'); ?></a>
-<script type="text/javascript">
-	$('.btn-checkout').button();
-</script>
+<?php if($this->shippingForm !== null): ?>
+    <div id="shipping-form-block">
+		<span><?php echo $this->translate('ENTER YOUR SHIPPING ADDRESS'); ?></span>
+	    <?php echo $this->shippingForm; ?>
+    </div>
+	<button id="btn-checkout"><?php echo $this->translate('Calculate shiping and checkout'); ?></button>
+<?php else: ?>
+    <button id="btn-checkout-direct"><?php echo $this->translate('Checkout'); ?></button>
+<?php endif; ?>
+<div id="payment-zone" style="display: none;">
+	PAYMENTS WILL BE HERE
+</div>

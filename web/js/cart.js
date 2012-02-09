@@ -1,4 +1,6 @@
 $(function() {
+	$('#btn-checkout').button();
+
 	$(document).on('blur', '.product-qty', function() {
 		var sid = $(this).data('sid');
 		var qty = $(this).val();
@@ -46,6 +48,34 @@ $(function() {
                 showMessage(errorStatus, true);
             }
 		})
+	}).on('click', '#btn-checkout', function() {
+		var valid = true;
+		var requiredFields = ['#first-name', '#email', '#shipping-address1', '#country', '#state', '#zip-code'];
+
+		$.each(requiredFields, function(key, field) {
+			var element = $(field);
+			element.removeClass('notvalid');
+			if(element.val() == '') {
+				valid = false;
+				element.addClass('notvalid');
+			}
+		});
+
+		if(!valid) {
+			return false;
+		}
+		$.ajax({
+			url        : '/plugin/shopping/run/calculate/',
+			type       : 'post',
+			dataType   : 'json',
+			data       : $('#shipping-user-address').serialize(),
+			beforeSend : function() {showSpinner();},
+			success    : function(response) {
+				hideSpinner();
+				$('#payment-zone').slideDown();
+                showMessage(response.responseText, response.error);
+			}
+		});
 	});
 
 });

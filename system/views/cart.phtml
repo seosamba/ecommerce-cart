@@ -54,14 +54,5 @@
 			<?php endif; ?>
 		</tr>
 	</table>
-	<?php if($this->shippingForm !== null): ?>
-	    <div id="shipping-form-block">
-			<span><?php echo $this->translate('ENTER YOUR SHIPPING ADDRESS'); ?></span>
-		    <?php echo $this->shippingForm; ?>
-	    </div>
-		<button><?php echo $this->translate('Calculate shiping and checkout'); ?></button>
-	<?php else: ?>
-	    <button><?php echo $this->translate('Checkout'); ?></button>
-	<?php endif; ?>
 </div>
 <?php $this->jQuery()->addJavascriptFile($this->websiteUrl . 'plugins/cart/web/js/cart.js'); ?>
