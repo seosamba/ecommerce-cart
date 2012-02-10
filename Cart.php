@@ -135,12 +135,13 @@ class Cart extends Tools_Cart_Cart {
 		}
 		$productId = $this->_requestedParams['pid'];
 		$options   = $this->_requestedParams['options'];
+		$qty       = isset($this->_requestedParams['qty']) ? $this->_requestedParams['qty'] : 1;
 		if(!$productId) {
 			throw new Exceptions_SeotoasterPluginException('Can\'t add to cart: product not defined');
 		}
 		$product = $this->_productMapper->find($productId);
 		$options = ($options) ? $this->_parseProductOtions($productId, $options) : array();
-		$this->_cartStorage->add($product, $options);
+		$this->_cartStorage->add($product, $options, $qty);
 		$this->_saveCartSession();
 		return true;
 	}
