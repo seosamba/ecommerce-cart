@@ -49,10 +49,13 @@ class Cart extends Tools_Cart_Cart {
 	 */
 	protected $_currency       = null;
 
+	protected $_sessionHelper  = null;
+
 	protected function _init() {
 		$this->_cartStorage      = Tools_ShoppingCart::getInstance();
 		$this->_productMapper    = Models_Mapper_ProductMapper::getInstance();
 		$this->_shoppingConfig   = Models_Mapper_ShoppingConfig::getInstance()->getConfigParams();
+		$this->_sessionHelper    = Zend_Controller_Action_HelperBroker::getStaticHelper('session');
 		$this->_jsonHelper       = Zend_Controller_Action_HelperBroker::getStaticHelper('json');
 		$this->_view->weightSign = isset($this->_shoppingConfig['weightUnit']) ? $this->_shoppingConfig['weightUnit'] : 'kg';
 		$this->_initCurrency();
@@ -211,11 +214,26 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionCheckout() {
-		$this->_view->shippingForm = ($this->_shoppingConfig['shippingType'] != 'pickup') ? new Forms_Shipping() : null;
+		$shippingForm  = ($this->_shoppingConfig['shippingType'] != 'pickup') ? new Forms_Shipping() : null;
+
+		$sessionHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('session');
+		$customer      = $sessionHelper->getCurrentUser();
+		if($customer->getRoleId() == Shopping::ROLE_CUSTOMER) {
+			// replacing user logged in through the reglar login form to the valid customer model
+			$customer = Models_Mapper_CustomerMapper::getInstance()->find($customer->getId());
+			$shippingForm->populate($customer->toArray());
+			$sessionHelper->setCurrentUser($customer);
+		}
+
+		$this->_view->shippingForm = $shippingForm;
 		return $this->_view->render('checkout.phtml');
 	}
 
 	protected function _makeOptionSummary() {
+		$customer = $this->_sessionHelper->getCurrentUser();
+		if($customer->getRoleId() == Shopping::ROLE_CUSTOMER) {
+			$this->_cartStorage->setCustomerInfo($customer->toArray());
+		}
 		$this->_view->summary = $this->_cartStorage->calculate();
 		return $this->_view->render('summary.phtml');
 	}
@@ -225,6 +243,11 @@ class Cart extends Tools_Cart_Cart {
 		$cartSession->setId(Zend_Session::getId())
 			->setCartContent(serialize($this->_cartStorage->getContent()))
 			->setIpAddress($_SERVER['REMOTE_ADDR']);
+		$sessionHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('session');
+		$currentUser   = $sessionHelper->getCurrentUser();
+		if($currentUser && $currentUser->getRoleId() == Shopping::ROLE_CUSTOMER) {
+			$cartSession->setUserId($currentUser->getId());
+		}
         return Cart_Models_Mapper_CartSessionMapper::getInstance()->save($cartSession);
 	}
 

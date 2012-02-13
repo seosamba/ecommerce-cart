@@ -13,7 +13,8 @@ class Cart_Models_Mapper_CartSessionMapper extends Application_Model_Mappers_Abs
 		$data = array(
 			'id'           => $model->getId(),
 			'cart_content' => $model->getCartContent(),
-			'ip_address'   => $model->getIpAddress()
+			'ip_address'   => $model->getIpAddress(),
+			'user_id'      => $model->getUserId()
 		);
 
 		;

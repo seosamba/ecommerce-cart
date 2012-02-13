@@ -8,7 +8,7 @@ class Cart_Models_Model_CartSession extends Application_Model_Models_Abstract {
 
 	protected $_id          = '';
 
-
+	protected $_userId      = null;
 
 	public function setCartContent($cartContent) {
 		$this->_cartContent = $cartContent;
@@ -36,4 +36,15 @@ class Cart_Models_Model_CartSession extends Application_Model_Models_Abstract {
 	public function getId()	{
 		return $this->_id;
 	}
+
+	public function setUserId($userId) {
+		$this->_userId = $userId;
+		return $this;
+	}
+
+	public function getUserId()	{
+		return $this->_userId;
+	}
+
+
 }

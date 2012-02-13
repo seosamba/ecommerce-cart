@@ -1,5 +1,5 @@
 $(function() {
-	$('#btn-checkout').button();
+	//$('#btn-checkout').button();
 
 	$(document).on('blur', '.product-qty', function() {
 		var sid = $(this).data('sid');
@@ -48,7 +48,7 @@ $(function() {
                 showMessage(errorStatus, true);
             }
 		})
-	}).on('click', '#btn-checkout', function() {
+	}).on('submit', '#shipping-user-address', function() {
 		var valid = true;
 		var requiredFields = ['#first-name', '#email', '#shipping-address1', '#country', '#state', '#zip-code'];
 
@@ -64,11 +64,13 @@ $(function() {
 		if(!valid) {
 			return false;
 		}
+		var form = $(this);
+			form.attr('action')
 		$.ajax({
-			url        : '/plugin/shopping/run/calculate/',
+			url        : form.attr('action'),
 			type       : 'post',
 			dataType   : 'json',
-			data       : $('#shipping-user-address').serialize(),
+			data       : form.serialize(),
 			beforeSend : function() {showSpinner();},
 			success    : function(response) {
 				hideSpinner();
@@ -76,6 +78,7 @@ $(function() {
                 showMessage(response.responseText, response.error);
 			}
 		});
+		return false;
 	});
 
 });

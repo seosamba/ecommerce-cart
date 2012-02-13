@@ -3,10 +3,10 @@
 		<span><?php echo $this->translate('ENTER YOUR SHIPPING ADDRESS'); ?></span>
 	    <?php echo $this->shippingForm; ?>
     </div>
-	<button id="btn-checkout"><?php echo $this->translate('Calculate shiping and checkout'); ?></button>
+<!--	<button id="btn-checkout">--><?php //echo $this->translate('Calculate shiping and checkout'); ?><!--</button>-->
 <?php else: ?>
     <button id="btn-checkout-direct"><?php echo $this->translate('Checkout'); ?></button>
 <?php endif; ?>
-<div id="payment-zone" style="display: none;">
+<div id="payment-zone" style="display: none; width: 98%; background: #cccccc; text-align: center; height: 200px;margin: 5px 0px;">
 	PAYMENTS WILL BE HERE
 </div>
