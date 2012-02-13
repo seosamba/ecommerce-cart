@@ -77,6 +77,7 @@ $(function() {
 				$('#payment-zone').slideDown();
                 showMessage(response.responseText, response.error);
 				refreshCartSummary();
+				$('#shipping-form-block').slideUp();
 			}
 		});
 		return false;
