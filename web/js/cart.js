@@ -76,6 +76,7 @@ $(function() {
 				hideSpinner();
 				$('#payment-zone').slideDown();
                 showMessage(response.responseText, response.error);
+				refreshCartSummary();
 			}
 		});
 		return false;
