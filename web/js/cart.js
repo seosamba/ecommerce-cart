@@ -50,7 +50,7 @@ $(function() {
 		})
 	}).on('submit', '#shipping-user-address', function() {
 		var valid = true;
-		var requiredFields = ['#first-name', '#email', '#shipping-address1', '#country', '#state', '#zip-code'];
+		var requiredFields = ['#last-name', '#email', '#shipping-address1', '#country', '#city', '#zip-code'];
 
 		$.each(requiredFields, function(key, field) {
 			var element = $(field);
@@ -81,6 +81,8 @@ $(function() {
 			}
 		});
 		return false;
+	}).on('click', 'input', function() {
+		$(this).removeClass('notvalid');
 	});
 
 });
