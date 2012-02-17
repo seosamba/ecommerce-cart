@@ -129,7 +129,9 @@ class Cart extends Tools_Cart_Cart {
 		if(!$this->_request->isPost()) {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
-		$this->_responseHelper->success($this->_makeOptionCart());
+		$sid = $this->_request->getParam('sid');
+		$this->_responseHelper->success(Tools_Factory_WidgetFactory::createWidget('Cartitem', array('price', $sid))->render());
+		//$this->_responseHelper->success($this->_makeOptionCart());
 	}
 
 	protected function _addToCart() {
