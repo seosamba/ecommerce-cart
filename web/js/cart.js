@@ -97,11 +97,7 @@ function refreshCartSummary() {
 }
 
 function refreshPrice(sid) {
-    //if(cart.length) {
-        $.post('/plugin/cart/run/cartcontent/', {sid: sid}, function(response) {
-	        console.log($('input[data-sid=' + sid + ']'));
-	        $('span[data-sidprice=' + sid + ']').replaceWith(response.responseText);
-	        //$('.toastercart-item-price').text(response.responseText);
-        }, 'json');
-   // }
+    $.post('/plugin/cart/run/cartcontent/', {sid: sid}, function(response) {
+        $('span[data-sidprice=' + sid + ']').replaceWith(response.responseText);
+    }, 'json');
 }
