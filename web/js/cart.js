@@ -15,7 +15,7 @@ $(function() {
 			beforeSend : function() {showSpinner();},
 			success : function(response) {
                     hideSpinner();
-					refreshCart();
+					refreshPrice(sid);
 					refreshCartSummary();
             },
             error: function(xhr, errorStatus) {
@@ -37,7 +37,7 @@ $(function() {
                 if (!response.error) {
 	                hideSpinner();
 	                rmLink.parents('tr').remove();
-	                refreshCart();
+	                //refreshCart();
 	                refreshCartSummary();
                 } else {
                     hideSpinner();
@@ -96,11 +96,12 @@ function refreshCartSummary() {
     }
 }
 
-function refreshCart() {
-	var cart = $('#toaster-cart-holder');
-    if(cart.length) {
-        $.post('/plugin/cart/run/cartcontent/', function(response) {
-	        cart.replaceWith(response.responseText);
+function refreshPrice(sid) {
+    //if(cart.length) {
+        $.post('/plugin/cart/run/cartcontent/', {sid: sid}, function(response) {
+	        console.log($('input[data-sid=' + sid + ']'));
+	        $('span[data-sidprice=' + sid + ']').replaceWith(response.responseText);
+	        //$('.toastercart-item-price').text(response.responseText);
         }, 'json');
-    }
+   // }
 }
