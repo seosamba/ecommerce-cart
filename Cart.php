@@ -217,10 +217,10 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _makeOptionCheckout() {
 		$shippingForm  = ($this->_shoppingConfig['shippingType'] != 'pickup') ? new Forms_Shipping() : null;
-		if(Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART)) {
-			$sessionHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('session');
-			$shippingForm->populate($sessionHelper->getCurrentUser()->toArray());
-		}
+//		if(Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART)) {
+//			$sessionHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('session');
+//			$shippingForm->populate($sessionHelper->getCurrentUser()->toArray());
+//		}
 		$this->_view->shippingForm = $shippingForm;
 		return $this->_view->render('checkout.phtml');
 	}
