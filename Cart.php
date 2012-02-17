@@ -217,15 +217,9 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _makeOptionCheckout() {
 		$shippingForm  = ($this->_shoppingConfig['shippingType'] != 'pickup') ? new Forms_Shipping() : null;
-		$sessionHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('session');
-		$customer      = $sessionHelper->getCurrentUser();
-		if($customer->getRoleId() != Shopping::ROLE_CUSTOMER && $customer->getRoleId() != Tools_Security_Acl::ROLE_GUEST) {
-			// replacing user logged in through the reglar login form to the valid customer model
-			$customer = Models_Mapper_CustomerMapper::getInstance()->find($customer->getId());
-			$shippingForm->populate($customer->toArray());
-			$sessionHelper->setCurrentUser($customer);
-		} elseif($customer->getRoleId() == Shopping::ROLE_CUSTOMER) {
-			$shippingForm->populate($customer->toArray());
+		if(Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART)) {
+			$sessionHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('session');
+			$shippingForm->populate($sessionHelper->getCurrentUser()->toArray());
 		}
 		$this->_view->shippingForm = $shippingForm;
 		return $this->_view->render('checkout.phtml');
