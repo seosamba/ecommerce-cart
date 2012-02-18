@@ -147,7 +147,6 @@ class Cart extends Tools_Cart_Cart {
 		$product = $this->_productMapper->find($productId);
 		$options = ($options) ? $this->_parseProductOtions($productId, $options) : array();
 		$this->_cartStorage->add($product, $options, $qty);
-		$this->_saveCartSession();
 		return true;
 	}
 
@@ -158,7 +157,6 @@ class Cart extends Tools_Cart_Cart {
 		$storageId = $this->_requestedParams['sid'];
 		$newQty    = $this->_requestedParams['qty'];
 		if($this->_cartStorage->updateQty($storageId, $newQty)) {
-			$this->_saveCartSession();
 			return $this->_cartStorage->findBySid($storageId);
 		}
 	}
@@ -168,7 +166,6 @@ class Cart extends Tools_Cart_Cart {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
 		if($this->_cartStorage->remove($this->_requestedParams['sid'])) {
-			$this->_saveCartSession();
 			$this->_responseHelper->success($this->_translator->translate('Removed.'));
 		}
 		$this->_responseHelper->fail($this->_translator->translate('Cant remove product.'));
@@ -217,34 +214,42 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _makeOptionCheckout() {
 		$shippingForm  = ($this->_shoppingConfig['shippingType'] != 'pickup') ? new Forms_Shipping() : null;
-//		if(Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART)) {
-//			$sessionHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('session');
-//			$shippingForm->populate($sessionHelper->getCurrentUser()->toArray());
-//		}
+		$sessionHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('session');
+		$currentUser          = $sessionHelper->getCurrentUser();
+		if ($currentUser->getRoleId() !== Shopping::ROLE_CUSTOMER && !($currentUser instanceof Models_Model_Customer)) {
+			$isCustomer = false;
+			if ($currentUser->getId()){
+				// replacing user logged in through the reglar login form to the valid customer model is any
+				$customer = Models_Mapper_CustomerMapper::getInstance()->find($currentUser->getId());
+				if ($customer !== null) {
+					$sessionHelper->setCurrentUser($customer);
+					$currentUser = $customer;
+					$isCustomer = true;
+				}
+			}
+		} else {
+			$isCustomer = true;
+		}
+
+		if ($isCustomer) {
+			$shippingAddress = $currentUser->getShippingAddress();
+			if (!empty($shippingAddress)) {
+				$shippingForm->populate($shippingAddress);
+			}
+		}
+		$this->_cartStorage->saveCartSession();
+
 		$this->_view->shippingForm = $shippingForm;
 		return $this->_view->render('checkout.phtml');
 	}
 
 	protected function _makeOptionSummary() {
 		$customer = $this->_sessionHelper->getCurrentUser();
-		if($customer->getRoleId() == Shopping::ROLE_CUSTOMER) {
-			$this->_cartStorage->setCustomerInfo($customer->toArray());
+		if($customer->getRoleId() === Shopping::ROLE_CUSTOMER || $customer instanceof Models_Model_Customer) {
+			$this->_cartStorage->setCustomer($customer);
 		}
 		$this->_view->summary = $this->_cartStorage->calculate();
 		return $this->_view->render('summary.phtml');
-	}
-
-	protected function _saveCartSession() {
-		$cartSession = new Cart_Models_Model_CartSession();
-		$cartSession->setId(Zend_Session::getId())
-			->setCartContent(serialize($this->_cartStorage->getContent()))
-			->setIpAddress($_SERVER['REMOTE_ADDR']);
-		$sessionHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('session');
-		$currentUser   = $sessionHelper->getCurrentUser();
-		if($currentUser && $currentUser->getRoleId() == Shopping::ROLE_CUSTOMER) {
-			$cartSession->setUserId($currentUser->getId());
-		}
-        return Cart_Models_Mapper_CartSessionMapper::getInstance()->save($cartSession);
 	}
 
 	protected function _parseProductOtions($productId, $options) {
