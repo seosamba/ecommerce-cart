@@ -23,8 +23,6 @@ class MagicSpaces_Toastercart_Toastercart extends Tools_MagicSpaces_Abstract {
 		$cartStorage = Tools_ShoppingCart::getInstance();
 		$cartContent = $cartStorage->getContent();
 		$cartSize    = sizeof($cartContent);
-		//var_dump($spaceContent);
-		//var_dump($cartContent);
 
 		if($cartSize) {
 			foreach($cartContent as $sid => $cartItem) {

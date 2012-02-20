@@ -31,17 +31,21 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 		if(!isset($this->_options[0]) || !isset($this->_options[1])) {
 			return '';
 		}
-		$itemOption    = $this->_options[0];
-		$itemStorageId = $this->_options[1];
-		$rendererName  = '_render' . ucfirst($itemOption);
+		$option       = strtolower($this->_options[0]);
+		$sid          = $this->_options[1];
+		$rendererName = '_render' . ucfirst($option);
 		if(method_exists($this, $rendererName)) {
-			return $this->$rendererName($itemStorageId);
+			return $this->$rendererName($sid);
 		}
-		throw new Exceptions_SeotoasterException('Can not render <strong>' . $rendererName . '</strong>');
+		return '<span class="toastercart-item-' . $option . '">' . $this->_cartContent[$sid][$option] . '</span>';
 	}
 
-	protected function _renderName($sid) {
-   	    return '<span class="toastercart-item-name">' . $this->_cartContent[$sid]['name'] . '</span>';
+	protected function _renderUnitweight($sid) {
+		return '<span class="toaster-item-unitweight">' . $this->_cartContent[$sid]['weight'] . '</span>';
+	}
+
+	protected function _renderWeight($sid) {
+		return '<span class="toaster-item-weight" data-sidweight="' . $sid . '">' . ($this->_cartContent[$sid]['weight'] * $this->_cartContent[$sid]['qty']) . '</span>';
 	}
 
 	protected function _renderUnitprice($sid) {
@@ -59,15 +63,11 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 	}
 
 	protected function _renderQty($sid) {
-		return '<input type="number" class="product-qty" min="0" data-sid="' . $sid . '" data-pid="' . $this->_cartContent[$sid]['id'] . '" value="' . $this->_cartContent[$sid]['qty'] . '" />';
+		return '<input type="number" class="toastercart-item-qty product-qty" min="0" data-sid="' . $sid . '" data-pid="' . $this->_cartContent[$sid]['id'] . '" value="' . $this->_cartContent[$sid]['qty'] . '" />';
 	}
 
 	protected function _renderPhoto($sid) {
 		return '<img src="/media/' . str_replace('/', '/product/', $this->_cartContent[$sid]['photo']) . '" alt="' . $this->_cartContent[$sid]['name'] . '">';
-	}
-
-	protected function _renderDescription($sid) {
-		return '<span class="toastercart-item-description">' . Tools_Text_Tools::cutText($this->_cartContent[$sid]['description'], 100) . '</span>';
 	}
 
 	protected function _renderRemove($sid) {

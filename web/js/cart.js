@@ -98,6 +98,7 @@ function refreshCartSummary() {
 
 function refreshPrice(sid) {
     $.post('/plugin/cart/run/cartcontent/', {sid: sid}, function(response) {
-        $('span[data-sidprice=' + sid + ']').replaceWith(response.responseText);
+        $('span[data-sidprice=' + sid + ']').replaceWith(response.responseText.price);
+	    $('span[data-sidweight=' + sid + ']').replaceWith(response.responseText.weight);
     }, 'json');
 }
