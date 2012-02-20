@@ -214,29 +214,15 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _makeOptionCheckout() {
 		$shippingForm  = ($this->_shoppingConfig['shippingType'] != 'pickup') ? new Forms_Shipping() : null;
-		$sessionHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('session');
-		$currentUser          = $sessionHelper->getCurrentUser();
-		if ($currentUser->getRoleId() !== Shopping::ROLE_CUSTOMER && !($currentUser instanceof Models_Model_Customer)) {
-			$isCustomer = false;
-			if ($currentUser->getId()){
-				// replacing user logged in through the reglar login form to the valid customer model is any
-				$customer = Models_Mapper_CustomerMapper::getInstance()->find($currentUser->getId());
-				if ($customer !== null) {
-					$sessionHelper->setCurrentUser($customer);
-					$currentUser = $customer;
-					$isCustomer = true;
-				}
-			}
-		} else {
-			$isCustomer = true;
-		}
+		$currentUser   = Tools_ShoppingCart::getInstance()->getCustomer();
 
-		if ($isCustomer) {
+		if ($shippingForm) {
 			$shippingAddress = $currentUser->getShippingAddress();
 			if (!empty($shippingAddress)) {
 				$shippingForm->populate($shippingAddress);
 			}
 		}
+
 		$this->_cartStorage->saveCartSession();
 
 		$this->_view->shippingForm = $shippingForm;
@@ -244,10 +230,6 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionSummary() {
-		$customer = $this->_sessionHelper->getCurrentUser();
-		if($customer->getRoleId() === Shopping::ROLE_CUSTOMER || $customer instanceof Models_Model_Customer) {
-			$this->_cartStorage->setCustomer($customer);
-		}
 		$this->_view->summary = $this->_cartStorage->calculate();
 		return $this->_view->render('summary.phtml');
 	}
