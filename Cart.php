@@ -131,8 +131,8 @@ class Cart extends Tools_Cart_Cart {
 		}
 		$sid  = $this->_request->getParam('sid');
 		$data = array(
-			'price'  => Tools_Factory_WidgetFactory::createWidget('Cartitem', array('price', $sid))->render(),
-			'weight' => Tools_Factory_WidgetFactory::createWidget('Cartitem', array('weight', $sid))->render()
+			'price'  => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'price'))->render(),
+			'weight' => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'weight'))->render()
 		);
 		$this->_responseHelper->success($data);
 	}

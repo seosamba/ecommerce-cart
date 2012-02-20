@@ -31,8 +31,14 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 		if(!isset($this->_options[0]) || !isset($this->_options[1])) {
 			return '';
 		}
-		$option       = strtolower($this->_options[0]);
-		$sid          = $this->_options[1];
+		$sid          = array_shift($this->_options);
+
+		if(!isset($this->_cartContent[$sid])) {
+			return '';
+		}
+
+		$option       = strtolower(array_shift($this->_options));
+
 		$rendererName = '_render' . ucfirst($option);
 		if(method_exists($this, $rendererName)) {
 			return $this->$rendererName($sid);
@@ -40,25 +46,22 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 		return '<span class="toastercart-item-' . $option . '">' . $this->_cartContent[$sid][$option] . '</span>';
 	}
 
-	protected function _renderUnitweight($sid) {
-		return '<span class="toaster-item-unitweight">' . $this->_cartContent[$sid]['weight'] . '</span>';
-	}
-
 	protected function _renderWeight($sid) {
+		if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
+			return '<span class="toaster-item-unitweight">' . $this->_cartContent[$sid]['weight'] . '</span>';
+		}
 		return '<span class="toaster-item-weight" data-sidweight="' . $sid . '">' . ($this->_cartContent[$sid]['weight'] * $this->_cartContent[$sid]['qty']) . '</span>';
 	}
 
-	protected function _renderUnitprice($sid) {
-		$this->_view->sid         = $sid;
-		$this->_view->price       = $this->_cartContent[$sid]['price'];
-		$this->_view->priceOption = 'unitprice';
-		return $this->_view->render('commonprice.phtml');
-	}
-
 	protected function _renderPrice($sid) {
-		$this->_view->sid         = $sid;
-		$this->_view->price       = $this->_cartContent[$sid]['price'] * $this->_cartContent[$sid]['qty'];
-		$this->_view->priceOption = 'price';
+		$this->_view->sid = $sid;
+		if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
+			$this->_view->price       = $this->_cartContent[$sid]['price'];
+			$this->_view->priceOption = 'unitprice';
+		} else {
+			$this->_view->price       = $this->_cartContent[$sid]['price'] * $this->_cartContent[$sid]['qty'];
+			$this->_view->priceOption = 'price';
+		}
 		return $this->_view->render('commonprice.phtml');
 	}
 
@@ -67,7 +70,20 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 	}
 
 	protected function _renderPhoto($sid) {
-		return '<img src="/media/' . str_replace('/', '/product/', $this->_cartContent[$sid]['photo']) . '" alt="' . $this->_cartContent[$sid]['name'] . '">';
+		$folder = '/product/';
+		if(isset($this->_options[0])) {
+			$folder = '/' . $this->_options[0] . '/';
+		}
+		return '<img src="/media/' . str_replace('/', $folder, $this->_cartContent[$sid]['photo']) . '" alt="' . $this->_cartContent[$sid]['name'] . '">';
+	}
+
+	protected function _renderDescription($sid) {
+		if(isset($this->_options[0]) && $this->_options[0] == 'full') {
+			$description = $this->_cutDescription($this->_cartContent[$sid]['description']);
+			return '<span class="toaster-item-description-full">' . $description . '</span>';
+		}
+		$description = $this->_cutDescription($this->_cartContent[$sid]['shortDescription']);
+		return '<span class="toaster-item-description-short">' . $description . '</span>';
 	}
 
 	protected function _renderRemove($sid) {
@@ -78,6 +94,15 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 		$this->_view->cartItem   = $this->_cartContent[$sid];
 		$this->_view->weightSign = $this->_shoppingConfig['weightUnit'];
 		return $this->_view->render('options.phtml');
+	}
+
+	private function _cutDescription($description) {
+		if(isset($this->_options[0]) && intval($this->_options[0])) {
+			return Tools_Text_Tools::cutText($description, $this->_options[0]);
+		} else if(isset($this->_options[1]) && intval($this->_options[1])) {
+			return Tools_Text_Tools::cutText($description, $this->_options[1]);
+		}
+		return $description;
 	}
 
 }

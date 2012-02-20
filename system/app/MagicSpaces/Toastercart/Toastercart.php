@@ -27,7 +27,8 @@ class MagicSpaces_Toastercart_Toastercart extends Tools_MagicSpaces_Abstract {
 		if($cartSize) {
 			foreach($cartContent as $sid => $cartItem) {
 				$content .= preg_replace_callback('~{\$cartitem:(.+)}~', function($matches) use($sid) {
-					return Tools_Factory_WidgetFactory::createWidget('Cartitem', array($matches[1], $sid))->render();
+					$options = array_merge(array($sid), explode(':', $matches[1]));
+					return Tools_Factory_WidgetFactory::createWidget('Cartitem', $options)->render();
 				}, $spaceContent);
 			}
 		}
