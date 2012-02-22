@@ -220,7 +220,11 @@ class Cart extends Tools_Cart_Cart {
 		$currentUser   = Tools_ShoppingCart::getInstance()->getCustomer();
 
 		if ($shippingForm) {
-			$shippingAddress = $currentUser->getShippingAddress();
+			if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getShippingAddressKey())){
+				$shippingAddress = $currentUser->getAddressByUniqKey($uniqKey);
+			} else {
+				$shippingAddress = $currentUser->getDefaultAddress(Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
+			}
 			if (!empty($shippingAddress)) {
 				$shippingForm->populate($shippingAddress);
 			}
