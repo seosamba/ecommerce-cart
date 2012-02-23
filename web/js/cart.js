@@ -3,7 +3,8 @@ $(function() {
 
 	$(document).on('blur', '.product-qty', function() {
 		var sid = $(this).data('sid');
-		var qty = $(this).val();
+		var qty = parseInt($(this).val());
+        $(this).val(qty);
 		$.ajax({
 			url      : '/plugin/cart/run/cart',
 			type     : 'put',
@@ -37,7 +38,6 @@ $(function() {
                 if (!response.error) {
 	                hideSpinner();
 	                rmLink.parents('tr').remove();
-	                //refreshCart();
 	                refreshCartSummary();
                 } else {
                     hideSpinner();
@@ -74,16 +74,21 @@ $(function() {
 			beforeSend : function() {showSpinner();},
 			success    : function(response) {
 				hideSpinner();
-				$('#payment-zone').slideDown();
-                showMessage(response.responseText, response.error);
+                if (!response.error){
+                    $('#payment-zone').html(response.responseText);
+                    switchCheckoutLock(true);
+                } else {
+                    showMessage(response.responseText, response.error);
+                }
 				refreshCartSummary();
-				$('#shipping-form-block').slideUp();
 			}
 		});
 		return false;
 	}).on('click', 'input', function() {
 		$(this).removeClass('notvalid');
-	});
+	}).on('click', '#edit-cart-btn', function(){
+       switchCheckoutLock(false);
+    });
 
 });
 
@@ -101,4 +106,22 @@ function refreshPrice(sid) {
         $('span[data-sidprice=' + sid + ']').replaceWith(response.responseText.price);
 	    $('span[data-sidweight=' + sid + ']').replaceWith(response.responseText.weight);
     }, 'json');
+}
+
+function switchCheckoutLock(lock){
+    lock = !!lock;
+
+    if (lock) {
+        $('#checkout-form').hide();
+        $('#post-checkout-form').show();
+        $('.product-qty').attr('disabled', 'disabled');
+        $('.remove-item').hide();
+        $('#payment-zone').show();
+    } else {
+        $('#checkout-form').show();
+        $('#post-checkout-form').hide();
+        $('.product-qty').removeAttr('disabled');
+        $('.remove-item').show();
+        $('#payment-zone').empty().hide();
+    }
 }

@@ -216,6 +216,10 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionCheckout() {
+		if (count(Tools_ShoppingCart::getInstance()->getContent()) === 0 ){
+			return null;
+		}
+
 		$shippingForm  = ($this->_shoppingConfig['shippingType'] != 'pickup') ? new Forms_Shipping() : null;
 		$currentUser   = Tools_ShoppingCart::getInstance()->getCustomer();
 

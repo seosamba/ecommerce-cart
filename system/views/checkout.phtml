@@ -1,10 +1,16 @@
-<?php if($this->shippingForm !== null): ?>
-    <div id="shipping-form-block">
-		<span><?php echo $this->translate('ENTER YOUR SHIPPING ADDRESS'); ?></span>
-	    <?php echo $this->shippingForm; ?>
-    </div>
-<!--	<button id="btn-checkout">--><?php //echo $this->translate('Calculate shiping and checkout'); ?><!--</button>-->
+<div id="checkout-form">
+<?php if ($this->shippingForm !== null) : ?>
+	<span><?php echo $this->translate('ENTER YOUR SHIPPING ADDRESS'); ?></span>
+    <?php echo $this->shippingForm; ?>
+<?php else: ?>
+	<form class="toaster-checkout" action="<?php echo $this->websiteUrl;?>plugin/shopping/run/checkout/" method="POST">
+		<?php echo $this->formSubmit('checkout', $this->translate('Checkout'));?>
+	</form>
 <?php endif; ?>
-<div id="payment-zone" style="display: <?php echo (($this->shippingForm) ? 'none' : 'block'); ?>; width: 98%; background: #cccccc; text-align: center; height: 200px;margin: 5px 0px;">
-	PAYMENTS WILL BE HERE
+</div>
+
+<div id="post-checkout-form" style="display: none;">
+	<span><?php echo $this->translate('Your shipping address');?></span>
+	<input id="edit-cart-btn" type="button" class="blue-btn" value="<?php echo $this->translate('Edit Address or quantities');?>"/>
+	<p class=""></p>
 </div>
