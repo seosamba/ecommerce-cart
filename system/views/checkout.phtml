@@ -1,11 +1,7 @@
 <div id="checkout-form">
-<?php if ($this->shippingForm !== null) : ?>
-	<span><?php echo $this->translate('ENTER YOUR SHIPPING ADDRESS'); ?></span>
-    <?php echo $this->shippingForm; ?>
-<?php else: ?>
-	<form class="toaster-checkout" action="<?php echo $this->websiteUrl;?>plugin/shopping/run/checkout/" method="POST">
-		<?php echo $this->formSubmit('checkout', $this->translate('Checkout'));?>
-	</form>
+<?php if ($this->form !== null) : ?>
+	<span><?php echo $this->translate($this->form->getLegend()); ?></span>
+    <?php echo $this->form; ?>
 <?php endif; ?>
 </div>
 

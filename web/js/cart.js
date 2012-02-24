@@ -48,12 +48,13 @@ $(function() {
                 showMessage(errorStatus, true);
             }
 		})
-	}).on('submit', '#shipping-user-address', function() {
+	}).on('submit', 'form.toaster-checkout', function(e) {
+            e.preventDefault();
 		var valid = true;
-		var requiredFields = ['#last-name', '#email', '#shipping-address1', '#country', '#city', '#zip-code'];
+		var requiredFields = $('input.required,select.required', this);
 
-		$.each(requiredFields, function(key, field) {
-			var element = $(field);
+        $.each(requiredFields, function() {
+            var element = $(this);
 			element.removeClass('notvalid');
 			if(element.val() == '') {
 				valid = false;
@@ -65,8 +66,8 @@ $(function() {
 			return false;
 		}
 		var form = $(this);
-			form.attr('action')
-		$.ajax({
+
+        $.ajax({
 			url        : form.attr('action'),
 			type       : 'post',
 			dataType   : 'json',

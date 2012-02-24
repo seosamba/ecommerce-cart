@@ -220,23 +220,23 @@ class Cart extends Tools_Cart_Cart {
 			return null;
 		}
 
-		$shippingForm  = ($this->_shoppingConfig['shippingType'] != 'pickup') ? new Forms_Shipping() : null;
+		$userdataForm  = ($this->_shoppingConfig['shippingType'] != 'pickup') ? new Forms_Checkout_Shipping() : new Forms_Checkout_Billing();
 		$currentUser   = Tools_ShoppingCart::getInstance()->getCustomer();
 
-		if ($shippingForm) {
+		if ($userdataForm) {
 			if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getShippingAddressKey())){
 				$shippingAddress = $currentUser->getAddressByUniqKey($uniqKey);
 			} else {
 				$shippingAddress = $currentUser->getDefaultAddress(Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
 			}
 			if (!empty($shippingAddress)) {
-				$shippingForm->populate($shippingAddress);
+				$userdataForm->populate($shippingAddress);
 			}
 		}
 
 		$this->_cartStorage->saveCartSession();
 
-		$this->_view->shippingForm = $shippingForm;
+		$this->_view->form = $userdataForm;
 		return $this->_view->render('checkout.phtml');
 	}
 
