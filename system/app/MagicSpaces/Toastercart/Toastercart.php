@@ -36,7 +36,7 @@ class MagicSpaces_Toastercart_Toastercart extends Tools_MagicSpaces_Abstract {
 		return ($content) ? $this->_view->render('toastercart.phtml') : 'Cart is empty';
 	}
 
-	private function _findCheckoutTemplateContent() {
+	protected function _findCheckoutTemplateContent() {
 		$checkoutPage     = Tools_Page_Tools::getCheckoutPage();
 		$checkoutTemplate = Application_Model_Mappers_TemplateMapper::getInstance()->find($checkoutPage->getTemplateId());
 		if(!$checkoutTemplate instanceof Application_Model_Models_Template) {

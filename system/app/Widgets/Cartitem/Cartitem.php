@@ -48,9 +48,9 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 
 	protected function _renderWeight($sid) {
 		if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
-			return '<span class="toaster-item-unitweight">' . $this->_cartContent[$sid]['weight'] . '</span>';
+			return '<span class="toastercart-item-unitweight">' . $this->_cartContent[$sid]['weight'] . '</span>';
 		}
-		return '<span class="toaster-item-weight" data-sidweight="' . $sid . '">' . ($this->_cartContent[$sid]['weight'] * $this->_cartContent[$sid]['qty']) . '</span>';
+		return '<span class="toastercart-item-weight" data-sidweight="' . $sid . '">' . ($this->_cartContent[$sid]['weight'] * $this->_cartContent[$sid]['qty']) . '</span>';
 	}
 
 	protected function _renderPrice($sid) {
@@ -66,6 +66,9 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 	}
 
 	protected function _renderQty($sid) {
+		if(isset($this->_options[0]) && $this->_options[0] == 'noedit') {
+			return '<span class="toastercart-item-qty">' . $this->_cartContent[$sid]['qty'] . '</span>';
+		}
 		return '<input type="number" class="toastercart-item-qty product-qty" min="0" data-sid="' . $sid . '" data-pid="' . $this->_cartContent[$sid]['id'] . '" value="' . $this->_cartContent[$sid]['qty'] . '" />';
 	}
 
@@ -80,10 +83,10 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 	protected function _renderDescription($sid) {
 		if(isset($this->_options[0]) && $this->_options[0] == 'full') {
 			$description = $this->_cutDescription($this->_cartContent[$sid]['description']);
-			return '<span class="toaster-item-description-full">' . $description . '</span>';
+			return '<span class="toastercart-item-description-full">' . $description . '</span>';
 		}
 		$description = $this->_cutDescription($this->_cartContent[$sid]['shortDescription']);
-		return '<span class="toaster-item-description-short">' . $description . '</span>';
+		return '<span class="toastercart-item-description-short">' . $description . '</span>';
 	}
 
 	protected function _renderRemove($sid) {
@@ -94,6 +97,10 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 		$this->_view->cartItem   = $this->_cartContent[$sid];
 		$this->_view->weightSign = $this->_shoppingConfig['weightUnit'];
 		return $this->_view->render('options.phtml');
+	}
+
+	protected function _renderNote($sid) {
+		return '<span class="toaster-item-note">' . $this->_cartContent[$sid]['note'] . '</span>';
 	}
 
 	private function _cutDescription($description) {
