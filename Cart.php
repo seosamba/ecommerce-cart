@@ -220,21 +220,27 @@ class Cart extends Tools_Cart_Cart {
 			return null;
 		}
 
-		$userdataForm  = ($this->_shoppingConfig['shippingType'] != 'pickup') ? new Forms_Checkout_Shipping() : new Forms_Checkout_Billing();
-		$currentUser   = Tools_ShoppingCart::getInstance()->getCustomer();
-
-		if ($userdataForm) {
-			if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getShippingAddressKey())){
-				$shippingAddress = $currentUser->getAddressByUniqKey($uniqKey);
-			} else {
-				$shippingAddress = $currentUser->getDefaultAddress(Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
-			}
-			if (!empty($shippingAddress)) {
-				$userdataForm->populate($shippingAddress);
-			}
+		if ($this->_shoppingConfig['shippingType'] !== Tools_Shipping_Shipping::SHIPPING_TYPE_PICKUP){
+			$userdataForm = new Forms_Checkout_Shipping();
+			$addrType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
+		} else {
+			$userdataForm = new Forms_Checkout_Billing();
+			$addrType = Models_Model_Customer::ADDRESS_TYPE_BILLING;
 		}
 
-		$this->_cartStorage->saveCartSession();
+		if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getAddressKey($addrType))){
+			$shippingAddress = Tools_ShoppingCart::getAddressById($uniqKey);
+		}
+
+		//@todo add form prepopulation for logged user
+
+		if (!empty($shippingAddress)) {
+			$userdataForm->populate($shippingAddress);
+		} else {
+			$userdataForm->populate(array(
+				'country' => $this->_shoppingConfig['country']
+			));
+		}
 
 		$this->_view->form = $userdataForm;
 		return $this->_view->render('checkout.phtml');

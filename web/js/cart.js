@@ -74,14 +74,16 @@ $(function() {
 			data       : form.serialize(),
 			beforeSend : function() {showSpinner();},
 			success    : function(response) {
-				hideSpinner();
-                if (!response.error){
-                    $('#payment-zone').html(response.responseText);
-                    switchCheckoutLock(true);
-                } else {
-                    showMessage(response.responseText, response.error);
+                hideSpinner();
+                if (response.error){
+                    showMessage(response.responseText, true);
+                    return false;
                 }
+
+                fireCallback(response.responseText);
+
 				refreshCartSummary();
+                console.log(response);
 			}
 		});
 		return false;
@@ -125,4 +127,68 @@ function switchCheckoutLock(lock){
         $('.remove-item').show();
         $('#payment-zone').empty().hide();
     }
+}
+
+function fireCallback(responseText) {
+    if (responseText.hasOwnProperty('callback')){
+        var callback = responseText.callback;
+        callback = window[callback];
+        if (typeof callback === 'function' ){
+            callback.call(this, responseText.data);
+        } else {
+            console.error('Callback "'+responseText.callback+'" found but not function defined');
+        }
+    }
+}
+
+function renderPaymentZone(html){
+    switchCheckoutLock(true);
+    $('#payment-zone').html(html);
+    refreshCartSummary();
+}
+
+function showShippingDialog(data) {
+    var $el = $('<div></div>', {id : 'shipping-multiselect'});
+
+    $.each(data, function(index, shipper){
+        if (!shipper.hasOwnProperty('service') || !shipper.hasOwnProperty('rates')){
+            return false;
+        }
+        var $ul = $('<ul></ul>').data('service', shipper.service);
+
+        $.each(shipper.rates, function (index, rate){
+            var item = '<label style="cursor: pointer">' +
+                '<input type="radio" name="shipping" value="'+index+'"/><span>'+rate.type+'</span>'+
+                '<span class="price">'+rate.price+'</span></label>';
+            $('<li></li>').html(item).appendTo($ul);
+        });
+        $ul.appendTo($el);
+    });
+
+    $el.appendTo('body').dialog({
+        modal: true,
+        resizable: false,
+        buttons : {
+            'Apply': applyUserChoise
+        }
+    });
+}
+
+function applyUserChoise() {
+    var radio = $('#shipping-multiselect input:radio[name=shipping]:checked');
+    var data = JSON.stringify({
+        service: radio.closest('ul').data('service'),
+        index: radio.val()
+    });
+    $.ajax({
+        url: '/plugin/shopping/run/checkout/',
+        type: 'PUT',
+        dataType: 'json',
+        data: data,
+        success: function(response){
+            console.log(response);
+            fireCallback(response.responseText);
+            $('#shipping-multiselect').dialog('destroy').remove();
+        }
+    });
 }
