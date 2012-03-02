@@ -230,9 +230,10 @@ class Cart extends Tools_Cart_Cart {
 
 		if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getAddressKey($addrType))){
 			$shippingAddress = Tools_ShoppingCart::getAddressById($uniqKey);
+		} else {
+			$customer = Tools_ShoppingCart::getInstance()->getCustomer();
+			$shippingAddress = $customer->getDefaultAddress();
 		}
-
-		//@todo add form prepopulation for logged user
 
 		if (!empty($shippingAddress)) {
 			$userdataForm->populate($shippingAddress);
