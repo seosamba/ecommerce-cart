@@ -51,7 +51,7 @@ $(function() {
 	}).on('submit', 'form.toaster-checkout', function(e) {
             e.preventDefault();
 		var valid = true;
-		var requiredFields = $('input.required,select.required', this);
+		var requiredFields = $('.required:input', this);
 
         $.each(requiredFields, function() {
             var element = $(this);

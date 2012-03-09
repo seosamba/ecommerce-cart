@@ -1,3 +1,11 @@
+<?php $this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/libs/jquery/addresschain.jquery.js');?>
+<script>
+<?php $this->jQuery()->onLoadCaptureStart();?>
+	$.fn.addressChain.options.url = '<?php echo $this->websiteUrl;?>/plugin/shopping/run/getdata/type/states/';
+	$('form.toaster-checkout').addressChain();
+<?php $this->jQuery()->onLoadCaptureEnd();?>
+</script>
+
 <div id="checkout-form">
 <?php if ($this->form !== null) : ?>
 	<span><?php echo $this->translate($this->form->getLegend()); ?></span>

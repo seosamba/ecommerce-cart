@@ -229,17 +229,18 @@ class Cart extends Tools_Cart_Cart {
 		}
 
 		if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getAddressKey($addrType))){
-			$shippingAddress = Tools_ShoppingCart::getAddressById($uniqKey);
+			$customerAddress = Tools_ShoppingCart::getAddressById($uniqKey);
 		} else {
 			$customer = Tools_ShoppingCart::getInstance()->getCustomer();
-			$shippingAddress = $customer->getDefaultAddress();
+			$customerAddress = $customer->getDefaultAddress($addrType);
 		}
 
-		if (!empty($shippingAddress)) {
-			$userdataForm->populate($shippingAddress);
+		if (!empty($customerAddress)) {
+			$userdataForm->populate($customerAddress);
 		} else {
 			$userdataForm->populate(array(
-				'country' => $this->_shoppingConfig['country']
+				'country' => $this->_shoppingConfig['country'],
+				'state'   => $this->_shoppingConfig['state']
 			));
 		}
 
