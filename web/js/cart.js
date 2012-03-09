@@ -81,9 +81,7 @@ $(function() {
                 }
 
                 fireCallback(response.responseText);
-
 				refreshCartSummary();
-                console.log(response);
 			}
 		});
 		return false;
