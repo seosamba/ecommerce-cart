@@ -155,7 +155,7 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _getDefaultProductOptions(Models_Model_Product $product) {
 		$productOptions = $product->getDefaultOptions();
-		if(!is_array($productOptions)) {
+		if(!is_array($productOptions) || empty($productOptions)) {
 			return array();
 		}
 		foreach($productOptions as $key => $option) {
