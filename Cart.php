@@ -148,9 +148,31 @@ class Cart extends Tools_Cart_Cart {
 			throw new Exceptions_SeotoasterPluginException('Can\'t add to cart: product not defined');
 		}
 		$product = $this->_productMapper->find($productId);
-		$options = ($options) ? $this->_parseProductOtions($productId, $options) : array();
+		$options = ($options) ? $this->_parseProductOtions($productId, $options) : $this->_getDefaultProductOptions($product);
 		$this->_cartStorage->add($product, $options, $qty);
 		return true;
+	}
+
+	protected function _getDefaultProductOptions(Models_Model_Product $product) {
+		$productOptions = $product->getDefaultOptions();
+		if(!is_array($productOptions)) {
+			return array();
+		}
+		foreach($productOptions as $key => $option) {
+			if(isset($option['selection']) && is_array($option['selection']) && !empty($option['selection'])) {
+				$selections = $option['selection'];
+				foreach($selections as $selectionData) {
+					if(!$selectionData['isDefault']) {
+						continue;
+					}
+		 	        return array(
+				        $selectionData['option_id'] => $selectionData['id']
+			        );
+				}
+			} else {
+				return array();
+			}
+		}
 	}
 
 	protected function _updateCart() {
