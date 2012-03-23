@@ -1,13 +1,18 @@
 $(function() {
 	//$('#btn-checkout').button();
 
-	$(document).on('blur', '.product-qty', function() {
+	$(document).on('change', '.product-qty', function() {
 		var sid = $(this).data('sid');
 		var qty = parseInt($(this).val());
+        if (isNaN(qty)){
+            $(this).addClass('notvalid').val('').focus();
+            return false;
+        }
         $(this).val(qty);
+        console.log(qty);
 		$.ajax({
 			url      : '/plugin/cart/run/cart',
-			type     : 'put',
+			type     : qty <= 0 ? 'delete' : 'put',
 			dataType : 'json',
 			data     : {
 				sid: sid,
@@ -15,9 +20,13 @@ $(function() {
 			},
 			beforeSend : function() {showSpinner();},
 			success : function(response) {
-                    hideSpinner();
-					refreshPrice(sid);
-					refreshCartSummary();
+                hideSpinner();
+                if (qty <= 0){
+
+                }else{
+                    refreshPrice(sid);
+                }
+                refreshCartSummary();
             },
             error: function(xhr, errorStatus) {
                 showMessage(errorStatus, true);
