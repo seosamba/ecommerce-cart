@@ -63,10 +63,16 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	private function _initCurrency() {
-		$this->_currency = new Zend_Currency();
-		$this->_currency->setFormat(array(
-			'display' => Zend_Currency::NO_SYMBOL
-		));
+		if (!Zend_Registry::isRegistered('Zend_Currency')){
+			$this->_currency = new Zend_Currency(array(
+				'display' => Zend_Currency::NO_SYMBOL
+			));
+		} else {
+			$this->_currency = Zend_Registry::get('Zend_Currency');
+			$this->_currency->setFormat(array(
+				'display' => Zend_Currency::NO_SYMBOL
+			));
+		}
 		$correctCurrency                = isset($this->_shoppingConfig['currency']) ? $this->_shoppingConfig['currency'] : self::DEFAULT_CURRENCY_NAME;
 		$this->_view->currencySymbol    = $this->_currency->getSymbol($correctCurrency, self::DEFAULT_LOCALE);
 		$this->_view->currencyShortName = $correctCurrency;
