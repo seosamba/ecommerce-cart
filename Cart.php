@@ -79,12 +79,16 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _getCheckoutPage() {
-		$checkoutPage = Tools_Page_Tools::getCheckoutPage();
-		if(!$checkoutPage instanceof Application_Model_Models_Page) {
-			if(Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_ADMINPANEL)) {
-				throw new Exceptions_SeotoasterPluginException('Error rendering cart. Please select a checkout page');
+		$cacheHelper = Zend_Controller_Action_HelperBroker::getExistingHelper('cache');
+		if (null === ($checkoutPage = $cacheHelper->load(__CLASS__.'_checkoutpage', 'store_'))){
+			$checkoutPage = Tools_Page_Tools::getCheckoutPage();
+			if(!$checkoutPage instanceof Application_Model_Models_Page) {
+				if(Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_ADMINPANEL)) {
+					throw new Exceptions_SeotoasterPluginException('Error rendering cart. Please select a checkout page');
+				}
+				throw new Exceptions_SeotoasterPluginException('<!-- Error rendering cart. Please select a checkout page -->');
 			}
-			throw new Exceptions_SeotoasterPluginException('<!-- Error rendering cart. Please select a checkout page -->');
+			$cacheHelper->save(__CLASS__.'_checkoutpage', $checkoutPage, 'store_', array(), Helpers_Action_Cache::CACHE_SHORT);
 		}
 		$this->_view->checkoutPage = $checkoutPage;
 		return $checkoutPage;
