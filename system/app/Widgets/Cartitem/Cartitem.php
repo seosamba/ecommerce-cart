@@ -10,6 +10,8 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 
 	protected $_shoppingConfig = array();
 
+	protected $_cacheable      = false;
+
 	public function setOptions($options) {
 		$this->_options = $options;
 		return $this;
