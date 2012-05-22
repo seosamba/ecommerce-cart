@@ -1,15 +1,15 @@
 <div id="toaster-cart" class="toaster-cart">
 	<div class="row">
 		<span><?php echo $this->translate('Products in your cart'); ?></span>
-		<span id="toaster-cart-quantity"><?php echo $this->itemsCount;?></span>
+		<span class="toaster-cart-quantity cart-items-count"><?php echo $this->itemsCount;?></span>
 	</div>
 	<div class="row">
 		<span><?php echo $this->translate('Total tax'); ?></span>
-		<span id="toaster-cart-quantity"><?php echo $this->currency($this->summary['totalTax']);?></span>
+		<span class="toaster-cart-quantity cart-total-tax"><?php echo $this->currency($this->summary['totalTax']);?></span>
 	</div>
 	<div class="row">
 		<span><?php echo $this->translate('Total price'); ?></span>
-		<span id="toaster-cart-quantity"><?php echo $this->currency($this->summary['total']);?></span>
+		<span class="toaster-cart-quantity cart-total-price"><?php echo $this->currency($this->summary['total']);?></span>
 	</div>
 	<div class="row"><a href="<?php echo $this->checkoutPage->getUrl(); ?>" title="<?php echo $this->checkoutPage->getH1(); ?>"><?php echo $this->translate('Go to cart'); ?></a></div>
 </div>
