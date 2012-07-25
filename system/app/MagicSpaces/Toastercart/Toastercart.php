@@ -16,9 +16,12 @@ class MagicSpaces_Toastercart_Toastercart extends Tools_MagicSpaces_Abstract {
 	protected function _run() {
 		$content         = '';
 		$tmpPageContent  = $this->_content;
-		$this->_content  = $this->_findCheckoutTemplateContent();
+		$this->_content  = $this->_findPageTemplateContent();
 		$spaceContent    = $this->_parse();
 		$this->_content  = $tmpPageContent;
+        if(!$spaceContent) {
+            $spaceContent = $this->_parse();
+        }
 
 		$cartStorage = Tools_ShoppingCart::getInstance();
 		$cartContent = $cartStorage->getContent();
@@ -36,13 +39,14 @@ class MagicSpaces_Toastercart_Toastercart extends Tools_MagicSpaces_Abstract {
 		return ($content) ? $this->_view->render('toastercart.phtml') : 'Cart is empty';
 	}
 
-	protected function _findCheckoutTemplateContent() {
-		$checkoutPage     = Tools_Page_Tools::getCheckoutPage();
-		$checkoutTemplate = Application_Model_Mappers_TemplateMapper::getInstance()->find($checkoutPage->getTemplateId());
-		if(!$checkoutTemplate instanceof Application_Model_Models_Template) {
+	protected function _findPageTemplateContent() {
+		$page     = Application_Model_Mappers_PageMapper::getInstance()->find($this->_toasterData['id']);
+		$template = Application_Model_Mappers_TemplateMapper::getInstance()->find($page->getTemplateId());
+		unset($page);
+        if(!$template instanceof Application_Model_Models_Template) {
 			return false;
 		}
-		return $checkoutTemplate->getContent();
+		return $template->getContent();
 	}
 
 	protected function _buildItem($option, $sid) {
