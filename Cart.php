@@ -206,18 +206,11 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionAddtocart() {
-		$productId = (isset($this->_options[1]) && intval($this->_options[1])) ? $this->_options[1] : 0;
-		if(!$productId) {
-			$product = $this->_productMapper->findByPageId($this->_seotoasterData['id']);
-			if($product instanceof Models_Model_Product) {
-				$productId = $product->getId();
-				unset($product);
-			}
-		}
-		$checkOutPage                 = $this->_getCheckoutPage();
-		$this->_view->checkOutPageUrl = $checkOutPage->getUrl();
-		unset($checkOutPage);
-		$this->_view->productId = $productId;
+        if(!isset($this->_options[1]) || !intval($this->_options[1])) {
+            throw new Exceptions_SeotoasterPluginException('Product id is missing!');
+        }
+		$this->_view->checkOutPageUrl = $this->_getCheckoutPage()->getUrl();
+		$this->_view->productId       = $this->_options[1];
    	    return $this->_view->render('addtocart.phtml');
 	}
 
