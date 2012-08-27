@@ -58,46 +58,46 @@ $(function() {
             }
 		})
 	}).on('submit', 'form.toaster-checkout', function(e) {
-            e.preventDefault();
-		var valid = true;
-		var requiredFields = $('.required:input', this);
-
-        $.each(requiredFields, function() {
-            var element = $(this);
-			element.removeClass('notvalid');
-			if(element.val() == '') {
-				valid = false;
-				element.addClass('notvalid');
-			}
-		});
-
-		if(!valid) {
-			return false;
-		}
-		var form = $(this);
-
-        $.ajax({
-			url        : form.attr('action'),
-			type       : 'post',
-			dataType   : 'json',
-			data       : form.serialize(),
-			beforeSend : function() {showSpinner();},
-			success    : function(response) {
-                hideSpinner();
-                if (response.error){
-                    showMessage(response.responseText, true);
-                    return false;
-                }
-
-                fireCallback(response.responseText);
-				refreshCartSummary();
-			}
-		});
-		return false;
+//            e.preventDefault();
+//		var valid = true;
+//		var requiredFields = $('.required:input', this);
+//
+//        $.each(requiredFields, function() {
+//            var element = $(this);
+//			element.removeClass('notvalid');
+//			if(element.val() == '') {
+//				valid = false;
+//				element.addClass('notvalid');
+//			}
+//		});
+//
+//		if(!valid) {
+//			return false;
+//		}
+//		var form = $(this);
+//
+//        $.ajax({
+//			url        : form.attr('action'),
+//			type       : 'post',
+//			dataType   : 'json',
+//			data       : form.serialize(),
+//			beforeSend : function() {showSpinner();},
+//			success    : function(response) {
+//                hideSpinner();
+//                if (response.error){
+//                    showMessage(response.responseText, true);
+//                    return false;
+//                }
+//
+//                fireCallback(response.responseText);
+//				refreshCartSummary();
+//			}
+//		});
+//		return false;
 	}).on('click', 'input', function() {
 		$(this).removeClass('notvalid');
 	}).on('click', '#edit-cart-btn', function(){
-       switchCheckoutLock(false);
+//       switchCheckoutLock(false);
     });
 
 });

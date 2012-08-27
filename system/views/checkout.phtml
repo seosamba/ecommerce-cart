@@ -1,20 +1,26 @@
-<?php $this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/libs/jquery/addresschain.jquery.js');?>
-<script>
-<?php $this->jQuery()->onLoadCaptureStart();?>
-	$.fn.addressChain.options.url = '<?php echo $this->websiteUrl;?>/plugin/shopping/run/getdata/type/states/';
-	$('form.toaster-checkout').addressChain();
-<?php $this->jQuery()->onLoadCaptureEnd();?>
-</script>
+<?php
+$this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/libs/jquery/addresschain.jquery.js');
+$this->headScript()->appendFile($this->websiteUrl.'plugins/shopping/web/js/libs/require.min.js', null, array('data-main' => $this->websiteUrl.'plugins/cart/web/js/checkout.js'));
+?>
 
-<div id="checkout-form">
+<div id="checkout-widget">
 <?php if ($this->form !== null) : ?>
-	<span><?php echo $this->translate($this->form->getLegend()); ?></span>
-    <?php echo $this->form; ?>
+	<?php echo $this->form; ?>
 <?php endif; ?>
+	<div id="checkout-widget-address-preview" style="display: none;">
+		<span><?php echo $this->translate('Your address');?></span>
+		<input id="edit-cart-btn" type="button" class="blue-btn" value="<?php echo $this->translate('Edit Address or quantities');?>"/>
+		<div class="cart-address-preview"></div>
+	</div>
 </div>
 
-<div id="post-checkout-form" style="display: none;">
-	<span><?php echo $this->translate('Your shipping address');?></span>
-	<input id="edit-cart-btn" type="button" class="blue-btn" value="<?php echo $this->translate('Edit Address or quantities');?>"/>
-	<p class=""></p>
-</div>
+<style type="text/css">
+	.required::after {
+		content: ' *';
+		color: red;
+		font-weight: bold;
+	}
+	.notvalid {
+		color: red;
+	}
+</style>
