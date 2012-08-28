@@ -1,6 +1,5 @@
 <?php
 $this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/libs/jquery/addresschain.jquery.js');
-$this->headScript()->appendFile($this->websiteUrl.'plugins/shopping/web/js/libs/require.min.js', null, array('data-main' => $this->websiteUrl.'plugins/cart/web/js/checkout.js'));
 ?>
 
 <div id="checkout-widget">
@@ -13,7 +12,20 @@ $this->headScript()->appendFile($this->websiteUrl.'plugins/shopping/web/js/libs/
 		<div class="cart-address-preview"></div>
 	</div>
 </div>
+<script type="text/javascript">
+$(function(){
+	var d=document,
+		g=d.createElement('script'),
+		s=d.getElementsByTagName('script')[0];
+		g.type='text/javascript';
+		g.defer=true;
+		g.async=true;
+		g.src='<?php echo $this->websiteUrl;?>plugins/shopping/web/js/libs/require.min.js',
+		g.setAttribute('data-main', '<?php echo $this->websiteUrl;?>plugins/cart/web/js/checkout.js');
 
+	s.parentNode.insertBefore(g,s);
+});
+</script>
 <style type="text/css">
 	.required::after {
 		content: ' *';
