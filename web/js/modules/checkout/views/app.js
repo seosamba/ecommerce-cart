@@ -100,7 +100,7 @@ define([
                                 type: shipper.title || shipper.name,
                                 price: 0
                             }],
-                            name:  shipper.title || shipper.name
+                            name: shipper.name
                         }));
                         return false;
                     }
@@ -111,11 +111,11 @@ define([
                         success: function(response){
                             form.find('ul#'+shipper.name+'-methods').html(self.templates.shipperMethods({
                                 services: response,
-                                name:  shipper.title || shipper.name
+                                name: shipper.name
                             }));
                         },
                         error: function(){
-                            form.find('ul#'+shipper.name+'-methods').html(shipper.name+' service in currently unavailable.')
+                            form.find('ul#'+shipper.name+'-methods').html(shipper.name+' service in currently unreachable.')
                         }
                     }).done(function(){
                         self.shipperXHRCount--;

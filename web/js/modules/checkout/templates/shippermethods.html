@@ -4,7 +4,8 @@
     <% } else { %>
     <li>
     <label style="cursor: pointer">
-    <input type="radio" name="shipper" value="<%= name+'::'+index %>"/><%= name %>:&nbsp<span><%= s.type %></span>
-    <span class="price"><%= s.price %></span></label>
+    <input type="radio" name="shipper" value="<%= name+'::'+index %>"/><span class="shipping-method-title"><%= s.type %></span>
+    <span class="shipping-price"><%= s.price %></span></label>
+        <% if (s.descr) { %><p><%= s.descr %></p><% } %>
     <% } %>
 <% }) %>
