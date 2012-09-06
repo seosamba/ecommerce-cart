@@ -57,11 +57,12 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 
 	protected function _renderPrice($sid) {
 		$this->_view->sid = $sid;
+		$price = (bool)$this->_shoppingConfig['showPriceIncTax'] ? $this->_cartContent[$sid]['taxPrice'] : $this->_cartContent[$sid]['price'] ;
 		if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
-			$this->_view->price       = $this->_cartContent[$sid]['price'];
+			$this->_view->price       = $price;
 			$this->_view->priceOption = 'unitprice';
 		} else {
-			$this->_view->price       = $this->_cartContent[$sid]['price'] * $this->_cartContent[$sid]['qty'];
+			$this->_view->price       = $price * $this->_cartContent[$sid]['qty'];
 			$this->_view->priceOption = 'price';
 		}
 		return $this->_view->render('commonprice.phtml');
