@@ -2,9 +2,9 @@
     <legend><%= caption %></legend>
     <input type="hidden" name="check" value="shipper">
     <% _.each(shippers, function(shipper) { %>
-    <ul id="<%= shipper.name %>-methods">
+    <ul id="<%= shipper.name %>-methods" class="shipping-methods">
         <li>quering <%= shipper.name %></li>
     </ul>
     <% }); %>
-    <input type="submit" value="Apply" style="display: none;">
+    <input type="submit" value="Apply" >
 </form>

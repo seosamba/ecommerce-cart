@@ -325,18 +325,27 @@ class Cart extends Tools_Cart_Cart {
 		$shipper = filter_var($this->_request->getParam('shipper'), FILTER_SANITIZE_STRING);
 		if ($shipper){
 			list($shipper, $index) = explode('::', $shipper);
-			$vault = $this->_sessionHelper->shippingRatesVault;
-			if (is_array($vault) && isset($vault[$shipper])){
-				if (isset($vault[$shipper][$index])){
-					$service = $vault[$shipper][$index];
-					Tools_ShoppingCart::getInstance()->setShippingData(array(
+			if ($shipper === Shopping::SHIPPING_PICKUP){
+				$service = array(
+					'service'   => Shopping::SHIPPING_PICKUP,
+					'type'      => '',
+					'price'     => 0
+				);
+			} else {
+				$vault = $this->_sessionHelper->shippingRatesVault;
+				if (is_array($vault) && isset($vault[$shipper])){
+					if (isset($vault[$shipper][$index])){
+						$service = array(
 							'service'   => $shipper,
-							'type'      => $service['type'],
-							'price'     => $service['price']
-					))->save()->saveCartSession(null);
-
-					return $this->_response->clearAllHeaders()->setBody($this->_renderPaymentZone())->sendResponse();
+							'type'      => $vault[$shipper][$index]['type'],
+							'price'     => $vault[$shipper][$index]['price']
+						);
+					}
 				}
+			}
+			if (isset($service)){
+				Tools_ShoppingCart::getInstance()->setShippingData($service)->save()->saveCartSession(null);
+				return $this->_response->clearAllHeaders()->setBody($this->_renderPaymentZone())->sendResponse();
 			}
 		}
 		return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)->sendResponse();
@@ -380,18 +389,21 @@ class Cart extends Tools_Cart_Cart {
 			}
 		}
 
-		$shippers = array_map(function($shipper){
+		$shippers = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
+		if (!empty($shippers)){
+			$shippers = array_map(function($shipper){
 				return $shipper['name'] !== Shopping::SHIPPING_FREESHIPPING ? array(
 					'name' => $shipper['name'],
 					'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
 				) : null ;
-			},
-			Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED)
-		);
+			}, $shippers
+			);
+			$shippers = array_values(array_filter($shippers));
+		}
 
 		$data = array(
 			'cartid'    => Tools_ShoppingCart::getInstance()->getCartId(),
-			'shippers'  => array_values(array_filter($shippers)),
+			'shippers'  => $shippers,
 			'caption'   => $this->_translator->translate('Select shipping method')
 		);
 		$this->_jsonpResponse(self::CART_WIDGET_JS_NS.'buildShipperForm', json_encode($data));
