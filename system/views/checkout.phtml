@@ -7,9 +7,9 @@ $this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/li
 	<?php echo $this->form; ?>
 <?php endif; ?>
 	<div id="checkout-widget-address-preview" style="display: none;">
-		<span><?php echo $this->translate('Your address');?></span>
-		<input id="edit-cart-btn" type="button" class="blue-btn" value="<?php echo $this->translate('Edit Address or quantities');?>"/>
-		<div class="cart-address-preview"></div>
+		<span><?php echo $this->translate('Your address');?>:</span>
+		<div id="cart-address-preview"></div>
+		<input id="edit-cart-btn" type="button" value="<?php echo $this->translate('Edit Address or quantities');?>"/>
 	</div>
 </div>
 <script data-main="<?php echo $this->websiteUrl;?>plugins/cart/web/js/modules/checkout/main.js" src="<?php echo $this->websiteUrl;?>plugins/shopping/web/js/libs/require.min.js"></script>

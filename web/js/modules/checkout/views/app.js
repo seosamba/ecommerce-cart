@@ -68,19 +68,14 @@ define([
             });
         },
         buildAddressPreview: function(form){
-            var preview = this.$el.find('div.cart-address-preview');
+            var preview = this.$el.find('div#cart-address-preview');
             if (preview.length){
                 var formData = form.serializeArray(),
                     jsonData = {};
                 _.each(formData, function(elem){
                     jsonData[elem.name] = elem.value;
                 });
-                preview.html(_.template(
-                   '<%- firstname %> <%- lastname %>, <%- country %><br />' +
-                   '<%- city %> <%- $("select#state").find("option[value="+state+"]").attr("label") %> <%- zip %><br/>' +
-                   '<%- phone && phone+"," %> <%- mobile %>',
-                    jsonData
-                ));
+                preview.html(this.templates.addressPreview(jsonData));
                 console.log(JSON.stringify(jsonData));
             }
             return this;
@@ -150,7 +145,11 @@ define([
         },
         renderPaymentZone: function(html){
             $('form#shipper-select').remove();
-            $('#payment-zone').html(html);
+            var pz = $('#payment-zone');
+            if (!pz){
+                pz = $('<div id="payment-zone"></div>').insertAfter(this);
+            }
+            pz.html(html);
             refreshCartSummary();
         },
         switchCheckoutLock: function(lock){
