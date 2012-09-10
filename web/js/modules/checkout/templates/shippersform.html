@@ -3,7 +3,7 @@
     <input type="hidden" name="check" value="shipper">
     <% _.each(shippers, function(shipper) { %>
     <ul id="<%= shipper.name %>-methods" class="shipping-methods">
-        <li>quering <%= shipper.name %></li>
+        <li><label>...quering <%= shipper.name %>...</label></li>
     </ul>
     <% }); %>
     <input type="submit" value="Apply" >
