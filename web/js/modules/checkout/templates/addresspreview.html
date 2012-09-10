@@ -1,3 +1,4 @@
 <%- _.compact([firstname, lastname]).join(', ') %><br />
 <%- _.compact([country, city, $("select#state option[value="+state+"]").attr("label"), zip]).join(', ') %><br />
 <%- _.compact([phone, mobile]).join(', ') %>
+<%- _.compact([address1, address2]).join('<br />') %>
