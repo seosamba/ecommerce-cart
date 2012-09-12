@@ -76,7 +76,6 @@ define([
                     jsonData[elem.name] = elem.value;
                 });
                 preview.html(this.templates.addressPreview(jsonData));
-                console.log(JSON.stringify(jsonData));
             }
             return this;
         },
@@ -131,8 +130,8 @@ define([
         submitShipper: function(e){
             e.preventDefault();
             var form = $(e.currentTarget);
-            console.log(form.find('input:radio[name=shipper]:selected'));
-            if (!form.find('input[name=shipper]:checked')){
+
+            if (!form.find('input[name=shipper]:checked').size()){
                 showMessage('Select shipping method', true);
                 return false;
             }
