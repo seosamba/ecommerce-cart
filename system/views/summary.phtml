@@ -4,7 +4,11 @@
 		<span id="subtotal-val"><?php echo $this->currency($this->summary['subTotal']); ?></span>
 	</div>
 	<div class="cart-summary-row cart-total-tax">
+		<?php if ($this->taxIncPrice) : ?>
+		<span><?php echo $this->translate('Inc. Tax'); ?>:</span>
+		<?php else : ?>
 		<span><?php echo $this->translate('Total Tax'); ?>:</span>
+		<?php endif; ?>
 		<span id="totaltax-val"><?php echo $this->currency($this->summary['totalTax']);?></span>
 	</div>
 	<div class="cart-summary-row cart-shipping">

@@ -271,6 +271,7 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _makeOptionSummary() {
 		$this->_view->summary = $this->_cartStorage->calculate();
+		$this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
 		return $this->_view->render('summary.phtml');
 	}
 
