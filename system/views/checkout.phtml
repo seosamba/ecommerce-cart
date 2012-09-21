@@ -4,7 +4,8 @@ $this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/li
 
 <div id="checkout-widget">
 <?php if ($this->form !== null) : ?>
-	<?php echo $this->form; ?>
+    <span class="shipping-address-header">{$header:shippingAddress}</span>
+    <?php echo $this->form; ?>
 <?php endif; ?>
 	<div id="checkout-widget-address-preview" style="display: none;">
 		<span><?php echo $this->translate('Your address');?>:</span>
