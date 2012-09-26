@@ -58,6 +58,8 @@ $(function() {
             }
 		})
 	}).on('submit', 'form.toaster-checkout', function(e) {
+            $('.shipping-address-header').hide();
+            $('#checkout').attr("disabled", 'disabled');
 //            e.preventDefault();
 //		var valid = true;
 //		var requiredFields = $('.required:input', this);
@@ -97,6 +99,8 @@ $(function() {
 	}).on('click', 'input', function() {
 		$(this).removeClass('notvalid');
 	}).on('click', '#edit-cart-btn', function(){
+        $('.shipping-address-header').show();
+        $('#checkout').attr("disabled", false);
 //       switchCheckoutLock(false);
     });
 
