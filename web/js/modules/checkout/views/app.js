@@ -25,6 +25,15 @@ define([
         },
         websiteUrl: $('#website_url').val(),
         initialize: function(){
+            $(document).on('click', '#edit-cart-btn', function() {
+                $('.shipping-address-header').show();
+                $('#checkout').attr("disabled", false);
+                $('#shipper-select').remove();
+                $('#checkout-user-address').show();
+                $('#checkout-widget-address-preview').hide();
+                $('#shipping-type-selected').hide();
+                switchCheckoutLock(false);
+            });
             $.fn.addressChain.options.url = this.websiteUrl + 'api/store/geo/type/state';
             this.form = this.$el.find('form');
             if (this.form.hasClass('address-form')){
@@ -35,6 +44,8 @@ define([
         },
         submitAddress: function(e){
             e.preventDefault();
+            $('.shipping-address-header').hide();
+            $('#checkout').attr("disabled", 'disabled');
             var self    = this,
                 form    = $(e.currentTarget),
                 valid   = true;
@@ -69,13 +80,16 @@ define([
         },
         buildAddressPreview: function(form){
             var preview = this.$el.find('div#cart-address-preview');
-            if (preview.length){
+            var cartpreview = $('#cart-address-preview');
+            if(cartpreview.length){
+            //if (preview.length){
                 var formData = form.serializeArray(),
                     jsonData = {};
                 _.each(formData, function(elem){
                     jsonData[elem.name] = elem.value;
                 });
                 preview.html(this.templates.addressPreview(jsonData));
+                $('#cart-address-preview').html(this.templates.addressPreview(jsonData));
             }
             return this;
         },
@@ -143,6 +157,14 @@ define([
             });
         },
         renderPaymentZone: function(html){
+            var selectedShippingMethod = $("form#shipper-select input[type='radio']:checked").val();
+            var selectedShippingName = $("form#shipper-select input[type='radio']:checked").parent().find('.shipping-method-title').html();
+            var shippingMethodRegex=new RegExp("::.*");
+            var shippingMethod = selectedShippingMethod.replace(shippingMethodRegex, '');
+            var shippingType = $('#shipping-type-selected');
+            if(shippingType.length) {
+                shippingType.replaceWith('<div id="shipping-type-selected"><span>'+shippingMethod+':</span><p>'+selectedShippingName+'</p></div>');
+            }
             $('form#shipper-select').remove();
             var pz = $('#payment-zone');
             if (!pz){

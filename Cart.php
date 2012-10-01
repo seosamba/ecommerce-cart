@@ -275,6 +275,10 @@ class Cart extends Tools_Cart_Cart {
 		return $this->_view->render('summary.phtml');
 	}
 
+    protected function _makeOptionShippingSummary() {
+		return $this->_view->render('shippingSummary.phtml');
+	}
+    
 	protected function _parseProductOtions($productId, $options) {
 		parse_str($options, $options);
 		if(is_array($options)) {
@@ -355,7 +359,8 @@ class Cart extends Tools_Cart_Cart {
 	protected function _renderPaymentZone() {
 		$paymentZoneTmpl = isset($this->_sessionHelper->paymentZoneTmpl) ? $this->_sessionHelper->paymentZoneTmpl : null;
 		if ($paymentZoneTmpl !== null) {
-			$themeData = Zend_Registry::get('theme');
+			$paymentZoneTmpl = '<h3>{$header:payment-zone}</h3>'.$paymentZoneTmpl; 
+            $themeData = Zend_Registry::get('theme');
 			$extConfig = Zend_Registry::get('extConfig');
 			$parserOptions = array(
 				'websiteUrl'   => $this->_websiteHelper->getUrl(),
