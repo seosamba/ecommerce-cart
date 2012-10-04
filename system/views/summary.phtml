@@ -1,7 +1,13 @@
 <div id="cart-summary">
 	<div class="cart-summary-row cart-subtotal">
 		<span><?php echo $this->translate('Subtotal'); ?>:</span>
-		<span id="subtotal-val"><?php echo $this->currency($this->summary['subTotal']); ?></span>
+		<span id="subtotal-val">
+        <?php if ($this->taxIncPrice) : ?>
+            <?php echo $this->currency($this->summary['subTotal']+$this->summary['totalTax']); ?>
+        <?php else : ?>
+            <?php echo $this->currency($this->summary['subTotal']); ?>
+        <?php endif; ?>  
+        </span>
 	</div>
 	<div class="cart-summary-row cart-total-tax">
 		<?php if ($this->taxIncPrice) : ?>
