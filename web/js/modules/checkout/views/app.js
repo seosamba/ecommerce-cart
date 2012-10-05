@@ -163,7 +163,7 @@ define([
             var shippingMethod = selectedShippingMethod.replace(shippingMethodRegex, '');
             var shippingType = $('#shipping-type-selected');
             if(shippingType.length) {
-                shippingType.replaceWith('<div id="shipping-type-selected"><span>'+shippingMethod+':</span><p>'+selectedShippingName+'</p></div>');
+                shippingType.replaceWith('<div id="shipping-type-selected"><span class="checkout-right-title">Shipping method: '+shippingMethod+'</span><p>'+selectedShippingName+'</p></div>');
             }
             $('form#shipper-select').remove();
             var pz = $('#payment-zone');
