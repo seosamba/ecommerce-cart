@@ -10,10 +10,15 @@
         </span>
 	</div>
 	<div class="cart-summary-row cart-total-tax">
-		<?php if ($this->taxIncPrice) : ?>
-		<span><?php echo $this->translate('Inc. Tax'); ?>:</span>
+		<?php if(Tools_Misc::getTaxName() != ''):?>
+            <?php $taxName = Tools_Misc::getTaxName();?> 
+        <?php else:?>
+            <?php $taxName = 'Tax';?>
+        <?php endif;?>
+        <?php if ($this->taxIncPrice) : ?>
+		<span><?php echo $this->translate('Inc. '.$taxName); ?>:</span>
 		<?php else : ?>
-		<span><?php echo $this->translate('Total Tax'); ?>:</span>
+		<span><?php echo $this->translate('Total '.$taxName); ?>:</span>
 		<?php endif; ?>
 		<span id="totaltax-val"><?php echo $this->currency($this->summary['totalTax']);?></span>
 	</div>
