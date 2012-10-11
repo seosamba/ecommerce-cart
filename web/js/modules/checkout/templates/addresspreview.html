@@ -1,3 +1,5 @@
+<% if(fullName) { %><%= firstname  %><% } %>&nbsp;<% if(lastname) { %><%= lastname  %><% } %><br />
+<% if(email) { %><%= email  %><% } %><br />
 <%- _.compact([firstname, lastname]).join(' ') %><br />
 <% if (company) { %>
 <%- company %><br />
