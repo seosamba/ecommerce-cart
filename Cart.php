@@ -242,32 +242,40 @@ class Cart extends Tools_Cart_Cart {
 			return null;
 		}
 
-		$addrType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
-		$checkoutForm = new Forms_Checkout_Address();
-		$checkoutForm->setAction(trim($this->_websiteUrl, '/') . $this->_view->url(array(
-			'run' => 'checkout',
-			'name' => strtolower(__CLASS__)
-		), 'pluginroute'));
 
-		if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getAddressKey($addrType))){
-			$customerAddress = Tools_ShoppingCart::getAddressById($uniqKey);
-		} else {
-			$customer = Tools_ShoppingCart::getInstance()->getCustomer();
-			$customerAddress = $customer->getDefaultAddress($addrType);
-		}
+        //if user is guest we will show him to sign-up form
+        if(!Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART)) {
+            $form = new Forms_Signup();
+        } else {  // otherwise address form will be shown
+            $addrType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
+            $form     = new Forms_Checkout_Address();
+            if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getAddressKey($addrType))){
+                $customerAddress = Tools_ShoppingCart::getAddressById($uniqKey);
+            } else {
+                $customer = Tools_ShoppingCart::getInstance()->getCustomer();
+                $customerAddress = $customer->getDefaultAddress($addrType);
+            }
+            if (!empty($customerAddress)) {
+                $form->populate($customerAddress);
+            } else {
+                $form->populate(array(
+                    'country' => $this->_shoppingConfig['country'],
+                    'state'   => $this->_shoppingConfig['state']
+                ));
+            }
+        }
 
-		if (!empty($customerAddress)) {
-			$checkoutForm->populate($customerAddress);
-		} else {
-			$checkoutForm->populate(array(
-				'country' => $this->_shoppingConfig['country'],
-				'state'   => $this->_shoppingConfig['state']
-			));
-		}
+        $form->setAction(trim($this->_websiteUrl, '/') . $this->_view->url(array(
+            'run' => 'checkout',
+            'name' => strtolower(__CLASS__)
+        ), 'pluginroute'));
 
-		$this->_view->form = $checkoutForm;
+        $this->_view->form = $form;
+
+
 		return $this->_view->render('checkout.phtml');
 	}
+
 
 	protected function _makeOptionSummary() {
 		$this->_view->summary = $this->_cartStorage->calculate();
@@ -276,6 +284,7 @@ class Cart extends Tools_Cart_Cart {
 	}
 
     protected function _makeOptionShippingSummary() {
+        $this->_view->customer = $this->_sessionHelper->getCurrentUser()->toArray();
 		return $this->_view->render('shippingSummary.phtml');
 	}
     
@@ -314,8 +323,9 @@ class Cart extends Tools_Cart_Cart {
 		if ($form->isValid($this->_request->getParams())){
 			$shoppingCart = Tools_ShoppingCart::getInstance();
 			$shippingAddress   = $form->getValues();
-			$customer   = Shopping::processCustomer($shippingAddress);
-			$addressId  = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $shippingAddress, $addressType);
+			//$customer   = Shopping::processCustomer($shippingAddress);
+            $customer  = Tools_ShoppingCart::getInstance()->getCustomer();
+			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $shippingAddress, $addressType);
 			$shoppingCart->setAddressKey($addressType, $addressId)
 				->save()
 				->saveCartSession($customer);
@@ -355,6 +365,21 @@ class Cart extends Tools_Cart_Cart {
 		}
 		return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)->sendResponse();
 	}
+
+    private function _checkoutApplySignup() {
+
+        $form = new Forms_Signup();
+        if($form->isValid($this->_request->getParams())) {
+            $customer    = Shopping::processCustomer($form->getValues());
+            if($customer) {
+                $this->_sessionHelper->setCurrentUser($customer);
+                $ceckoutPage = Tools_Misc::getCheckoutPage();
+            }
+            $this->_redirector->gotoUrlAndExit($ceckoutPage->getUrl());
+            //return $this->_jsonpResponse(self::CART_WIDGET_JS_NS . 'renderAddress', Zend_Json::encode($customer->toArray()));
+        }
+        //return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)->sendResponse();
+    }
 
 	protected function _renderPaymentZone() {
 		$paymentZoneTmpl = isset($this->_sessionHelper->paymentZoneTmpl) ? $this->_sessionHelper->paymentZoneTmpl : null;

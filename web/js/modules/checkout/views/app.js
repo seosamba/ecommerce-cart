@@ -14,6 +14,8 @@ define([
         el: $('#checkout-widget'),
         events: {
             'submit form#checkout-user-address': 'submitAddress',
+            'click a#checkout-action': 'toggleCheckoutStart',
+            //'submit form#checkout-signup': 'signupAction',
             'click input#edit-cart-btn': function(){
                 this.switchCheckoutLock(false);
             }
@@ -34,6 +36,9 @@ define([
                 $('#shipping-type-selected').hide();
                 switchCheckoutLock(false);
             });
+
+            $('.checkout-button').show();
+
             $.fn.addressChain.options.url = this.websiteUrl + 'api/store/geo/type/state';
             this.form = this.$el.find('form');
             if (this.form.hasClass('address-form')){
@@ -71,6 +76,44 @@ define([
                 data: form.serialize(),
                 dataType: 'jsonp'
             });
+        },
+        toggleCheckoutStart: function() {
+            this.$('.checkout-button').toggle();
+            this.$('#checkoutflow').toggle();
+        },
+        signupAction: function(e) {
+            e.preventDefault();
+            var self    = this,
+                form    = $(e.currentTarget),
+                valid   = true;
+
+            $('.required:input', form).each(function(){
+                if (_.isEmpty($(this).val())){
+                    valid = false;
+                    $(this).addClass('notvalid');
+                } else {
+                    $(this).removeClass('notvalid');
+                }
+            });
+
+            if (!valid) {
+                showMessage('Missing required fields', true);
+                $('.notvalid:input:first', form).focus();
+                return false;
+            }
+
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(),
+                dataType: 'jsonp'
+            });
+        },
+        renderAddress: function(customer) {
+            var form = $('form#checkout-signup');
+            this.switchCheckoutLock(true).buildAddressPreview(form);
+            form.hide();
+
         },
         processFormErrors: function(errors){
             var self = this;
