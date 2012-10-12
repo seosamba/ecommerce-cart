@@ -14,6 +14,7 @@ define([
         el: $('#checkout-widget'),
         events: {
             'submit form#checkout-user-address': 'submitAddress',
+            'click a#checkout-action': 'toggleCheckoutStart',
             'click input#edit-cart-btn': function(){
                 this.switchCheckoutLock(false);
             }
@@ -74,6 +75,10 @@ define([
                 data: form.serialize(),
                 dataType: 'jsonp'
             });
+        },
+        toggleCheckoutStart: function() {
+            this.$('.checkout-button').hide()
+            this.$('.checkout-forms').show();
         },
         processFormErrors: function(errors){
             var self = this;

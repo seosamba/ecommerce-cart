@@ -270,10 +270,9 @@ class Cart extends Tools_Cart_Cart {
             'name' => strtolower(__CLASS__)
         ), 'pluginroute'));
 
-        $this->_view->form = $form;
-
-
-		return $this->_view->render('checkout.phtml');
+        $this->_view->form        = $form;
+        $this->_view->cartAllowed = Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART);
+    	return $this->_view->render('checkout.phtml');
 	}
 
 

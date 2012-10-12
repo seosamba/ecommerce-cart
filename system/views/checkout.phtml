@@ -3,19 +3,21 @@ $this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/li
 ?>
 
 <div id="checkout-widget">
-    <?php if(!Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART)): ?>
+
+    <!-- if guest then show the "Checkout or Continue shopping" buttons -->
+    <?php if(!$this->cartAllowed): ?>
         <p class="checkout-button">
             <a title="<?php echo $this->translate('Checkout'); ?>" class="checkout" id="checkout-action"><?php echo $this->translate('Checkout'); ?></a>
             <span class="disc">OR</span>
             <a href="javascript:history.back();" title="<?php echo $this->translate('Keep shopping'); ?>"><?php echo $this->translate('Keep shopping'); ?></a>
         </p>
     <?php endif; ?>
-    <?php if ($this->form !== null) : ?>
-        <div id="checkoutflow" <?php echo (!Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART)) ? 'style="display:none;"' : ''; ?>>
-            <h3 class="shipping-address-header">{$header:shippingAddress}</h3>
-            <?php echo $this->form; ?>
-        </div>
-    <?php endif; ?>
+
+    <div class="checkout-forms" <?php echo (!$this->cartAllowed) ? 'style="display:none"' : ''; ?>>
+        <h3 class="shipping-address-header">{$header:<?php echo strtolower(get_class($this->form)); ?>}</h3>
+        <?php echo $this->form; ?>
+        <?php if(!$this->cartAllowed): ?><span class="disc">OR</span>{$member:login}<?php endif; ?>
+    </div>
 </div>
 
 <script data-main="<?php echo $this->websiteUrl;?>plugins/cart/web/js/modules/checkout/main.js" src="<?php echo $this->websiteUrl;?>plugins/shopping/web/js/libs/require.min.js"></script>
