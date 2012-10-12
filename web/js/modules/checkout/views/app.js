@@ -155,31 +155,33 @@ define([
                         }));
                         return false;
                     }
-                    $.ajax({
-                        url: '/plugin/'+shipper.name+'/run/calculate/',
-                        data: {cartId: this.cartId},
-                        dataType: 'json',
-                        success: function(response){
-                            form.find('ul#'+shipper.name+'-methods').html(self.templates.shipperMethods({
-                                services: response,
-                                name: shipper.name
-                            }));
-                        },
-                        error: function(){
-                            form.find('ul#'+shipper.name+'-methods').html(shipper.name+' service in currently unreachable.')
-                        }
-                    }).done(function(){
-                        self.shipperXHRCount--;
-                        if (self.shipperXHRCount === 0){
-                            var form = $('#shipper-select');
-                            if (form.find('input[name=shipper]').length){
-                                $('#shipper-select input:submit').fadeIn();
-                            } else {
-                                $('#shipper-select input:submit').remove();
+                    if (shipper.name != 'markup') {
+                        $.ajax({
+                            url: '/plugin/'+shipper.name+'/run/calculate/',
+                            data: {cartId: this.cartId},
+                            dataType: 'json',
+                            success: function(response){
+                                form.find('ul#'+shipper.name+'-methods').html(self.templates.shipperMethods({
+                                    services: response,
+                                    name: shipper.name
+                                }));
+                            },
+                            error: function(){
+                                form.find('ul#'+shipper.name+'-methods').html(shipper.name+' service in currently unreachable.')
                             }
-                        }
+                        }).done(function(){
+                            self.shipperXHRCount--;
+                            if (self.shipperXHRCount === 0){
+                                var form = $('#shipper-select');
+                                if (form.find('input[name=shipper]').length){
+                                    $('#shipper-select input:submit').fadeIn();
+                                } else {
+                                    $('#shipper-select input:submit').remove();
+                                }
+                            }
+                        });
+                    }
                     });
-                });
             } else {
                showMessage('Something went wrong. Please try again later', true);
             }

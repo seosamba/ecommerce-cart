@@ -2,9 +2,11 @@
     <h3><span>2 </span><%= caption %></h3>
     <input type="hidden" name="check" value="shipper">
     <% _.each(shippers, function(shipper) { %>
-    <ul id="<%= shipper.name %>-methods" class="shipping-methods">
-        <li><label>...quering <%= shipper.name %>...</label></li>
-    </ul>
+        <% if (shipper.name != 'markup') { %>
+            <ul id="<%= shipper.name %>-methods" class="shipping-methods">
+                <li><label>...quering <%= shipper.name %>...</label></li>
+            </ul>
+        <% } %>
     <% }); %>
     <input type="submit" value="Apply" >
 </form>
