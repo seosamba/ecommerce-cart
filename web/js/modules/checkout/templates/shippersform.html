@@ -1,5 +1,5 @@
 <form id="shipper-select" method="post" enctype="application/x-www-form-urlencoded" action="<%= $('#website_url').val() %>plugin/cart/run/checkout/">
-    <h3><span>2 </span><%= caption %></h3>
+    <h3><%= caption %></h3>
     <input type="hidden" name="check" value="shipper">
     <% _.each(shippers, function(shipper) { %>
         <% if (shipper.name != 'markup') { %>

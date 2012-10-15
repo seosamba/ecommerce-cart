@@ -13,8 +13,18 @@ define([
     var AppView = Backbone.View.extend({
         el: $('#checkout-widget'),
         events: {
-            'submit form#checkout-user-address': 'submitAddress',
+            'submit .checkout-forms form.toaster-checkout': 'submitForm',
             'click a#checkout-action': 'toggleCheckoutStart',
+            'click a#pickup-action': function(e){
+                e.preventDefault();
+                this.$('.checkout-button').hide()
+                this.$('#checkout-pickup').parent().show();
+            },
+            'click a#shipping-action': function(e){
+                e.preventDefault();
+                this.$('.checkout-button').hide();
+                this.$('#checkout-user-address').parent().show();
+            },
             'click input#edit-cart-btn': function(){
                 this.switchCheckoutLock(false);
             }
@@ -38,18 +48,16 @@ define([
 
             $('.checkout-button').show();
 
-            $.fn.addressChain.options.url = this.websiteUrl + 'api/store/geo/type/state';
+//            $.fn.addressChain.options.url = this.websiteUrl + 'api/store/geo/type/state';
             this.form = this.$el.find('form');
             if (this.form.hasClass('address-form')){
                 this.form.addressChain();
             }
-            this.$el.ajaxComplete(function(event, xhr, options){
-            });
         },
-        submitAddress: function(e){
+        submitForm: function(e) {
             e.preventDefault();
-            $('.shipping-address-header').hide();
-            $('#checkout').attr("disabled", 'disabled');
+
+//            $('#checkout').attr("disabled", 'disabled');
             var self    = this,
                 form    = $(e.currentTarget),
                 valid   = true;
@@ -73,7 +81,21 @@ define([
                 url: form.attr('action'),
                 type: 'POST',
                 data: form.serialize(),
-                dataType: 'jsonp'
+                dataType: 'html',
+                success: function(response){
+                    switch (form[0].id){
+                        case 'checkout-user-address':
+                            self.$el.empty();
+                            self.buildShipperForm($.parseJSON(response));
+                            break;
+                        default:
+                            self.$el.html(response);
+                            break;
+                    }
+                },
+                error: function(){
+                    console.log(arguments);
+                }
             });
         },
         toggleCheckoutStart: function() {
@@ -106,21 +128,21 @@ define([
             this.switchCheckoutLock(true).buildAddressPreview($('form#checkout-user-address'));
             if (_.has(response, 'shippers')) {
                 var form = $(_.template(ShippersFormTmpl, response));
-                form.on('submit', this.submitShipper).appendTo(this.$el);
+                form.on('submit', this.submitShipper.bind(this)).appendTo(this.$el);
                 self.shipperXHRCount = response.shippers.length;
                 _.each(response.shippers, function(shipper){
-                    if (shipper.name === 'pickup') {
-                        self.shipperXHRCount--;
-                        form.find('ul#'+shipper.name+'-methods').html(self.templates.shipperMethods({
-                            services: [{
-                                type: shipper.title || shipper.name,
-                                price: 0
-                            }],
-                            name: shipper.name
-                        }));
-                        return false;
-                    }
-                    if (shipper.name != 'markup') {
+//                    if (shipper.name === 'pickup') {
+//                        self.shipperXHRCount--;
+//                        form.find('ul#'+shipper.name+'-methods').html(self.templates.shipperMethods({
+//                            services: [{
+//                                type: shipper.title || shipper.name,
+//                                price: 0
+//                            }],
+//                            name: shipper.name
+//                        }));
+//                        return false;
+//                    }
+//                    if (shipper.name != 'markup') {
                         $.ajax({
                             url: '/plugin/'+shipper.name+'/run/calculate/',
                             data: {cartId: this.cartId},
@@ -145,7 +167,7 @@ define([
                                 }
                             }
                         });
-                    }
+//                    }
                     });
             } else {
                showMessage('Something went wrong. Please try again later', true);
@@ -153,7 +175,8 @@ define([
         },
         submitShipper: function(e){
             e.preventDefault();
-            var form = $(e.currentTarget);
+            var self = this,
+                form = $(e.currentTarget);
 
             if (!form.find('input[name=shipper]:checked').size()){
                 showMessage('Select shipping method', true);
@@ -163,7 +186,7 @@ define([
                 url: form.attr('action'),
                 type: 'POST',
                 data: form.serialize(),
-                success: CartCheckout.renderPaymentZone
+                success: self.renderPaymentZone
             });
         },
         renderPaymentZone: function(html){

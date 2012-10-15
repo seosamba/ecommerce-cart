@@ -242,11 +242,11 @@ class Cart extends Tools_Cart_Cart {
 			return null;
 		}
 
-
         //if user is guest we will show him to sign-up form
         if(!Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART) || Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_PLUGINS)) {
             $form = new Forms_Signup();
-        } else {  // otherwise address form will be shown
+        } else {
+            //@todo otherwise address form we procced user to next step
             $addrType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
             $form     = new Forms_Checkout_Address();
             if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getAddressKey($addrType))){
@@ -270,9 +270,8 @@ class Cart extends Tools_Cart_Cart {
             'name' => strtolower(__CLASS__)
         ), 'pluginroute'));
 
-        $this->_view->form        = $form;
-        $this->_view->cartAllowed = Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART);
-    	return $this->_view->render('checkout.phtml');
+        $this->_view->signupForm        = $form;
+    	return $this->_view->render('checkout/landing.phtml');
 	}
 
 
@@ -329,7 +328,7 @@ class Cart extends Tools_Cart_Cart {
 				->save()
 				->saveCartSession($customer);
 
-			return $this->_checkShippingPlugins($shippingAddress);
+			echo json_encode($this->_checkShippingPlugins($shippingAddress));
 		} else {
 			$this->_jsonpResponse(self::CART_WIDGET_JS_NS.'processFormErrors', json_encode($form->getMessages()));
 		}
@@ -366,19 +365,82 @@ class Cart extends Tools_Cart_Cart {
 	}
 
     private function _checkoutApplySignup() {
-
         $form = new Forms_Signup();
         if($form->isValid($this->_request->getParams())) {
             $customer    = Shopping::processCustomer($form->getValues());
             if($customer) {
-                $this->_sessionHelper->setCurrentUser($customer);
-                $ceckoutPage = Tools_Misc::getCheckoutPage();
+//                $this->_sessionHelper->setCurrentUser($customer);
             }
-            $this->_redirector->gotoUrlAndExit($ceckoutPage->getUrl());
-            //return $this->_jsonpResponse(self::CART_WIDGET_JS_NS . 'renderAddress', Zend_Json::encode($customer->toArray()));
+	        echo $this->_renderShippingOptions();
+        } else {
+	        return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)
+			        ->setBody('@TODO error proccessing')
+			        ->sendResponse();
         }
-        //return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)->sendResponse();
     }
+
+	private function _checkoutApplyPickup() {
+		$form = new Forms_Checkout_Pickup();
+		if ($form->isValid($this->_request->getPost())){
+			echo $this->_renderPaymentZone();
+		} else {
+			return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)
+					->setBody('@TODO error proccessing')
+					->sendResponse();
+        }
+	}
+
+	protected function _renderShippingOptions(){
+		$pickup = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
+
+		$shippers = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
+
+		if ((is_null($pickup) || (bool)$pickup['enabled'] == false) && is_null($shippers)){
+			return $this->_renderPaymentZone();
+		}
+
+		$shippers = array_filter($shippers, function($shipper){
+			return !in_array($shipper['name'], array(
+				Shopping::SHIPPING_FREESHIPPING,
+				Shopping::SHIPPING_MARKUP,
+				Shopping::SHIPPING_PICKUP
+			));
+		});
+
+		if ($pickup){
+			$this->_view->pickupForm = new Forms_Checkout_Pickup();
+			$this->_view->pickupForm->setAction(trim($this->_websiteUrl, '/') . $this->_view->url(array(
+	            'run' => 'checkout',
+	            'name' => strtolower(__CLASS__)
+	        ), 'pluginroute'));
+		}
+
+		if (!empty($shippers)){
+			$addrType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
+            $shippingForm     = new Forms_Checkout_Address();
+            if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getAddressKey($addrType))){
+                $customerAddress = Tools_ShoppingCart::getAddressById($uniqKey);
+            } else {
+                $customer = Tools_ShoppingCart::getInstance()->getCustomer();
+                $customerAddress = $customer->getDefaultAddress($addrType);
+            }
+            if (!empty($customerAddress)) {
+                $shippingForm->populate($customerAddress);
+            } else {
+                $shippingForm->populate(array(
+                    'country' => $this->_shoppingConfig['country'],
+                    'state'   => $this->_shoppingConfig['state']
+                ));
+            }
+			$this->_view->shippingForm = $shippingForm;
+			$this->_view->shippingForm->setAction(trim($this->_websiteUrl, '/') . $this->_view->url(array(
+	            'run' => 'checkout',
+	            'name' => strtolower(__CLASS__)
+	        ), 'pluginroute'));
+		}
+
+		return $this->_view->render('checkout/shipping_options.phtml');
+	}
 
 	protected function _renderPaymentZone() {
 		$paymentZoneTmpl = isset($this->_sessionHelper->paymentZoneTmpl) ? $this->_sessionHelper->paymentZoneTmpl : null;
@@ -422,7 +484,7 @@ class Cart extends Tools_Cart_Cart {
 		$shippers = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
 		if (!empty($shippers)){
 			$shippers = array_map(function($shipper){
-				return $shipper['name'] !== Shopping::SHIPPING_FREESHIPPING ? array(
+				return !in_array($shipper['name'], array(Shopping::SHIPPING_MARKUP, Shopping::SHIPPING_PICKUP, Shopping::SHIPPING_FREESHIPPING)) ? array(
 					'name' => $shipper['name'],
 					'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
 				) : null ;
@@ -436,7 +498,8 @@ class Cart extends Tools_Cart_Cart {
 			'shippers'  => $shippers,
 			'caption'   => $this->_translator->translate('Select shipping method')
 		);
-		$this->_jsonpResponse(self::CART_WIDGET_JS_NS.'buildShipperForm', json_encode($data));
+
+		return $data;
 	}
 
 	protected function _jsonpResponse($callback, $data, $forceSend = true){

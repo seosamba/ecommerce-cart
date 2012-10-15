@@ -1,0 +1,49 @@
+<?php
+$this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/libs/jquery/addresschain.jquery.js');
+?>
+
+<div id="checkout-widget">
+
+    <!-- if guest then show the "Checkout or Continue shopping" buttons -->
+    <p class="checkout-button">
+        <a href="javascript:;" title="<?php echo $this->translate('Checkout'); ?>" id="checkout-action"><?php echo $this->translate('Checkout'); ?></a>
+        <span class="disc">OR</span>
+        <a href="javascript:;" title="<?php echo $this->translate('Keep shopping'); ?>" id="keepshopping-action"> <?php echo $this->translate('Keep shopping'); ?></a>
+    </p>
+
+    <div class="checkout-forms" style="display:none;">
+        <div>
+            <h3 class="shipping-address-header">{$header:<?php echo strtolower(get_class($this->signupForm)); ?>}</h3>
+            <?php echo $this->signupForm; ?>
+        </div>
+        <div>
+            <h3>{$header:checkout-signin}</h3>
+            {$member:login}
+        </div>
+    </div>
+</div>
+
+<script data-main="<?php echo $this->websiteUrl;?>plugins/cart/web/js/modules/checkout/main.js" src="<?php echo $this->websiteUrl;?>plugins/shopping/web/js/libs/require.min.js"></script>
+
+<style type="text/css">
+	.required::after {
+		content: ' *';
+		color: red;
+		font-weight: bold;
+	}
+	.notvalid {
+		color: red;
+	}
+	#checkout-widget ul.shipping-methods li {
+		list-style: none;
+		padding: 5px 10px;
+		margin: 0;
+	}
+	#checkout-widget ul.shipping-methods li label {
+		cursor: pointer;
+	}
+	#checkout-widget ul.shipping-methods li label input[type="radio"] {
+		vertical-align: middle;
+		margin: 2px 4px;
+	}
+</style>
