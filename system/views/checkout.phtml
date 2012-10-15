@@ -14,12 +14,12 @@ $this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/li
     <?php endif; ?>
 
     <div class="checkout-forms" <?php echo (!$this->cartAllowed) ? 'style="display:none"' : ''; ?>>
-        <div>
+        <div class="checkout-box">
             <h3 class="shipping-address-header">{$header:<?php echo strtolower(get_class($this->form)); ?>}</h3>
             <?php echo $this->form; ?>
         </div>
         <?php if(!$this->cartAllowed || Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_PLUGINS)): ?>
-            <div>
+            <div class="checkout-box">
                 <h3>{$header:checkout-signin}</h3>
                 {$member:login}
             </div>
