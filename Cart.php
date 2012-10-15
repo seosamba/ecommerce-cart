@@ -244,7 +244,7 @@ class Cart extends Tools_Cart_Cart {
 
 
         //if user is guest we will show him to sign-up form
-        if(!Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART)) {
+        if(!Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART) || Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_PLUGINS)) {
             $form = new Forms_Signup();
         } else {  // otherwise address form will be shown
             $addrType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
