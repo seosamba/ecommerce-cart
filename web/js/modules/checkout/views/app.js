@@ -80,7 +80,7 @@ define([ 'backbone' ], function( Backbone ){
                         case 'checkout-pickup':
                             $('.preview-content', '#checkout-shipping-selected').text('Free pickup');
                             $('.checkout-widget-title', '#checkout-address-preview').text('Pickup information');
-                            $('#checkout-shipping-selected,#checkout-address-preview').show();
+                            $('#checkout-shipping-selected').show();
                             self.buildAddressPreview(form)
                                 .renderPaymentZone(response);
                             break;
@@ -131,6 +131,7 @@ define([ 'backbone' ], function( Backbone ){
                 if (!_.isEmpty(jsonData)){
                     $('div.preview-content', addressWidget).html(this.templates.addressPreview(jsonData));
                 }
+                addressWidget.show();
             }
 
             return this;
