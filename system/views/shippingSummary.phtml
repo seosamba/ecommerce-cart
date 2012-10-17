@@ -1,30 +1,38 @@
-<div id="checkout-widget-address-preview" <?php echo (isset($this->customer) ? 'style="display: none;"' : ''); ?>>
-	<span class="checkout-right-title">{$header:shipping_preview}</span>
-    <div id="checkout-user-info">
-        <div><?php echo $this->customer['fullName']; ?></div>
-        <div><?php echo $this->customer['email']; ?></div>
-    </div>
-	<div id="cart-address-preview"></div>
-	<input id="edit-cart-btn" type="button" value="<?php echo $this->translate('Edit Address or quantities');?>"/>
-</div>
-<div id="shipping-type-selected" style="display: none;">
-    <span class="checkout-right-title"><?php echo $this->translate('Shipping method')?>:<span></span></span>
-	<p></p>
+<div id="checkout-widget-preview">
+	<div id="checkout-user-info" <?php if (empty($this->customer['id'])) echo 'style="display: none;"';?> >
+		<h3 class="checkout-widget-title">{$header:shipping_preview}</h3>
+	    <div class="preview-content">
+	        <span class="fullname"><?php echo isset($this->customer['fullName']) ? $this->customer['fullName'] : ''; ?></span>
+	        <span class="email"><?php echo isset($this->customer['email']) ? $this->customer['email'] : ''; ?></span>
+	    </div>
+	</div>
+
+	<div id="checkout-address-preview">
+		<h3 class="checkout-widget-title">{$header:shipping_preview_userinfo}</h3>
+		<div class="preview-content"></div>
+	</div>
+
+	<div id="checkout-shipping-selected" style="display: none;">
+	    <h3 class="checkout-widget-title"><?php echo $this->translate('Shipping method')?></h3>
+		<div class="preview-content"></div>
+	</div>
+
+	<input id="edit-cart-btn" type="button" value="<?php echo $this->translate('Edit Address or quantities');?>" style="display:none"/>
 </div>
 
+
 <script id="shippingAddressPreviewTemplate" type="text/template">
-	<% if(firstname) { %><%= firstname  %><% } %>&nbsp;<% if(lastname) { %><%= lastname  %><% } %><br />
-	<% if(email) { %><%= email  %><% } %><br />
 	<%- _.compact([firstname, lastname]).join(' ') %><br />
+    <% if(email) { %><%= email  %><% } %><br />
 	<% if (company) { %>
 	<%- company %><br />
 	<% } %>
 	<%- _.compact([address1, address2]).join(', ') %><br />
 	<%- _.compact([city, $("select#state option[value="+state+"]").attr("label"), zip, country]).join(', ') %><br />
 	<% if (phone) { %>
-	Tel: <%- phone %><br />
+	<?php echo $this->translate('Tel');?>: <%- phone %><br />
 	<% } %>
 	<% if (mobile) { %>
-	Mobile: <%- mobile %><br />
+	<?php echo $this->translate('Mobile');?>: <%- mobile %><br />
 	<% } %>
 </script>

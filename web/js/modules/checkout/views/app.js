@@ -31,8 +31,8 @@ define([ 'backbone' ], function( Backbone ){
         initialize: function(){
             $('.checkout-button').show();
 
-            if ($('#checkout-widget-address-preview').size()){
-                $('#checkout-widget-address-preview').on('click', '#edit-cart-btn', this.editAddress.bind(this));
+            if ($('#checkout-widget-preview').size()){
+                $('#checkout-widget-preview').on('click', '#edit-cart-btn', this.editAddress.bind(this));
             }
 
             if ($.fn.addressChain){
@@ -78,8 +78,15 @@ define([ 'backbone' ], function( Backbone ){
                                 .buildShipperForm($.parseJSON(response));
                             break;
                         case 'checkout-pickup':
-                            self.renderPaymentZone(response);
+                            $('.preview-content', '#checkout-shipping-selected').text('Free pickup').parent().show();
+                            $('.checkout-widget-title', '#checkout-address-preview').text('Pickup person info');
+                            self.buildAddressPreview(form)
+                                .renderPaymentZone(response);
                             break;
+                        case 'checkout-signup':
+                            $('span.fullname', '#checkout-user-info').text(form[0].firstname.value +' '+ form[0].lastname.value);
+                            $('span.email', '#checkout-user-info').text(form[0].email.value);
+                            $('#checkout-user-info:hidden').show();
                         default:
                             self.$el.html(response);
                             console.log(self.$el.find('form.address-form').addressChain());
@@ -108,19 +115,20 @@ define([ 'backbone' ], function( Backbone ){
             });
         },
         buildAddressPreview: function(form){
-            var addressWidget = $('#checkout-widget-address-preview');
+            var addressWidget = $('#checkout-address-preview');
 
             if (addressWidget && _.isFunction(this.templates.addressPreview)){
                 var formData = form.serializeArray(),
                     jsonData = {
-                        state: null
+                        firstname: null, lastname: null, company: null, email: null, address1: null, address2: null,
+                        city: null, state: null, zip: null, country: null, phone: null, mobile: null
                     };
                 _.each(formData, function(elem){
                     jsonData[elem.name] = elem.value;
                 });
 
                 if (!_.isEmpty(jsonData)){
-                    $('#cart-address-preview', addressWidget).html(this.templates.addressPreview(jsonData));
+                    $('div.preview-content', addressWidget).html(this.templates.addressPreview(jsonData));
                 }
             }
 
@@ -191,16 +199,6 @@ define([ 'backbone' ], function( Backbone ){
             });
         },
         renderPaymentZone: function(html){
-            console.log(this);
-//            var selectedShippingMethod = $("form#shipper-select input[type='radio']:checked").val();
-//            var selectedShippingName = $("form#shipper-select input[type='radio']:checked").parent().find('.shipping-method-title').html();
-//            var shippingMethodRegex=new RegExp("::.*");
-//            var shippingMethod = selectedShippingMethod.replace(shippingMethodRegex, '');
-//            var shippingType = $('#shipping-type-selected');
-//            if(shippingType.length) {
-//                shippingType.replaceWith('<div id="shipping-type-selected"><span class="checkout-right-title">Shipping method: '+shippingMethod+'</span><p>'+selectedShippingName+'</p></div>');
-//            }
-//            $('form#shipper-select').remove();
             this.switchCheckoutLock(true);
             this.$el.empty();
 
@@ -223,12 +221,14 @@ define([ 'backbone' ], function( Backbone ){
             lock = !!lock;
 
             if (lock) {
+                $('#edit-cart-btn', '#checkout-widget-preview').show();
                 $('#checkout-user-address').hide();
                 $('.product-qty').attr('disabled', 'disabled');
                 $('.remove-item').hide();
                 $('#payment-zone').show();
                 $('#checkout-widget-address-preview').slideDown();
             } else {
+                $('#edit-cart-btn', '#checkout-widget-preview').hide();
                 $('#checkout-user-address').show();
                 $('.product-qty').removeAttr('disabled');
                 $('.remove-item').show();

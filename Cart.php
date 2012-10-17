@@ -261,7 +261,7 @@ class Cart extends Tools_Cart_Cart {
 	}
 
     protected function _makeOptionShippingSummary() {
-        $this->_view->customer = $this->_sessionHelper->getCurrentUser()->toArray();
+        $this->_view->customer = Tools_ShoppingCart::getInstance()->getCustomer()->toArray();
 		return $this->_view->render('shippingSummary.phtml');
 	}
     
@@ -362,16 +362,16 @@ class Cart extends Tools_Cart_Cart {
 	private function _checkoutApplyPickup() {
 		$form = new Forms_Checkout_Pickup();
 		if ($form->isValid($this->_request->getPost())){
-//			$customer = Tools_ShoppingCart::getInstance()->getCustomer();
-//			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $form->getValues(), Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
-//			Tools_ShoppingCart::getInstance()->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, $addressId)
-//				->setShippingData(array(
-//					'service'   => Shopping::SHIPPING_PICKUP,
-//					'type'      => null,
-//					'price'     => 0
-//				))
-//				->save()
-//				->saveCartSession($customer);
+			$customer = Tools_ShoppingCart::getInstance()->getCustomer();
+			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $form->getValues(), Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
+			Tools_ShoppingCart::getInstance()->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, $addressId)
+				->setShippingData(array(
+					'service'   => Shopping::SHIPPING_PICKUP,
+					'type'      => null,
+					'price'     => 0
+				))
+				->save()
+				->saveCartSession($customer);
 
 			echo $this->_renderPaymentZone();
 		} else {
