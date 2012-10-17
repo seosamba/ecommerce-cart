@@ -6,11 +6,11 @@
 
 <div class="checkout-forms" style="display:none;">
     <div>
-        <h3 class="shipping-address-header">{$header:<?php echo strtolower(get_class($this->signupForm)); ?>}</h3>
+        <h3 class="checkout-forms-header"><?php echo $this->translate('I am new customer'); ?></h3>
         <?php echo $this->signupForm; ?>
     </div>
     <div>
-        <h3>{$header:checkout-signin}</h3>
+        <h3 class="checkout-forms-header"><?php echo $this->translate('I am returning customer'); ?></h3>
         {$member:login}
     </div>
 </div>

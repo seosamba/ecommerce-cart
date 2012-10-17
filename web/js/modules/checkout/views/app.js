@@ -78,8 +78,9 @@ define([ 'backbone' ], function( Backbone ){
                                 .buildShipperForm($.parseJSON(response));
                             break;
                         case 'checkout-pickup':
-                            $('.preview-content', '#checkout-shipping-selected').text('Free pickup').parent().show();
-                            $('.checkout-widget-title', '#checkout-address-preview').text('Pickup person info');
+                            $('.preview-content', '#checkout-shipping-selected').text('Free pickup');
+                            $('.checkout-widget-title', '#checkout-address-preview').text('Pickup information');
+                            $('#checkout-shipping-selected,#checkout-address-preview').show();
                             self.buildAddressPreview(form)
                                 .renderPaymentZone(response);
                             break;
@@ -182,10 +183,10 @@ define([ 'backbone' ], function( Backbone ){
             }
 
             var formData = form.serialize();
-            if ($('#shipping-type-selected').size()){
+            if ($('#checkout-shipping-selected').size()){
                 var shipper = form.find('[name=shipper]:checked');
-                $('p', '#shipping-type-selected').html(shipper.closest('ul').data('name') + ': '+ shipper.next('span.shipping-method-title').text());
-                $('#shipping-type-selected').show();
+                $('div.preview-content', '#checkout-shipping-selected').html(shipper.closest('ul').data('name') + ': '+ shipper.next('span.shipping-method-title').text());
+                $('#checkout-shipping-selected').show();
             }
 
             $.ajax({

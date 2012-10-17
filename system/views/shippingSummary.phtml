@@ -1,18 +1,18 @@
 <div id="checkout-widget-preview">
 	<div id="checkout-user-info" <?php if (empty($this->customer['id'])) echo 'style="display: none;"';?> >
-		<h3 class="checkout-widget-title">{$header:shipping_preview}</h3>
+		<h3 class="checkout-widget-title"><?php echo $this->translate('Your information'); ?></h3>
 	    <div class="preview-content">
 	        <span class="fullname"><?php echo isset($this->customer['fullName']) ? $this->customer['fullName'] : ''; ?></span>
 	        <span class="email"><?php echo isset($this->customer['email']) ? $this->customer['email'] : ''; ?></span>
 	    </div>
 	</div>
 
-	<div id="checkout-address-preview">
-		<h3 class="checkout-widget-title">{$header:shipping_preview_userinfo}</h3>
+	<div id="checkout-address-preview" class="mt10px" style="display: none;">
+		<h3 class="checkout-widget-title"><?php echo $this->translate('Shipping information'); ?></h3>
 		<div class="preview-content"></div>
 	</div>
 
-	<div id="checkout-shipping-selected" style="display: none;">
+	<div id="checkout-shipping-selected" class="mt10px" style="display: none;">
 	    <h3 class="checkout-widget-title"><?php echo $this->translate('Shipping method')?></h3>
 		<div class="preview-content"></div>
 	</div>
@@ -23,16 +23,11 @@
 
 <script id="shippingAddressPreviewTemplate" type="text/template">
 	<%- _.compact([firstname, lastname]).join(' ') %><br />
-    <% if(email) { %><%= email  %><% } %><br />
-	<% if (company) { %>
-	<%- company %><br />
-	<% } %>
-	<%- _.compact([address1, address2]).join(', ') %><br />
-	<%- _.compact([city, $("select#state option[value="+state+"]").attr("label"), zip, country]).join(', ') %><br />
-	<% if (phone) { %>
-	<?php echo $this->translate('Tel');?>: <%- phone %><br />
-	<% } %>
-	<% if (mobile) { %>
-	<?php echo $this->translate('Mobile');?>: <%- mobile %><br />
-	<% } %>
+    <% if(email) { %><%= email %><br /><% } %>
+	<% if (company) { %><%- company %><br /><% } %>
+	<%- _.compact([address1, address2]).join(', ') %><% if (address1 || address2) { %><br /><% } %>
+	<%- _.compact([city, $("select#state option[value="+state+"]").attr("label"), zip, country]).join(', ') %>
+	<% if (city || state || zip || country) { %><br /><% } %>
+	<% if (phone) { %><?php echo $this->translate('Tel');?>: <%- phone %><br /><% } %>
+	<% if (mobile) { %><?php echo $this->translate('Mobile');?>: <%- mobile %><br /><% } %>
 </script>
