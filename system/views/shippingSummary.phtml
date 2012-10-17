@@ -1,12 +1,30 @@
 <div id="checkout-widget-address-preview" <?php echo (isset($this->customer) ? 'style="display: none;"' : ''); ?>>
-		<span class="checkout-right-title">{$header:shipping_preview}</span>
-        <div id="checkout-user-info">
-            <div><?php echo $this->customer['fullName']; ?></div>
-            <div><?php echo $this->customer['email']; ?></div>
-        </div>
-		<div id="cart-address-preview"></div>
-		<input id="edit-cart-btn" type="button" value="<?php echo $this->translate('Edit Address or quantities');?>"/>
+	<span class="checkout-right-title">{$header:shipping_preview}</span>
+    <div id="checkout-user-info">
+        <div><?php echo $this->customer['fullName']; ?></div>
+        <div><?php echo $this->customer['email']; ?></div>
+    </div>
+	<div id="cart-address-preview"></div>
+	<input id="edit-cart-btn" type="button" value="<?php echo $this->translate('Edit Address or quantities');?>"/>
 </div>
 <div id="shipping-type-selected" style="display: none;">
-    <span class="checkout-right-title"><?php echo $this->translate('Shipping method')?>:</span>
+    <span class="checkout-right-title"><?php echo $this->translate('Shipping method')?>:<span></span></span>
+	<p></p>
 </div>
+
+<script id="shippingAddressPreviewTemplate" type="text/template">
+	<% if(firstname) { %><%= firstname  %><% } %>&nbsp;<% if(lastname) { %><%= lastname  %><% } %><br />
+	<% if(email) { %><%= email  %><% } %><br />
+	<%- _.compact([firstname, lastname]).join(' ') %><br />
+	<% if (company) { %>
+	<%- company %><br />
+	<% } %>
+	<%- _.compact([address1, address2]).join(', ') %><br />
+	<%- _.compact([city, $("select#state option[value="+state+"]").attr("label"), zip, country]).join(', ') %><br />
+	<% if (phone) { %>
+	Tel: <%- phone %><br />
+	<% } %>
+	<% if (mobile) { %>
+	Mobile: <%- mobile %><br />
+	<% } %>
+</script>

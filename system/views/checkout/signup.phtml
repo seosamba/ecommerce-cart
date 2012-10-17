@@ -1,0 +1,16 @@
+<p class="checkout-button">
+    <a href="javascript:;" title="<?php echo $this->translate('Checkout'); ?>" id="checkout-action"><?php echo $this->translate('Checkout'); ?></a>
+    <span class="disc">OR</span>
+    <a href="<?php echo $this->websiteUrl; ?>" title="<?php echo $this->translate('Keep shopping'); ?>" id="keepshopping-action"> <?php echo $this->translate('Keep shopping'); ?></a>
+</p>
+
+<div class="checkout-forms" style="display:none;">
+    <div>
+        <h3 class="shipping-address-header">{$header:<?php echo strtolower(get_class($this->signupForm)); ?>}</h3>
+        <?php echo $this->signupForm; ?>
+    </div>
+    <div>
+        <h3>{$header:checkout-signin}</h3>
+        {$member:login}
+    </div>
+</div>

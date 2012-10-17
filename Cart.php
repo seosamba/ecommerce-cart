@@ -243,34 +243,13 @@ class Cart extends Tools_Cart_Cart {
 		}
 
         //if user is guest we will show him to sign-up form
-        if(!Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART) || Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_PLUGINS)) {
-            $form = new Forms_Signup();
-        } else {
-            //@todo otherwise address form we procced user to next step
-            $addrType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
-            $form     = new Forms_Checkout_Address();
-            if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getAddressKey($addrType))){
-                $customerAddress = Tools_ShoppingCart::getAddressById($uniqKey);
-            } else {
-                $customer = Tools_ShoppingCart::getInstance()->getCustomer();
-                $customerAddress = $customer->getDefaultAddress($addrType);
-            }
-            if (!empty($customerAddress)) {
-                $form->populate($customerAddress);
-            } else {
-                $form->populate(array(
-                    'country' => $this->_shoppingConfig['country'],
-                    'state'   => $this->_shoppingConfig['state']
-                ));
-            }
-        }
+		//otherwise address form we show him shipping options
+		if(Tools_ShoppingCart::getInstance()->getCustomer()->getId()) {
+			$this->_view->content = $this->_renderShippingOptions();
+		} else {
+			$this->_view->content = $this->_renderSignupForm();
+		}
 
-        $form->setAction(trim($this->_websiteUrl, '/') . $this->_view->url(array(
-            'run' => 'checkout',
-            'name' => strtolower(__CLASS__)
-        ), 'pluginroute'));
-
-        $this->_view->signupForm        = $form;
     	return $this->_view->render('checkout/landing.phtml');
 	}
 
@@ -369,12 +348,13 @@ class Cart extends Tools_Cart_Cart {
         if($form->isValid($this->_request->getParams())) {
             $customer    = Shopping::processCustomer($form->getValues());
             if($customer) {
+	            Tools_ShoppingCart::getInstance()->saveCartSession($customer);
 //                $this->_sessionHelper->setCurrentUser($customer);
             }
 	        echo $this->_renderShippingOptions();
         } else {
 	        return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)
-			        ->setBody('@TODO error proccessing')
+			        ->setBody(json_encode($form->getMessages()))
 			        ->sendResponse();
         }
     }
@@ -382,12 +362,35 @@ class Cart extends Tools_Cart_Cart {
 	private function _checkoutApplyPickup() {
 		$form = new Forms_Checkout_Pickup();
 		if ($form->isValid($this->_request->getPost())){
+//			$customer = Tools_ShoppingCart::getInstance()->getCustomer();
+//			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $form->getValues(), Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
+//			Tools_ShoppingCart::getInstance()->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, $addressId)
+//				->setShippingData(array(
+//					'service'   => Shopping::SHIPPING_PICKUP,
+//					'type'      => null,
+//					'price'     => 0
+//				))
+//				->save()
+//				->saveCartSession($customer);
+
 			echo $this->_renderPaymentZone();
 		} else {
 			return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)
 					->setBody('@TODO error proccessing')
 					->sendResponse();
         }
+	}
+
+	protected function _renderSignupForm() {
+		$form = new Forms_Signup();
+		$form->setAction(trim($this->_websiteUrl, '/') . $this->_view->url(array(
+            'run' => 'checkout',
+            'name' => strtolower(__CLASS__)
+        ), 'pluginroute'));
+
+        $this->_view->signupForm        = $form;
+
+		return $this->_view->render('checkout/signup.phtml');
 	}
 
 	protected function _renderShippingOptions(){
