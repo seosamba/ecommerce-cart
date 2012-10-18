@@ -6,18 +6,17 @@
 </p>
 <?php endif; ?>
 
-<div <?php if ($this->pickupForm && $this->shippingForm) echo 'class="checkout-forms"'; ?>>
-	<?php if ($this->pickupForm) : ?>
-    <div style="<?php if ($this->shippingForm): ?>display: none;<?php endif; ?>" >
-        <h3 class="checkout-forms-header"><?php echo $this->pickupForm->getLegend(); ?></h3>
-        <?php echo $this->pickupForm; ?>
-    </div>
-    <?php endif; ?>
-
-	<?php if ($this->shippingForm) : ?>
-    <div style="<?php if ($this->pickupForm): ?>display: none;<?php endif; ?>">
-	    <h3 class="checkout-forms-header"><?php echo $this->shippingForm->getLegend(); ?></h3>
-	    <?php echo $this->shippingForm; ?>
-    </div>
-	<?php endif; ?>
+<?php if ($this->pickupForm) : ?>
+<div style="<?php if ($this->shippingForm): ?>display: none;<?php endif; ?>" class="checkout-forms">
+    <h3 class="checkout-forms-header"><?php echo $this->pickupForm->getLegend(); ?></h3>
+    <?php echo $this->pickupForm; ?>
+	<div>{$container:pickup_location}</div>
 </div>
+<?php endif; ?>
+
+<?php if ($this->shippingForm) : ?>
+<div style="<?php if ($this->pickupForm): ?>display: none;<?php endif; ?>">
+    <h3 class="checkout-forms-header"><?php echo $this->shippingForm->getLegend(); ?></h3>
+    <?php echo $this->shippingForm; ?>
+</div>
+<?php endif; ?>
