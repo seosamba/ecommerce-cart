@@ -17,7 +17,7 @@
 		<div class="preview-content"></div>
 	</div>
 
-	<input id="edit-cart-btn" type="button" value="<?php echo $this->translate('Edit Address or quantities');?>" style="display:none"/>
+	<input id="edit-cart-btn" type="button" value="<?php echo $this->translate('Start over');?>" style="display:none"/>
 </div>
 
 
@@ -26,7 +26,7 @@
     <% if(email) { %><%= email %><br /><% } %>
 	<% if (company) { %><%- company %><br /><% } %>
 	<%- _.compact([address1, address2]).join(', ') %><% if (address1 || address2) { %><br /><% } %>
-	<%- _.compact([city, $("select#state option[value="+state+"]").attr("label"), zip, country]).join(', ') %>
+	<%- _.compact([city, state, zip, country]).join(', ') %>
 	<% if (city || state || zip || country) { %><br /><% } %>
 	<% if (phone) { %><?php echo $this->translate('Tel');?>: <%- phone %><br /><% } %>
 	<% if (mobile) { %><?php echo $this->translate('Mobile');?>: <%- mobile %><br /><% } %>

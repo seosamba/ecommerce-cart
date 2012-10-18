@@ -257,12 +257,12 @@ class Cart extends Tools_Cart_Cart {
 	protected function _makeOptionCartsummary() {
 		$this->_view->summary = $this->_cartStorage->calculate();
 		$this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
-		return $this->_view->render('summary.phtml');
+		return $this->_view->render('cartsummary.phtml');
 	}
 
     protected function _makeOptionBuyersummary() {
         $this->_view->customer = Tools_ShoppingCart::getInstance()->getCustomer()->toArray();
-		return $this->_view->render('shippingSummary.phtml');
+		return $this->_view->render('buyersummary.phtml');
 	}
     
 	protected function _parseProductOtions($productId, $options) {
@@ -309,7 +309,9 @@ class Cart extends Tools_Cart_Cart {
 
 			echo json_encode($this->_checkShippingPlugins($shippingAddress));
 		} else {
-			$this->_jsonpResponse(self::CART_WIDGET_JS_NS.'processFormErrors', json_encode($form->getMessages()));
+			return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)
+			        ->setBody(json_encode($form->getMessages()))
+			        ->sendResponse();
 		}
 	}
 
@@ -376,7 +378,7 @@ class Cart extends Tools_Cart_Cart {
 			echo $this->_renderPaymentZone();
 		} else {
 			return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)
-					->setBody('@TODO error proccessing')
+					->setBody(json_encode($form->getMessages()))
 					->sendResponse();
         }
 	}

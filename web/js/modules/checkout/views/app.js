@@ -30,6 +30,7 @@ define([ 'backbone' ], function( Backbone ){
         websiteUrl: $('#website_url').val(),
         initialize: function(){
             $('.checkout-button').show();
+            this.spinner = this.$el.find('div.spinner').hide();
 
             if ($('#checkout-widget-preview').size()){
                 $('#checkout-widget-preview').on('click', '#edit-cart-btn', this.editAddress.bind(this));
@@ -69,10 +70,12 @@ define([ 'backbone' ], function( Backbone ){
                 type: 'POST',
                 data: form.serialize(),
                 dataType: 'html',
+                beforeSend: function(){ form.find('[type="submit"]').attr('disabled', 'disabled').hide(); },
+                complete: function(){ form.find('[type="submit"]').removeAttr('disabled').show(); },
                 success: function(response){
                     switch (form[0].id){
                         case 'checkout-user-address':
-                            self.addressFormCache = self.$el.html();
+//                            self.addressFormCache = self.$el.html();
                             self.$el.empty();
                             self.buildAddressPreview(form)
                                 .buildShipperForm($.parseJSON(response));
@@ -90,7 +93,7 @@ define([ 'backbone' ], function( Backbone ){
                             $('#checkout-user-info:hidden').show();
                         default:
                             self.$el.html(response);
-                            console.log(self.$el.find('form.address-form').addressChain());
+                            self.$el.find('form.address-form').addressChain();
                             break;
                     }
                 },
@@ -125,9 +128,12 @@ define([ 'backbone' ], function( Backbone ){
                         city: null, state: null, zip: null, country: null, phone: null, mobile: null
                     };
                 _.each(formData, function(elem){
-                    jsonData[elem.name] = elem.value;
+                    if (elem.name == 'state'){
+                        jsonData[elem.name] = form.find("select[name=state] option[value="+elem.value+"]").attr("label");
+                    } else {
+                        jsonData[elem.name] = elem.value;
+                    }
                 });
-
                 if (!_.isEmpty(jsonData)){
                     $('div.preview-content', addressWidget).html(this.templates.addressPreview(jsonData));
                 }
@@ -189,6 +195,8 @@ define([ 'backbone' ], function( Backbone ){
                 $('div.preview-content', '#checkout-shipping-selected').html(shipper.closest('ul').data('name') + ': '+ shipper.next('span.shipping-method-title').text());
                 $('#checkout-shipping-selected').show();
             }
+
+            form.find('[type=submit]').attr('disabled', 'disabled').hide();
 
             $.ajax({
                 url: form.attr('action'),
