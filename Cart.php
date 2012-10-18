@@ -410,7 +410,7 @@ class Cart extends Tools_Cart_Cart {
 			));
 		});
 
-		if ($pickup){
+		if ($pickup && (bool)$pickup['enabled']){
 			$this->_view->pickupForm = new Forms_Checkout_Pickup();
 			$this->_view->pickupForm->setAction(trim($this->_websiteUrl, '/') . $this->_view->url(array(
 	            'run' => 'checkout',

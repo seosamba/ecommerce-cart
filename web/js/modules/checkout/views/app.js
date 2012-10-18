@@ -5,7 +5,7 @@ define([ 'backbone' ], function( Backbone ){
     var AppView = Backbone.View.extend({
         el: $('#checkout-widget'),
         events: {
-            'submit .checkout-forms form.toaster-checkout': 'submitForm',
+            'submit form.toaster-checkout': 'submitForm',
             'click a#checkout-action': 'toggleCheckoutStart',
             'click a#pickup-action': function(e){
                 e.preventDefault();

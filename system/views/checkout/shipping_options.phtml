@@ -6,7 +6,7 @@
 </p>
 <?php endif; ?>
 
-<div class="checkout-forms">
+<div <?php if ($this->pickupForm && $this->shippingForm) echo 'class="checkout-forms"'; ?>>
 	<?php if ($this->pickupForm) : ?>
     <div style="<?php if ($this->shippingForm): ?>display: none;<?php endif; ?>" >
         <h3 class="checkout-forms-header"><?php echo $this->pickupForm->getLegend(); ?></h3>
