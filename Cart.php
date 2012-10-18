@@ -129,7 +129,7 @@ class Cart extends Tools_Cart_Cart {
 		if(!$this->_request->isPost()) {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
-		$this->_responseHelper->success($this->_makeOptionSummary());
+		$this->_responseHelper->success($this->_makeOptionCartsummary());
 	}
 
 	public function cartcontentAction() {
@@ -239,7 +239,7 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _makeOptionCheckout() {
 		if (count(Tools_ShoppingCart::getInstance()->getContent()) === 0 ){
-			return null;
+			return $this->_view->render('checkout/keepshopping.phtml');
 		}
 
         //if user is guest we will show him to sign-up form
@@ -254,13 +254,13 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 
-	protected function _makeOptionSummary() {
+	protected function _makeOptionCartsummary() {
 		$this->_view->summary = $this->_cartStorage->calculate();
 		$this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
 		return $this->_view->render('summary.phtml');
 	}
 
-    protected function _makeOptionShippingSummary() {
+    protected function _makeOptionBuyersummary() {
         $this->_view->customer = Tools_ShoppingCart::getInstance()->getCustomer()->toArray();
 		return $this->_view->render('shippingSummary.phtml');
 	}
