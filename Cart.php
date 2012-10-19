@@ -351,7 +351,6 @@ class Cart extends Tools_Cart_Cart {
             $customer    = Shopping::processCustomer($form->getValues());
             if($customer) {
 	            Tools_ShoppingCart::getInstance()->saveCartSession($customer);
-//                $this->_sessionHelper->setCurrentUser($customer);
             }
 	        echo $this->_renderShippingOptions();
         } else {
@@ -391,6 +390,15 @@ class Cart extends Tools_Cart_Cart {
         ), 'pluginroute'));
 
         $this->_view->signupForm        = $form;
+		$this->_view->redirectUrl       = $this->_seotoasterData['url'];
+
+		$flashMessenger = Zend_Controller_Action_HelperBroker::getStaticHelper('flashMessenger');
+		$msg = $flashMessenger->getMessages();
+		$this->_view->loginError = false;
+
+		if (!empty($msg) && (in_array('There is no user with such login and password.', $msg) || in_array('Login should be a valid email address', $msg))){
+			$this->_view->loginError = true;
+		}
 
 		return $this->_view->render('checkout/signup.phtml');
 	}

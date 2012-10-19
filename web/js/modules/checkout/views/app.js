@@ -29,7 +29,7 @@ define([ 'backbone' ], function( Backbone ){
         },
         websiteUrl: $('#website_url').val(),
         initialize: function(){
-            $('.checkout-button').show();
+//            $('.checkout-button').show();
             this.spinner = this.$el.find('div.spinner').hide();
 
             if ($('#checkout-widget-preview').size()){
