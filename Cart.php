@@ -410,6 +410,8 @@ class Cart extends Tools_Cart_Cart {
 
 		if ((is_null($pickup) || (bool)$pickup['enabled'] == false) && is_null($shippers)){
 			return $this->_renderPaymentZone();
+		} else {
+
 		}
 
 		$shippers = array_filter($shippers, function($shipper){
@@ -429,28 +431,38 @@ class Cart extends Tools_Cart_Cart {
 		}
 
 		if (!empty($shippers)){
-			$addrType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
-            $shippingForm     = new Forms_Checkout_Address();
-            if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getAddressKey($addrType))){
-                $customerAddress = Tools_ShoppingCart::getAddressById($uniqKey);
-            } else {
-                $customer = Tools_ShoppingCart::getInstance()->getCustomer();
-                $customerAddress = $customer->getDefaultAddress($addrType);
-            }
-            if (!empty($customerAddress)) {
-                $shippingForm->populate($customerAddress);
-            } else {
-                $shippingForm->populate(array(
-                    'country' => $this->_shoppingConfig['country'],
-                    'state'   => $this->_shoppingConfig['state']
-                ));
-            }
+			$shippingForm     = new Forms_Checkout_Address();
 			$this->_view->shippingForm = $shippingForm;
 			$this->_view->shippingForm->setAction(trim($this->_websiteUrl, '/') . $this->_view->url(array(
 	            'run' => 'checkout',
 	            'name' => strtolower(__CLASS__)
 	        ), 'pluginroute'));
 		}
+
+		//. preparing user info for forms
+		$addrType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
+		if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getAddressKey($addrType))){
+            $customerAddress = Tools_ShoppingCart::getAddressById($uniqKey);
+        } else {
+            $customer = Tools_ShoppingCart::getInstance()->getCustomer();
+            if (null === ($customerAddress = $customer->getDefaultAddress($addrType)) && $customer->getId()){
+                $name = explode(' ', $customer->getFullName());
+                $customerAddress = array(
+	                'firstname' => $name[0],
+	                'lastname'  => $name[1],
+	                'email'     => $customer->getEmail(),
+	                'country' => $this->_shoppingConfig['country'],
+                    'state'   => $this->_shoppingConfig['state']
+                );
+            }
+        }
+        if (empty($customerAddress)) {
+            $customerAddress = array(
+                'country' => $this->_shoppingConfig['country'],
+                'state'   => $this->_shoppingConfig['state']
+            );
+        }
+		$this->_view->customerAddress = $customerAddress;
 
 		return $this->_view->render('checkout/shipping_options.phtml');
 	}
