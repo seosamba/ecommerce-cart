@@ -1,12 +1,10 @@
 <form id="shipper-select" method="post" enctype="application/x-www-form-urlencoded" action="<%= $('#website_url').val() %>plugin/cart/run/checkout/">
-    <h3><span>2 </span><%= caption %></h3>
+    <h3 class="shipping-address-header"><%= caption %></h3>
     <input type="hidden" name="check" value="shipper">
     <% _.each(shippers, function(shipper) { %>
-        <% if (shipper.name != 'markup') { %>
-            <ul id="<%= shipper.name %>-methods" class="shipping-methods">
-                <li><label>...quering <%= shipper.name %>...</label></li>
-            </ul>
-        <% } %>
+        <ul id="<%= shipper.name %>-methods" class="shipping-methods" data-name="<%= shipper.name %>">
+            <li><label>...quering <%= shipper.name %>...</label></li>
+        </ul>
     <% }); %>
     <input type="submit" value="Apply" >
 </form>

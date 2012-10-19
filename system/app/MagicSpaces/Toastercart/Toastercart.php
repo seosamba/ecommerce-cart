@@ -36,7 +36,7 @@ class MagicSpaces_Toastercart_Toastercart extends Tools_MagicSpaces_Abstract {
 			}
 		}
 		$this->_view->cartContent = $content;
-		return ($content) ? $this->_view->render('toastercart.phtml') : '<div style="text-align:center;font-weight:bold;font-size:20px;margin:20px 0px;">Cart is empty</div>';
+		return $this->_view->render('toastercart.phtml');
 	}
 
 	protected function _findPageTemplateContent() {
