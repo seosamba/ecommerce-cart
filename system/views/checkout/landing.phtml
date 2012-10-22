@@ -7,8 +7,9 @@ $this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/li
 </div>
 
 <script id="ShippersFormTmpl" type="text/template">
-	<form id="shipper-select" method="post" enctype="application/x-www-form-urlencoded" action="<%= $('#website_url').val() %>plugin/cart/run/checkout/">
-	    <h3 class="shipping-address-header"><%= caption %></h3>
+<div>
+    <h3 class="checkout-forms-header"><%= caption %></h3>
+    <form id="shipper-select" method="post" enctype="application/x-www-form-urlencoded" action="<%= $('#website_url').val() %>plugin/cart/run/checkout/">
 	    <input type="hidden" name="check" value="shipper">
 	    <% _.each(shippers, function(shipper) { %>
 	        <ul id="<%= shipper.name %>-methods" class="shipping-methods" data-name="<%= shipper.name %>">
@@ -17,6 +18,7 @@ $this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/li
 	    <% }); %>
 	    <input type="submit" value="Apply" >
 	</form>
+</div>
 </script>
 
 <script id="ShipperMethodsTmpl" type="text/template">

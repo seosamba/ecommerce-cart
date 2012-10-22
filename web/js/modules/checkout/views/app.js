@@ -29,11 +29,10 @@ define([ 'backbone' ], function( Backbone ){
         },
         websiteUrl: $('#website_url').val(),
         initialize: function(){
-//            $('.checkout-button').show();
             this.spinner = this.$el.find('div.spinner').hide();
 
             if ($('#checkout-widget-preview').size()){
-                $('#checkout-widget-preview').on('click', '#edit-cart-btn', this.editAddress.bind(this));
+                $('#checkout-widget-preview').on('click', '#edit-cart-btn', _.bind(this.editAddress, this));
             }
 
             if ($.fn.addressChain){
@@ -45,7 +44,6 @@ define([ 'backbone' ], function( Backbone ){
         submitForm: function(e) {
             e.preventDefault();
 
-//            $('#checkout').attr("disabled", 'disabled');
             var self    = this,
                 form    = $(e.currentTarget),
                 valid   = true;
@@ -79,6 +77,7 @@ define([ 'backbone' ], function( Backbone ){
                             self.$el.empty();
                             self.buildAddressPreview(form)
                                 .buildShipperForm($.parseJSON(response));
+                            refreshCartSummary();
                             break;
                         case 'checkout-pickup':
                             $('.preview-content', '#checkout-shipping-selected').text('Free pickup');
@@ -147,7 +146,7 @@ define([ 'backbone' ], function( Backbone ){
             this.switchCheckoutLock(true);
             if (_.has(response, 'shippers')) {
                 var form = $(this.templates.shippersForm(response));
-                form.on('submit', this.submitShipper.bind(this)).appendTo(this.$el);
+                form.on('submit', _.bind(this.submitShipper, this)).appendTo(this.$el);
                 self.shipperXHRCount = response.shippers.length;
                 _.each(response.shippers, function(shipper){
                     $.ajax({
@@ -202,7 +201,7 @@ define([ 'backbone' ], function( Backbone ){
                 url: form.attr('action'),
                 type: 'POST',
                 data: formData,
-                success: self.renderPaymentZone.bind(this),
+                success: _.bind(self.renderPaymentZone, this),
                 error: function(){
                     window.console && console.log(arguments);
                 }
@@ -223,8 +222,7 @@ define([ 'backbone' ], function( Backbone ){
             if (_.isUndefined(this.addressFormCache)){
                 window.location.reload();
             } else {
-                this.switchCheckoutLock(false)
-                    .$el.html(this.addressFormCache);
+                this.switchCheckoutLock(false).$el.html(this.addressFormCache);
             }
         },
         switchCheckoutLock: function(lock){

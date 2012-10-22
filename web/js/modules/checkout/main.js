@@ -19,6 +19,13 @@ require.config({
 require([
     './views/app'
 ], function(AppView){
-    window.CartCheckout = new AppView();
-    return CartCheckout;
+    if (!window.Toastr){
+        window.Toastr = {}
+    }
+
+    $(function(){
+        Toastr.CartCheckout = new AppView();
+    });
+
+    return Toastr;
 });
