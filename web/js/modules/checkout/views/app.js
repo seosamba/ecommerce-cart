@@ -146,7 +146,7 @@ define([ 'backbone' ], function( Backbone ){
             this.switchCheckoutLock(true);
             if (_.has(response, 'shippers')) {
                 var form = $(this.templates.shippersForm(response));
-                form.on('submit', _.bind(this.submitShipper, this)).appendTo(this.$el);
+                form.on('submit', 'form', _.bind(this.submitShipper, this)).appendTo(this.$el);
                 self.shipperXHRCount = response.shippers.length;
                 _.each(response.shippers, function(shipper){
                     $.ajax({
@@ -201,9 +201,9 @@ define([ 'backbone' ], function( Backbone ){
                 url: form.attr('action'),
                 type: 'POST',
                 data: formData,
-                success: _.bind(self.renderPaymentZone, this),
+                success: _.bind(this.renderPaymentZone, this),
                 error: function(){
-                    window.console && console.log(arguments);
+                    console.log(arguments);
                 }
             });
         },
