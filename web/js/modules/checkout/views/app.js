@@ -211,11 +211,15 @@ define([ 'backbone' ], function( Backbone ){
             this.switchCheckoutLock(true);
             this.$el.empty();
 
-            var pz = $('#payment-zone');
-            if (!pz){
-                pz = $('<div id="payment-zone"></div>').insertAfter(this.el);
+            var container = $('#payment-zone');
+            if (!container.size()){
+                container = $('<div id="payment-zone"></div>').insertAfter(this.el);
             }
-            pz.html(html);
+            if ($.browser.msie){
+                container[0].innerHTML = html;
+            } else {
+                container.html(html);
+            }
             refreshCartSummary();
         },
         editAddress: function(){
