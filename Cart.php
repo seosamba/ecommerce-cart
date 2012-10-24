@@ -364,7 +364,12 @@ class Cart extends Tools_Cart_Cart {
 		$form = new Forms_Checkout_Pickup();
 		if ($form->isValid($this->_request->getPost())){
 			$customer = Tools_ShoppingCart::getInstance()->getCustomer();
-			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $form->getValues(), Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
+			$address = array_merge($form->getValues(), array(
+				'country'   => isset($this->_shoppingConfig['country']) ? $this->_shoppingConfig['country'] : null,
+				'city'      => isset($this->_shoppingConfig['city'])    ? $this->_shoppingConfig['city']    : null,
+				'state'     => isset($this->_shoppingConfig['state'])   ? $this->_shoppingConfig['state']   : null,
+			));
+			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $address, Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
 			Tools_ShoppingCart::getInstance()->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, $addressId)
 				->setShippingData(array(
 					'service'   => Shopping::SHIPPING_PICKUP,
