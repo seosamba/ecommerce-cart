@@ -29,7 +29,9 @@ define([ 'backbone' ], function( Backbone ){
         },
         websiteUrl: $('#website_url').val(),
         initialize: function(){
-            this.spinner = this.$el.find('div.spinner').hide();
+            $('div.spinner').fadeOut().remove();
+            this.$el.fadeIn();
+
 
             if ($('#checkout-widget-preview').size()){
                 $('#checkout-widget-preview').on('click', '#edit-cart-btn', _.bind(this.editAddress, this));

@@ -2,7 +2,8 @@
 $this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/libs/jquery/addresschain.jquery.js');
 ?>
 
-<div id="checkout-widget">
+<div class="spinner"><img src="<?php echo $this->websiteUrl;?>/plugins/shopping/web/images/spinner.gif" alt=""></div>
+<div id="checkout-widget" style="display: none;">
 	<?php echo $this->content; ?>
 </div>
 
@@ -36,12 +37,13 @@ $this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/li
 </script>
 
 <style type="text/css">
-	.required::after {
+	#checkout-widget label.required::after {
 		content: ' *';
 		color: red;
 		font-weight: bold;
 	}
-	.notvalid {
+	#checkout-widget input.notvalid,
+	#checkout-widget select.notvalid {
 		color: red;
 	}
 	#checkout-widget ul.shipping-methods li {

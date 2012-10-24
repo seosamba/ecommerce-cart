@@ -3,7 +3,6 @@ $this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/li
 ?>
 
 <div id="checkout-widget">
-
     <!-- if guest then show the "Checkout or Continue shopping" buttons -->
     <?php if(!$this->cartAllowed || Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_PLUGINS)): ?>
         <p class="checkout-button">
@@ -29,26 +28,3 @@ $this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/li
 
 <script data-main="<?php echo $this->websiteUrl;?>plugins/cart/web/js/modules/checkout/main.js" src="<?php echo $this->websiteUrl;?>plugins/shopping/web/js/libs/require.min.js"></script>
 
-<style type="text/css">
-	#checkout-widget label.required::after {
-		content: ' *';
-		color: red;
-		font-weight: bold;
-	}
-	#checkout-widget input.notvalid,
-	#checkout-widget select.notvalid {
-		color: red;
-	}
-	#checkout-widget ul.shipping-methods li {
-		list-style: none;
-		padding: 5px 10px;
-		margin: 0;
-	}
-	#checkout-widget ul.shipping-methods li label {
-		cursor: pointer;
-	}
-	#checkout-widget ul.shipping-methods li label input[type="radio"] {
-		vertical-align: middle;
-		margin: 2px 4px;
-	}
-</style>
