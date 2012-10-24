@@ -216,7 +216,10 @@ define([ 'backbone' ], function( Backbone ){
                 container = $('<div id="payment-zone"></div>').insertAfter(this.el);
             }
             if ($.browser.msie){
-                container[0].innerHTML = html;
+                var element = document.createElement('div');
+                element.innerHTML = html;
+                console.log(element.innerHTML);
+                container.empty().append(element);
             } else {
                 container.html(html);
             }
