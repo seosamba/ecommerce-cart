@@ -5,7 +5,6 @@ define([ 'backbone' ], function( Backbone ){
     var AppView = Backbone.View.extend({
         el: $('#checkout-widget'),
         events: {
-            'submit form.toaster-checkout': 'submitForm',
             'click p.checkout-button a[data-role=button]': 'checkoutAction',
             'click a.[data-role=backbutton]': 'backAction'
         },
@@ -16,6 +15,10 @@ define([ 'backbone' ], function( Backbone ){
             this.$el.fadeIn();
 
             $('body').on('click', '#checkout-widget-preview a', _.bind(this.editAction, this));
+
+            if (!$.browser.msie) {
+                this.$el.on('submit', 'form.toaster-checkout', _.bind(this.submitForm, this));
+            }
 
             if ($.fn.addressChain){
                 $.fn.addressChain.options.url = this.websiteUrl + 'api/store/geo/type/state';
@@ -29,6 +32,8 @@ define([ 'backbone' ], function( Backbone ){
             var self    = this,
                 form    = $(e.currentTarget),
                 valid   = true;
+
+            console.log(self);
 
             form.find('.notvalid').removeClass('notvalid');
 
