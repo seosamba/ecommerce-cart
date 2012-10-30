@@ -6,36 +6,16 @@ define([ 'backbone' ], function( Backbone ){
         el: $('#checkout-widget'),
         events: {
             'submit form.toaster-checkout': 'submitForm',
-            'click a#checkout-action': 'toggleCheckoutStart',
-            'click a#pickup-action': function(e){
-                e.preventDefault();
-                this.$('.checkout-button').hide()
-                this.$('#checkout-pickup').parent().show();
-            },
-            'click a#shipping-action': function(e){
-                e.preventDefault();
-                this.$('.checkout-button').hide();
-                this.$('#checkout-user-address').parent().show();
-            },
-            'click input#edit-cart-btn': function(){
-                this.switchCheckoutLock(false);
-            }
-        },
-        templates: {
-            error: '',
-            addressPreview: $('#shippingAddressPreviewTemplate').size() && _.template($('#shippingAddressPreviewTemplate').html()),
-            shippersForm: $('#ShippersFormTmpl').size() && _.template($('#ShippersFormTmpl').html()),
-            shipperMethods: $('#ShipperMethodsTmpl').size() && _.template($('#ShipperMethodsTmpl').html())
+            'click p.checkout-button a[data-role=button]': 'checkoutAction',
+            'click a.[data-role=backbutton]': 'backAction'
         },
         websiteUrl: $('#website_url').val(),
+        checkoutUrl: $('#website_url').val() + 'plugin/cart/run/checkout/',
         initialize: function(){
             $('div.spinner').fadeOut().remove();
             this.$el.fadeIn();
 
-
-            if ($('#checkout-widget-preview').size()){
-                $('#checkout-widget-preview').on('click', '#edit-cart-btn', _.bind(this.editAddress, this));
-            }
+            $('body').on('click', '#checkout-widget-preview a', _.bind(this.editAction, this));
 
             if ($.fn.addressChain){
                 $.fn.addressChain.options.url = this.websiteUrl + 'api/store/geo/type/state';
@@ -66,173 +46,46 @@ define([ 'backbone' ], function( Backbone ){
             }
 
             $.ajax({
-                url: form.attr('action'),
+                url: this.checkoutUrl,
                 type: 'POST',
                 data: form.serialize(),
                 dataType: 'html',
                 beforeSend: function(){ form.find('[type="submit"]').attr('disabled', 'disabled').hide(); },
                 complete: function(){ form.find('[type="submit"]').removeAttr('disabled').show(); },
                 success: function(response){
-                    switch (form[0].id){
-                        case 'checkout-user-address':
-//                            self.addressFormCache = self.$el.html();
-                            self.$el.empty();
-                            self.buildAddressPreview(form)
-                                .buildShipperForm($.parseJSON(response));
-                            refreshCartSummary();
-                            break;
-                        case 'checkout-pickup':
-                            $('.preview-content', '#checkout-shipping-selected').text('Free pickup');
-                            $('.checkout-widget-title', '#checkout-address-preview').text('Pickup information');
-                            $('#checkout-shipping-selected').show();
-                            self.buildAddressPreview(form)
-                                .renderPaymentZone(response);
-                            break;
-                        case 'checkout-signup':
-                            $('span.fullname', '#checkout-user-info').text(form[0].firstname.value +' '+ form[0].lastname.value);
-                            $('span.email', '#checkout-user-info').text(form[0].email.value);
-                            $('#checkout-user-info:hidden').show();
-                        default:
-                            self.$el.html(response);
-                            self.$el.find('form.address-form').addressChain();
-                            break;
-                    }
+                    self.$el.html(response);
+                    self.$el.find('form.address-form').addressChain();
+                    self.updateBuyerSummary();
                 },
                 error: function(xhr, status){
-                    var errors = $.parseJSON(xhr.responseText);
-                    if (errors !== null){
-                        _.each(errors, function(error, element){
-                            form.find('#'+element).addClass('notvalid');
-                        });
-                        form.find('.notvalid:first').focus();
-                    }
-                }
-            });
-        },
-        toggleCheckoutStart: function() {
-            this.$('.checkout-button').hide()
-            this.$('.checkout-forms').show();
-        },
-        processFormErrors: function(errors){
-            var self = this;
-            _.each(errors, function(error, name){
-                self.form.find('#'+name).addClass('notvalid');
-            });
-        },
-        buildAddressPreview: function(form){
-            var addressWidget = $('#checkout-address-preview');
-
-            if (addressWidget && _.isFunction(this.templates.addressPreview)){
-                var formData = form.serializeArray(),
-                    jsonData = {
-                        firstname: null, lastname: null, company: null, email: null, address1: null, address2: null,
-                        city: null, state: null, zip: null, country: null, phone: null, mobile: null
-                    };
-                _.each(formData, function(elem){
-                    if (elem.name == 'state'){
-                        jsonData[elem.name] = form.find("select[name=state] option[value="+elem.value+"]").attr("label");
-                    } else {
-                        jsonData[elem.name] = elem.value;
-                    }
-                });
-                if (!_.isEmpty(jsonData)){
-                    $('div.preview-content', addressWidget).html(this.templates.addressPreview(jsonData));
-                }
-                addressWidget.show();
-            }
-
-            return this;
-        },
-        buildShipperForm: function(response){
-            var self = this;
-            this.switchCheckoutLock(true);
-            if (_.has(response, 'shippers')) {
-                var form = $(this.templates.shippersForm(response));
-                form.on('submit', 'form', _.bind(this.submitShipper, this)).appendTo(this.$el);
-                self.shipperXHRCount = response.shippers.length;
-                _.each(response.shippers, function(shipper){
-                    $.ajax({
-                        url: '/plugin/'+shipper.name+'/run/calculate/',
-                        data: {cartId: this.cartId},
-                        dataType: 'json',
-                        success: function(response){
-                            form.find('ul#'+shipper.name+'-methods').html(self.templates.shipperMethods({
-                                services: response,
-                                name: shipper.name
-                            }));
-                        },
-                        error: function(){
-                            form.find('ul#'+shipper.name+'-methods').html(shipper.name+' service in currently unreachable.')
-                        }
-                    }).done(function(){
-                        self.shipperXHRCount--;
-                        if (self.shipperXHRCount === 0){
-                            var form = $('#shipper-select');
-                            if (form.find('input[name=shipper]').length){
-                                $('#shipper-select input:submit').fadeIn();
-                            } else {
-                                $('#shipper-select input:submit').remove();
-                            }
-                        }
-                    });
-                });
-            } else {
-               showMessage('Something went wrong. Please try again later', true);
-            }
-        },
-        submitShipper: function(e){
-            e.preventDefault();
-            var self = this,
-                form = $(e.currentTarget);
-
-            if (!form.find('input[name=shipper]:checked').size()){
-                showMessage('Please, select shipping method', true);
-                return false;
-            }
-
-            var formData = form.serialize();
-            if ($('#checkout-shipping-selected').size()){
-                var shipper = form.find('[name=shipper]:checked');
-                $('div.preview-content', '#checkout-shipping-selected').html(shipper.closest('ul').data('name') + ': '+ shipper.next('span.shipping-method-title').text());
-                $('#checkout-shipping-selected').show();
-            }
-
-            form.find('[type=submit]').attr('disabled', 'disabled').hide();
-
-            $.ajax({
-                url: form.attr('action'),
-                type: 'POST',
-                data: formData,
-                success: _.bind(this.renderPaymentZone, this),
-                error: function(){
                     console.log(arguments);
                 }
             });
         },
-        renderPaymentZone: function(html){
-            this.switchCheckoutLock(true);
-            this.$el.empty();
-
-            var container = $('#payment-zone');
-            if (!container.size()){
-                container = $('<div id="payment-zone"></div>').insertAfter(this.el);
+        checkoutAction: function(e) {
+            e.preventDefault();
+            var target = $(e.currentTarget).data('targetid');
+            if (target && $(target).size()){
+                $(target).show();
+                $(e.currentTarget).closest('p.checkout-button').hide();
             }
-            if ($.browser.msie){
-                var element = document.createElement('div');
-                element.innerHTML = html;
-                console.log(element.innerHTML);
-                container.empty().append(element);
-            } else {
-                container.html(html);
-            }
-            refreshCartSummary();
         },
-        editAddress: function(){
-            if (_.isUndefined(this.addressFormCache)){
-                window.location.reload();
-            } else {
-                this.switchCheckoutLock(false).$el.html(this.addressFormCache);
-            }
+        backAction: function(e) {
+            e.preventDefault();
+            this.$el.find('p.checkout-button').show();
+            this.$el.children().not('p.checkout-button').hide();
+        },
+        editAction: function(e) {
+            e.preventDefault();
+            var self = this;
+
+            $.get(this.checkoutUrl, {step: $(e.currentTarget).data('step')}, function(response){
+                self.$el.html(response);
+                self.$el.find('form.address-form').addressChain();
+                self.updateBuyerSummary();
+            });
+
+            return false;
         },
         switchCheckoutLock: function(lock){
             lock = !!lock;
@@ -255,6 +108,15 @@ define([ 'backbone' ], function( Backbone ){
             }
 
             return this;
+        },
+        updateBuyerSummary: function(){
+
+            var widget = $('#checkout-widget-preview');
+            if(widget.length) {
+                $.post('/plugin/cart/run/buyersummary/', function(response) {
+                    widget.replaceWith(response.responseText);
+                }, 'json');
+            }
         }
     });
 

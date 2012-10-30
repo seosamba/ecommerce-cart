@@ -1,0 +1,46 @@
+<div>
+    <h3 class="checkout-forms-header"><?php echo $this->translate('Select shipping method');?></h3>
+    <form id="shipper-select" method="post" class="toaster-checkout" enctype="application/x-www-form-urlencoded" action="<?php echo $this->actionUrl; ?>">
+	    <?php foreach($this->shippers as $shipper) :?>
+	    <ul id="<?php echo $shipper['name']; ?>-methods" class="shipping-methods" data-name="<?php echo $shipper['name']; ?>">
+            <li>
+	            <img src="<?php echo $this->websiteUrl;?>/plugins/shopping/web/images/spinner_16.gif" alt="<?php echo $this->translate('loading');?>">
+	            <label>quering <?php echo $shipper['name']; ?>...</label>
+ 			</li>
+        </ul>
+	    <?php endforeach; ?>
+	    <p><input type="hidden" name="step" value="<?php echo Cart::STEP_SHIPPING_METHOD; ?>"></p>
+	    <p><input type="submit" value="Apply" ></p>
+	</form>
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+$('ul.shipping-methods', '#shipper-select').each(function(){
+	var self = this,
+		shipperName = $(this).data('name');
+
+	$.ajax({
+        url: '<?php echo $this->websiteUrl;?>plugin/'+shipperName+'/run/calculate/',
+        dataType: 'json',
+        success: function(response){
+            var html ='';
+	        $.each(response, function(index, shipper){
+		        console.log(arguments);
+	            if (shipper.error) {
+		            html = '<li><label class="shipper-error">'+shipper.error+'</label></li>';
+	            } else {
+		            html = '<li><label style="cursor: pointer">' +
+		            '<input type="radio" name="shipper" value="'+shipperName+'::'+index+'"/><span class="shipping-method-title">'+shipper.type+'</span>' +
+		            '<span class="shipping-price">'+shipper.price+'</span></label>' + ( shipper.descr ? '<p>'+shipper.descr+'</p>' : '' )
+	            }
+	        });
+	        $(self).html(html);
+        },
+        error: function(){
+            $(self).html(shipperName+' service in currently unreachable.')
+        }
+    });
+});
+//]]>
+</script>

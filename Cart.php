@@ -14,7 +14,15 @@ class Cart extends Tools_Cart_Cart {
 
 	const DEFAULT_CURRENCY_NAME = 'USD';
 
-	const CART_WIDGET_JS_NS   = 'CartCheckout.';
+	const STEP_SIGNUP   = 'signup';
+
+	const STEP_PICKUP   = 'pickup';
+
+	const STEP_SHIPPING_ADDRESS = 'address';
+
+	const STEP_SHIPPING_METHOD  = 'shipper';
+
+	const STEP_LANDING  = 'landing';
 
 	/**
 	 * Shopping cart main storage.
@@ -53,6 +61,8 @@ class Cart extends Tools_Cart_Cart {
 
 	protected $_sessionHelper  = null;
 
+	protected static $_allowBuyerSummarRendering = false;
+
 	protected function _init() {
 		$this->_cartStorage      = Tools_ShoppingCart::getInstance();
 		$this->_productMapper    = Models_Mapper_ProductMapper::getInstance();
@@ -62,6 +72,14 @@ class Cart extends Tools_Cart_Cart {
 		$this->_view->weightSign = isset($this->_shoppingConfig['weightUnit']) ? $this->_shoppingConfig['weightUnit'] : 'kg';
 		$this->_initCurrency();
 		$this->_view->setScriptPath(dirname(__FILE__) . '/system/views/');
+
+		if (!isset($this->_sessionHelper->cartCheckoutReturnAllowed)){
+			$this->_sessionHelper->cartCheckoutReturnAllowed = array(
+				self::STEP_LANDING
+			);
+		}
+
+
 	}
 
 	private function _initCurrency() {
@@ -130,6 +148,14 @@ class Cart extends Tools_Cart_Cart {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
 		$this->_responseHelper->success($this->_makeOptionCartsummary());
+	}
+
+	public function buyersummaryAction() {
+		if(!$this->_request->isPost()) {
+			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+		}
+		self::$_allowBuyerSummarRendering = true;
+		$this->_responseHelper->success($this->_makeOptionBuyersummary());
 	}
 
 	public function cartcontentAction() {
@@ -238,19 +264,47 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionCheckout() {
-		if (count(Tools_ShoppingCart::getInstance()->getContent()) === 0 ){
+		if (count(Tools_ShoppingCart::getInstance()->getContent()) === 0 ) {
 			return $this->_view->render('checkout/keepshopping.phtml');
 		}
 
-        //if user is guest we will show him to sign-up form
-		//otherwise address form we show him shipping options
-		if(Tools_ShoppingCart::getInstance()->getCustomer()->getId()) {
-			$this->_view->content = $this->_renderShippingOptions();
+		$this->_view->actionUrl = $this->_websiteUrl.$this->_seotoasterData['url'];
+
+		if ($this->_request->has('step')) {
+			$step = strtolower($this->_request->getParam('step'));
+			if ($this->_request->isGet() && (empty($this->_sessionHelper->cartCheckoutReturnAllowed)
+					|| !in_array($step, $this->_sessionHelper->cartCheckoutReturnAllowed))){
+				$step = self::STEP_LANDING;
+			}
+			switch ($step) {
+				case self::STEP_SHIPPING_ADDRESS:
+					$content = $this->_checkoutStepAddress();
+					break;
+				case self::STEP_PICKUP:
+					$content = $this->_checkoutStepPickup();
+					break;
+				case self::STEP_SHIPPING_METHOD:
+					$content = $this->_checkoutStepShipper();
+					break;
+				case self::STEP_SIGNUP:
+				default:
+					$content = $this->_checkoutStepSignup();
+					break;
+			}
 		} else {
-			$this->_view->content = $this->_renderSignupForm();
+			$content = $this->_checkoutStepSignup();
 		}
 
-    	return $this->_view->render('checkout/landing.phtml');
+		$this->_view->content = $content;
+
+//		if(Tools_ShoppingCart::getInstance()->getCustomer()->getId()) {
+//			$this->_view->content = $this->_renderShippingOptions();
+//		} else {
+//			$this->_view->content = $this->_renderSignupForm();
+//		}
+
+		self::$_allowBuyerSummarRendering = true;
+    	return $this->_view->render('checkout/wrapper.phtml');
 	}
 
 
@@ -261,9 +315,25 @@ class Cart extends Tools_Cart_Cart {
 	}
 
     protected function _makeOptionBuyersummary() {
-        $this->_view->customer = Tools_ShoppingCart::getInstance()->getCustomer()->toArray();
-		return $this->_view->render('buyersummary.phtml');
-	}
+	    if (isset(self::$_allowBuyerSummarRendering) && !self::$_allowBuyerSummarRendering){
+		    return '{$store:buyersummary}';
+	    }
+
+	    $cart = Tools_ShoppingCart::getInstance();
+	    if (sizeof($cart->getContent()) !== 0) {
+		    $checkoutPage = Tools_Misc::getCheckoutPage();
+		    if ($checkoutPage) {
+			    $this->_view->returnUrl = $this->_websiteUrl.$checkoutPage->getUrl();
+		    } else {
+			    $this->_view->returnUrl = false;
+		    }
+		    $this->_view->allowedReturn = $this->_sessionHelper->cartCheckoutReturnAllowed;
+		    $this->_view->customer = $cart->getCustomer()->toArray();
+		    $this->_view->shippingData = $cart->getShippingData();
+		    $this->_view->shippingAddress = $cart->getAddressById($cart->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING));
+		    return $this->_view->render('buyersummary.phtml');
+	    }
+    }
     
 	protected function _parseProductOtions($productId, $options) {
 		parse_str($options, $options);
@@ -281,142 +351,168 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	public function checkoutAction(){
-		$step = filter_var($this->_request->getParam('check'), FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-		$methodName = '_checkoutApply'.ucfirst(strtolower($step));
+		$step = filter_var($this->_request->getParam('step'), FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
+		$methodName = '_checkoutStep'.ucfirst(strtolower($step));
 		if (method_exists($this, $methodName)){
-			return $this->$methodName();
+			if ($this->_request->isXmlHttpRequest()){
+				echo $this->$methodName();
+				return;
+			} else {}
 		} else {
-			$this->_response->clearAllHeaders()->clearBody();
-			return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)
-				->sendResponse();
+			if ($this->_request->isXmlHttpRequest()){
+				$this->_response->clearAllHeaders()->clearBody();
+				return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)->sendResponse();
+			}
+		}
+		$checkoutPage = Tools_Misc::getCheckoutPage();
+		if ($checkoutPage instanceof Application_Model_Models_Abstract){
+			$this->_redirector->gotoUrlAndExit($checkoutPage->getUrl());
+		} else {
+			$this->_redirector->gotoUrlAndExit($this->_websiteUrl);
 		}
 	}
 
-	private function _checkoutApplyAddress(){
+	private function _checkoutStepAddress(){
 		$form = new Forms_Checkout_Address();
-		$addressType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
-		$headers = array('Content-type' => 'application/json');
 
-		if ($form->isValid($this->_request->getParams())){
+		if ($this->_request->isPost() && $form->isValid($this->_request->getParams())){
+			$addressType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
 			$shoppingCart = Tools_ShoppingCart::getInstance();
-			$shippingAddress   = $form->getValues();
-			//$customer   = Shopping::processCustomer($shippingAddress);
             $customer  = Tools_ShoppingCart::getInstance()->getCustomer();
-			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $shippingAddress, $addressType);
+			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $form->getValues(), $addressType);
 			$shoppingCart->setAddressKey($addressType, $addressId)
 				->save()
 				->saveCartSession($customer);
 
-			echo json_encode($this->_checkShippingPlugins($shippingAddress));
-		} else {
-			return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)
-			        ->setBody(json_encode($form->getMessages()))
-			        ->sendResponse();
+			$this->_sessionHelper->cartCheckoutReturnAllowed = array(
+				self::STEP_LANDING,
+				self::STEP_SHIPPING_ADDRESS
+			);
+
+			return $this->_renderShippingMethods();
+		} elseif ($this->_request->isGet()) {
+
 		}
+		return $this->_renderShippingOptions(null, $form);
 	}
 
-	private function _checkoutApplyShipper() {
-		$shipper = filter_var($this->_request->getParam('shipper'), FILTER_SANITIZE_STRING);
-		if ($shipper){
-			list($shipper, $index) = explode('::', $shipper);
-			if ($shipper === Shopping::SHIPPING_PICKUP){
-				$service = array(
-					'service'   => Shopping::SHIPPING_PICKUP,
-					'type'      => '',
-					'price'     => 0
-				);
-			} else {
-				$vault = $this->_sessionHelper->shippingRatesVault;
-				if (is_array($vault) && isset($vault[$shipper])){
-					if (isset($vault[$shipper][$index])){
-						$service = array(
-							'service'   => $shipper,
-							'type'      => $vault[$shipper][$index]['type'],
-							'price'     => $vault[$shipper][$index]['price']
-						);
+	private function _checkoutStepShipper() {
+		if ($this->_request->isPost()){
+			$shipper = filter_var($this->_request->getParam('shipper'), FILTER_SANITIZE_STRING);
+			if ($shipper){
+				list($shipper, $index) = explode('::', $shipper);
+				if ($shipper === Shopping::SHIPPING_PICKUP) {
+					$service = array(
+						'service'   => Shopping::SHIPPING_PICKUP,
+						'type'      => '',
+						'price'     => 0
+					);
+				} else {
+					$vault = $this->_sessionHelper->shippingRatesVault;
+					if (is_array($vault) && isset($vault[$shipper])){
+						if (isset($vault[$shipper][$index])){
+							$service = array(
+								'service'   => $shipper,
+								'type'      => $vault[$shipper][$index]['type'],
+								'price'     => $vault[$shipper][$index]['price']
+							);
+						}
 					}
 				}
-			}
-			if (isset($service)){
-				Tools_ShoppingCart::getInstance()->setShippingData($service)->save()->saveCartSession(null);
-				return $this->_response->clearAllHeaders()->setBody($this->_renderPaymentZone())->sendResponse();
+				if (isset($service)){
+					Tools_ShoppingCart::getInstance()->setShippingData($service)->save()->saveCartSession(null);
+					$this->_sessionHelper->cartCheckoutReturnAllowed = array(
+						self::STEP_LANDING,
+						self::STEP_SHIPPING_ADDRESS,
+						self::STEP_SHIPPING_METHOD
+					);
+					return $this->_renderPaymentZone();
+				}
 			}
 		}
-		return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)->sendResponse();
+		return $this->_renderShippingMethods();
 	}
 
-    private function _checkoutApplySignup() {
-        $form = new Forms_Signup();
-        if($form->isValid($this->_request->getParams())) {
-            $customer    = Shopping::processCustomer($form->getValues());
-            if($customer) {
-	            Tools_ShoppingCart::getInstance()->saveCartSession($customer);
-            }
-	        echo $this->_renderShippingOptions();
-        } else {
-	        return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)
-			        ->setBody(json_encode($form->getMessages()))
-			        ->sendResponse();
-        }
-    }
+	private function _checkoutStepPickup() {
+		$pickupForm = new Forms_Checkout_Pickup();
+		if ($this->_request->isPost()){
+			if ($pickupForm->isValid($this->_request->getPost())){
+				$customer = Tools_ShoppingCart::getInstance()->getCustomer();
+				$address = array_merge($pickupForm->getValues(), array(
+					'country'   => isset($this->_shoppingConfig['country']) ? $this->_shoppingConfig['country'] : null,
+					'city'      => isset($this->_shoppingConfig['city'])    ? $this->_shoppingConfig['city']    : null,
+					'state'     => isset($this->_shoppingConfig['state'])   ? $this->_shoppingConfig['state']   : null,
+				));
+				$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $address, Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
+				Tools_ShoppingCart::getInstance()->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, $addressId)
+					->setShippingData(array(
+						'service'   => Shopping::SHIPPING_PICKUP,
+						'type'      => null,
+						'price'     => 0
+					))
+					->save()
+					->saveCartSession($customer);
 
-	private function _checkoutApplyPickup() {
-		$form = new Forms_Checkout_Pickup();
-		if ($form->isValid($this->_request->getPost())){
-			$customer = Tools_ShoppingCart::getInstance()->getCustomer();
-			$address = array_merge($form->getValues(), array(
-				'country'   => isset($this->_shoppingConfig['country']) ? $this->_shoppingConfig['country'] : null,
-				'city'      => isset($this->_shoppingConfig['city'])    ? $this->_shoppingConfig['city']    : null,
-				'state'     => isset($this->_shoppingConfig['state'])   ? $this->_shoppingConfig['state']   : null,
-			));
-			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $address, Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
-			Tools_ShoppingCart::getInstance()->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, $addressId)
-				->setShippingData(array(
-					'service'   => Shopping::SHIPPING_PICKUP,
-					'type'      => null,
-					'price'     => 0
-				))
-				->save()
-				->saveCartSession($customer);
-
-			echo $this->_renderPaymentZone();
-		} else {
-			return $this->_response->setHttpResponseCode(Api_Service_Abstract::REST_STATUS_BAD_REQUEST)
-					->setBody(json_encode($form->getMessages()))
-					->sendResponse();
-        }
+				$this->_sessionHelper->cartCheckoutReturnAllowed = array(
+					self::STEP_LANDING,
+					self::STEP_SHIPPING_ADDRESS,
+					self::STEP_PICKUP
+				);
+				return $this->_renderPaymentZone();
+			}
+		}
+		return $this->_renderShippingOptions($pickupForm);
 	}
 
-	protected function _renderSignupForm() {
+	protected function _checkoutStepSignup(){
+		$this->_sessionHelper->cartCheckoutReturnAllowed = array(
+			self::STEP_LANDING
+		);
 		$form = new Forms_Signup();
-		$form->setAction(trim($this->_websiteUrl, '/') . $this->_view->url(array(
-            'run' => 'checkout',
-            'name' => strtolower(__CLASS__)
-        ), 'pluginroute'));
 
-        $this->_view->signupForm        = $form;
-		$this->_view->redirectUrl       = $this->_seotoasterData['url'];
+		if ($this->_request->isPost()){
+			if ($form->isValid($this->_request->getPost())){
+				$customer    = Shopping::processCustomer($form->getValues());
+	            if ($customer) {
+		            Tools_ShoppingCart::getInstance()->saveCartSession($customer);
+	            }
+				return $this->_renderShippingOptions();
+			}
+		} else {
+			Tools_ShoppingCart::getInstance()->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
+				->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)
+				->setCustomerId(null)->setShippingData(null)->save();
+		}
+
+		return $this->_renderSignupForm($form);
+	}
+
+	protected function _renderSignupForm($signupForm = null) {
+
+		$form = (bool)$signupForm ? $signupForm : new Forms_Signup();
+		$form->setAction($this->_view->actionUrl);
+
+		$this->_view->signupForm        = $form;
+
+		$this->_view->isError = $form->isErrors();
 
 		$flashMessenger = Zend_Controller_Action_HelperBroker::getStaticHelper('flashMessenger');
-		$msg = $flashMessenger->getMessages();
-		$this->_view->loginError = false;
-
-		if (!empty($msg) && (in_array('There is no user with such login and password.', $msg) || in_array('Login should be a valid email address', $msg))){
-			$this->_view->loginError = true;
+		if ($flashMessenger){
+			$msg = $flashMessenger->getMessages();
+			if (!empty($msg) && (in_array('There is no user with such login and password.', $msg) || in_array('Login should be a valid email address', $msg))){
+				$this->_view->isError = true;
+			}
 		}
 
-		return $this->_view->render('checkout/signup.phtml');
+		return $this->_view->render('checkout/landing.phtml');
 	}
 
-	protected function _renderShippingOptions(){
+	protected function _renderShippingOptions($pickupForm = null, $shippingForm = null){
 		$pickup = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
-
 		$shippers = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
 
 		if ((is_null($pickup) || (bool)$pickup['enabled'] == false) && is_null($shippers)){
 			return $this->_renderPaymentZone();
-		} else {
-
 		}
 
 		$shippers = array_filter($shippers, function($shipper){
@@ -427,24 +523,7 @@ class Cart extends Tools_Cart_Cart {
 			));
 		});
 
-		if ($pickup && (bool)$pickup['enabled']){
-			$this->_view->pickupForm = new Forms_Checkout_Pickup();
-			$this->_view->pickupForm->setAction(trim($this->_websiteUrl, '/') . $this->_view->url(array(
-	            'run' => 'checkout',
-	            'name' => strtolower(__CLASS__)
-	        ), 'pluginroute'));
-		}
-
-		if (!empty($shippers)){
-			$shippingForm     = new Forms_Checkout_Address();
-			$this->_view->shippingForm = $shippingForm;
-			$this->_view->shippingForm->setAction(trim($this->_websiteUrl, '/') . $this->_view->url(array(
-	            'run' => 'checkout',
-	            'name' => strtolower(__CLASS__)
-	        ), 'pluginroute'));
-		}
-
-		//. preparing user info for forms
+		// preparing user info for forms
 		$addrType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
 		if (null !== ($uniqKey = Tools_ShoppingCart::getInstance()->getAddressKey($addrType))){
             $customerAddress = Tools_ShoppingCart::getAddressById($uniqKey);
@@ -467,7 +546,30 @@ class Cart extends Tools_Cart_Cart {
                 'state'   => $this->_shoppingConfig['state']
             );
         }
-		$this->_view->customerAddress = $customerAddress;
+
+		if ($pickup && (bool)$pickup['enabled']){
+			if ((bool)$pickupForm){
+				$this->_view->pickupForm = $pickupForm;
+			} else {
+				$this->_view->pickupForm = new Forms_Checkout_Pickup();
+				$this->_view->pickupForm->populate($customerAddress);
+			}
+			$this->_view->pickupForm->setAction($this->_view->actionUrl);
+//			$this->_view->pickupForm->setAction($this->_websiteUrl . $this->_seotoasterData['url']);
+		}
+
+		if (!empty($shippers)){
+			if ((bool)$shippingForm){
+				$this->_view->shippingForm = $shippingForm;
+			} else {
+				$this->_view->shippingForm = new Forms_Checkout_Address($customerAddress);
+				$this->_view->shippingForm->populate($customerAddress);
+			}
+			$this->_view->shippingForm->setAction($this->_view->actionUrl);
+//			$this->_view->shippingForm->setAction($this->_websiteUrl . $this->_seotoasterData['url']);
+		}
+
+
 
 		return $this->_view->render('checkout/shipping_options.phtml');
 	}
@@ -489,58 +591,49 @@ class Cart extends Tools_Cart_Cart {
 		}
 	}
 
-	protected function _checkShippingPlugins($shippingAddress){
-		$freeShipping = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_FREESHIPPING);
+	protected function _renderShippingMethods() {
+		$cart = Tools_ShoppingCart::getInstance();
+		$shippingAddress = $cart->getAddressById($cart->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING));
 
-		if ($freeShipping && isset($freeShipping['config']) && !empty($freeShipping['config'])){
-			$cartAmount = Tools_ShoppingCart::getInstance()->calculateCartPrice();
-			if ($cartAmount > $freeShipping['config']['cartamount'] ){
-				$deliveryType = $this->_shoppingConfig['country'] == $shippingAddress['country'] ? Forms_Shipping_FreeShipping::DESTINATION_NATIONAL : Forms_Shipping_FreeShipping::DESTINATION_INTERNATIONAL ;
+		//checking if freeshipping is enabled and eilgible for this order
+		if (!empty($shippingAddress)){
+			$freeShipping = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_FREESHIPPING);
+			if ($freeShipping && (bool)$freeShipping['enabled'] && isset($freeShipping['config']) && !empty($freeShipping['config'])){
+				$cartAmount = Tools_ShoppingCart::getInstance()->calculateCartPrice();
+				if ($cartAmount > $freeShipping['config']['cartamount'] ){
+					$deliveryType = $this->_shoppingConfig['country'] == $shippingAddress['country'] ? Forms_Shipping_FreeShipping::DESTINATION_NATIONAL : Forms_Shipping_FreeShipping::DESTINATION_INTERNATIONAL ;
 
-				if ($freeShipping['config']['destination'] === Forms_Shipping_FreeShipping::DESTINATION_BOTH
-					|| $freeShipping['config']['destination'] === $deliveryType ) {
+					if ($freeShipping['config']['destination'] === Forms_Shipping_FreeShipping::DESTINATION_BOTH
+						|| $freeShipping['config']['destination'] === $deliveryType ) {
 
-					Tools_ShoppingCart::getInstance()->setShippingData(array(
-							'service'   => Shopping::SHIPPING_FREESHIPPING,
-							'type'      => '',
-							'price'     => 0
-					))->save()->saveCartSession(null);
+						Tools_ShoppingCart::getInstance()->setShippingData(array(
+								'service'   => Shopping::SHIPPING_FREESHIPPING,
+								'type'      => '',
+								'price'     => 0
+						))->save()->saveCartSession(null);
 
-					$this->_jsonpResponse(self::CART_WIDGET_JS_NS.'renderPaymentZone', $this->_renderPaymentZone());
+						return $this->_translator->translate('Great news! Your purchase is eligible for free shipping').
+							$this->_renderPaymentZone();
+					}
 				}
 			}
 		}
 
-		$shippers = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
-		if (!empty($shippers)){
-			$shippers = array_map(function($shipper){
+		$shippingServices = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
+		if (!empty($shippingServices)){
+			$shippingServices = array_map(function($shipper){
 				return !in_array($shipper['name'], array(Shopping::SHIPPING_MARKUP, Shopping::SHIPPING_PICKUP, Shopping::SHIPPING_FREESHIPPING)) ? array(
 					'name' => $shipper['name'],
 					'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
 				) : null ;
-			}, $shippers
-			);
-			$shippers = array_values(array_filter($shippers));
+			}, $shippingServices );
+			$shippingServices = array_values(array_filter($shippingServices));
 		}
 
-		$data = array(
-			'cartid'    => Tools_ShoppingCart::getInstance()->getCartId(),
-			'shippers'  => $shippers,
-			'caption'   => $this->_translator->translate('Select shipping method')
-		);
+		$this->_view->shippers = $shippingServices;
 
-		return $data;
+		return $this->_view->render('checkout/shipping_methods.phtml');
 	}
 
-	protected function _jsonpResponse($callback, $data, $forceSend = true){
-		$this->_response->clearAllHeaders()->clearBody();
-		$body = sprintf('%s(%s);', $callback, $data);
-		$this->_response->setBody($body);
 
-		if (!$forceSend){
-			return $this->_response;
-		}
-
-		return $this->_response->sendResponse();
-	}
 }

@@ -1,21 +1,24 @@
 <?php if ($this->pickupForm && $this->shippingForm) :?>
-<p class="checkout-button">
-    <a href="javascript:;" title="<?php echo $this->translate('Free pickup'); ?>" id="pickup-action"><?php echo $this->translate('Free pickup'); ?></a>
+<p class="checkout-button" style="<?php if ($this->shippingForm->isErrors() || $this->pickupForm->isErrors()) { echo "display: none"; } ?>">
+    <a href="" data-targetid="#checkout-pickup-form" data-role="button" title="<?php echo $this->translate('Free pickup'); ?>" id="pickup-action"><?php echo $this->translate('Free pickup'); ?></a>
     <span class="disc">OR</span>
-    <a href="javascript:;" title="<?php echo $this->translate('Calculate shipping'); ?>" id="shipping-action"><?php echo $this->translate('Calculate shipping'); ?></a>
+    <a href="" data-targetid="#checkout-shipping-form" data-role="button" title="<?php echo $this->translate('Calculate shipping'); ?>" id="shipping-action"><?php echo $this->translate('Calculate shipping'); ?></a>
 </p>
 <?php endif; ?>
 
 <?php if ($this->pickupForm) : ?>
-<div style="<?php if ($this->shippingForm): ?>display: none;<?php endif; ?>">
+<div id="checkout-pickup-form" style="<?php if ($this->shippingForm && !$this->pickupForm->isErrors()): ?>display: none;<?php endif; ?>">
     <h3 class="checkout-forms-header"><?php echo $this->pickupForm->getLegend(); ?></h3>
-    <?php echo $this->pickupForm->populate($this->customerAddress); ?>
+	<?php echo $this->pickupForm; ?>
+	<?php if ($this->shippingForm):?>
+    <a href="#back" data-role="backbutton">&lsaquo;&nbsp<?php echo $this->translate('back'); ?></a>
+	<?php endif;?>
 </div>
 <?php endif; ?>
 
 <?php if ($this->shippingForm) : ?>
-<div style="<?php if ($this->pickupForm): ?>display: none;<?php endif; ?>">
+<div id="checkout-shipping-form" style="<?php if ($this->pickupForm && !$this->shippingForm->isErrors()): ?>display: none;<?php endif; ?>">
     <h3 class="checkout-forms-header"><?php echo $this->shippingForm->getLegend(); ?></h3>
-    <?php echo $this->shippingForm->populate($this->customerAddress); ?>
+    <?php echo $this->shippingForm; ?>
 </div>
 <?php endif; ?>

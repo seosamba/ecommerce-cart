@@ -1,33 +1,76 @@
+<?php $editMsg = '[&nbsp;'.$this->translate('edit').'&nbsp;]'; ?>
 <div id="checkout-widget-preview">
-	<div id="checkout-user-info" <?php if (empty($this->customer['id'])) echo 'style="display: none;"';?> >
+	<div id="checkout-user-info">
 		<h3 class="checkout-widget-title"><?php echo $this->translate('Your information'); ?></h3>
+		<!--a href="<?php echo $this->returnUrl;?>">[&nbsp;<?php echo $this->translate('start over');?>&nbsp;]</a-->
 	    <div class="preview-content">
-	        <span class="fullname"><?php echo isset($this->customer['fullName']) ? $this->customer['fullName'] : ''; ?></span>
-	        <span class="email"><?php echo isset($this->customer['email']) ? $this->customer['email'] : ''; ?></span>
+		<?php if (isset($this->customer['fullName']) && isset($this->customer['email'])) :?>
+	        <span class="fullname"><?php echo $this->customer['fullName'] ; ?></span>
+	        <span class="email"><?php echo $this->customer['email'] ; ?></span>
+	    <?php endif; ?>
 	    </div>
 	</div>
 
-	<div id="checkout-address-preview" class="mt10px" style="display: none;">
-		<h3 class="checkout-widget-title"><?php echo $this->translate('Shipping information'); ?></h3>
-		<div class="preview-content"></div>
+	<div id="checkout-address-preview" class="mt10px">
+		<h3 class="checkout-widget-title <?php if ($this->shippingAddress): ?>disabled<?php endif; ?>">
+			<?php if ($this->shippingData && $this->shippingData['service'] === Shopping::SHIPPING_PICKUP ):?>
+			<?php echo $this->translate('Pickup information'); ?>
+			<?php else : ?>
+			<?php echo $this->translate('Shipping information'); ?>
+			<?php endif; ?>
+		</h3>
+		<?php if ($this->shippingAddress && in_array(Cart::STEP_SHIPPING_ADDRESS, $this->allowedReturn) && $this->returnUrl) : ?>
+			<?php if ($this->shippingData && $this->shippingData['service'] === Shopping::SHIPPING_PICKUP ):?>
+			<a href="<?php echo $this->returnUrl.'?step='.Cart::STEP_PICKUP;?>" class="checkout-edit" data-step="<?php echo Cart::STEP_PICKUP;?>" ><?php echo $editMsg;?></a>
+			<?php else : ?>
+			<a href="<?php echo $this->returnUrl.'?step='.Cart::STEP_SHIPPING_ADDRESS;?>" class="checkout-edit" data-step="<?php echo Cart::STEP_SHIPPING_ADDRESS;?>"><?php echo $editMsg;?></a>
+			<?php endif; ?>
+			</form>
+		<?php endif; ?>
+		<div class="preview-content">
+		<?php
+		if ($this->shippingAddress) {
+			$fullname = trim($this->shippingAddress['firstname'] .' '. $this->shippingAddress['lastname']);
+			if (!empty($fullname)){ echo $fullname.'<br />'; }
+			if ($this->shippingData && $this->shippingData['service'] === Shopping::SHIPPING_PICKUP ) {
+
+			} else {
+				if (!empty($this->shippingAddress['email'])) { echo $this->shippingAddress['email'] .'<br />'; }
+				if (!empty($this->shippingAddress['company'])) { echo $this->shippingAddress['company'] .'<br />'; }
+				$addrLine = trim($this->shippingAddress['address1'] .' '. $this->shippingAddress['address2']);
+				if (!empty($addrLine)){ echo $addrLine.'<br />'; }
+
+				$state = Tools_Geo::getStateById($this->shippingAddress['state']);
+				$location = join(', ', array_filter(array($this->shippingAddress['city'], $state['name'], $this->shippingAddress['zip'], $this->shippingAddress['country'])));
+				if (!empty($location)){ echo $location.'<br />'; }
+			}
+			if (!empty($this->shippingAddress['phone'])) {
+				echo $this->translate('Phone:') . $this->shippingAddress['phone'].'<br />';
+			}
+		}
+		?>
+		</div>
 	</div>
 
-	<div id="checkout-shipping-selected" class="mt10px" style="display: none;">
-	    <h3 class="checkout-widget-title"><?php echo $this->translate('Shipping method')?></h3>
-		<div class="preview-content"></div>
+	<div id="checkout-shipping-selected" class="mt10px">
+	    <h3 class="checkout-widget-title <?php if (empty($this->shippingData)): ?>disabled<?php endif; ?>"><?php echo $this->translate('Shipping method')?></h3>
+		<?php if (!empty($this->shippingData)): ?>
+		<?php if (in_array(Cart::STEP_PICKUP, $this->allowedReturn)) :?>
+		<a href="<?php echo $this->returnUrl.'?step='.Cart::STEP_PICKUP;?>" class="checkout-edit" data-step="<?php echo Cart::STEP_PICKUP;?>"><?php echo $editMsg;?></a>
+		<?php elseif (in_array(Cart::STEP_SHIPPING_METHOD, $this->allowedReturn)) : ?>
+        <a href="<?php echo $this->returnUrl.'?step='.Cart::STEP_SHIPPING_METHOD;?>" class="checkout-edit" data-step="<?php echo Cart::STEP_SHIPPING_METHOD;?>"><?php echo $editMsg;?></a>
+		<?php endif ;?>
+        <div class="preview-content">
+			<?php
+			if ($this->shippingData['service'] === Shopping::SHIPPING_PICKUP) {
+					echo $this->translate('Free pickup').'<br />';
+				} else {
+					echo $this->shippingData['service'] .': '. $this->shippingData['type'];
+				}
+			?>
+		</div>
+        <?php endif; ?>
 	</div>
 
 	<input id="edit-cart-btn" type="button" value="<?php echo $this->translate('Edit address or quantities');?>" style="display:none"/>
 </div>
-
-
-<script id="shippingAddressPreviewTemplate" type="text/template">
-	<%- _.compact([firstname, lastname]).join(' ') %><br />
-    <% if(email) { %><%= email %><br /><% } %>
-	<% if (company) { %><%- company %><br /><% } %>
-	<%- _.compact([address1, address2]).join(', ') %><% if (address1 || address2) { %><br /><% } %>
-	<%- _.compact([city, state, zip, country]).join(', ') %>
-	<% if (city || state || zip || country) { %><br /><% } %>
-	<% if (phone) { %><?php echo $this->translate('Tel');?>: <%- phone %><br /><% } %>
-	<% if (mobile) { %><?php echo $this->translate('Mobile');?>: <%- mobile %><br /><% } %>
-</script>

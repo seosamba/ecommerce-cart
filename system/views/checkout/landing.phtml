@@ -1,63 +1,16 @@
-<?php
-$this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/libs/jquery/addresschain.jquery.js');
-?>
+<p class="checkout-button" <?php echo $this->isError ? 'style="display:none;"' : ''; ?>>
+    <a href="" data-targetid="#checkout-landing-forms" data-role="button" title="<?php echo $this->translate('Checkout'); ?>" id="checkout-action"><?php echo $this->translate('Checkout'); ?></a>
+    <span class="disc">OR</span>
+    <a href="<?php echo $this->websiteUrl; ?>" title="<?php echo $this->translate('Keep shopping'); ?>" id="keepshopping-action"> <?php echo $this->translate('Keep shopping'); ?></a>
+</p>
 
-<div class="spinner"><img src="<?php echo $this->websiteUrl;?>/plugins/shopping/web/images/spinner.gif" alt=""></div>
-<div id="checkout-widget" style="display: none;">
-	<?php echo $this->content; ?>
+<div id="checkout-landing-forms" class="checkout-forms" <?php echo $this->isError ? '' : 'style="display:none;"'; ?>>
+    <div>
+        <h3 class="checkout-forms-header"><?php echo $this->translate('I am new customer'); ?></h3>
+        <?php echo $this->signupForm; ?>
+    </div>
+    <div>
+        <h3 class="checkout-forms-header"><?php echo $this->translate('I am returning customer'); ?></h3>
+        {$member:login:<?php echo $this->actionUrl; ?>}
+    </div>
 </div>
-
-<script id="ShippersFormTmpl" type="text/template">
-<div>
-    <h3 class="checkout-forms-header"><%= caption %></h3>
-    <form id="shipper-select" method="post" enctype="application/x-www-form-urlencoded" action="<%= $('#website_url').val() %>plugin/cart/run/checkout/">
-	    <input type="hidden" name="check" value="shipper">
-	    <% _.each(shippers, function(shipper) { %>
-	        <ul id="<%= shipper.name %>-methods" class="shipping-methods" data-name="<%= shipper.name %>">
-	            <li><label>...quering <%= shipper.name %>...</label></li>
-	        </ul>
-	    <% }); %>
-	    <input type="submit" value="Apply" >
-	</form>
-</div>
-</script>
-
-<script id="ShipperMethodsTmpl" type="text/template">
-	<% _.each(services, function(s, index){ %>
-	    <% if (s.error) { %>
-	    <li><label class="shipper-error"><%= s.error %></label></li>
-	    <% } else { %>
-	    <li>
-	    <label style="cursor: pointer">
-	    <input type="radio" name="shipper" value="<%= name+'::'+index %>"/><span class="shipping-method-title"><%= s.type %></span>
-	    <span class="shipping-price"><%= s.price %></span></label>
-	        <% if (s.descr) { %><p><%= s.descr %></p><% } %>
-	    <% } %>
-	<% }) %>
-</script>
-
-<style type="text/css">
-	#checkout-widget label.required::after {
-		content: ' *';
-		color: red;
-		font-weight: bold;
-	}
-	#checkout-widget input.notvalid,
-	#checkout-widget select.notvalid {
-		color: red;
-	}
-	#checkout-widget ul.shipping-methods li {
-		list-style: none;
-		padding: 5px 10px;
-		margin: 0;
-	}
-	#checkout-widget ul.shipping-methods li label {
-		cursor: pointer;
-	}
-	#checkout-widget ul.shipping-methods li label input[type="radio"] {
-		vertical-align: middle;
-		margin: 2px 4px;
-	}
-</style>
-
-<script data-main="<?php echo $this->websiteUrl;?>plugins/cart/web/js/modules/checkout/main.js" src="<?php echo $this->websiteUrl;?>plugins/shopping/web/js/libs/require.min.js"></script>
