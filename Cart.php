@@ -14,16 +14,19 @@ class Cart extends Tools_Cart_Cart {
 
 	const DEFAULT_CURRENCY_NAME = 'USD';
 
+	const SESSION_NAMESPACE = 'cart_checkout';
+
+	const STEP_LANDING  = 'landing';
+
 	const STEP_SIGNUP   = 'signup';
+
+	const STEP_SHIPPING_METHOD  = 'method';
+
+	const STEP_SHIPPING_OPTIONS = 'shipping';
 
 	const STEP_PICKUP   = 'pickup';
 
 	const STEP_SHIPPING_ADDRESS = 'address';
-
-	const STEP_SHIPPING_METHOD  = 'shipper';
-
-	const STEP_LANDING  = 'landing';
-
 	/**
 	 * Shopping cart main storage.
 	 *
@@ -61,7 +64,14 @@ class Cart extends Tools_Cart_Cart {
 
 	protected $_sessionHelper  = null;
 
-	protected static $_allowBuyerSummarRendering = false;
+	/**
+	 * @var Zend_Session_Namespace
+	 */
+	protected $_checkoutSession = null;
+
+	public static $_allowBuyerSummarRendering = false;
+
+	public static $_lockCartEdit = false;
 
 	protected function _init() {
 		$this->_cartStorage      = Tools_ShoppingCart::getInstance();
@@ -73,12 +83,7 @@ class Cart extends Tools_Cart_Cart {
 		$this->_initCurrency();
 		$this->_view->setScriptPath(dirname(__FILE__) . '/system/views/');
 
-		if (!isset($this->_sessionHelper->cartCheckoutReturnAllowed)){
-			$this->_sessionHelper->cartCheckoutReturnAllowed = array(
-				self::STEP_LANDING
-			);
-		}
-
+		$this->_checkoutSession  = new Zend_Session_Namespace(self::SESSION_NAMESPACE);
 
 	}
 
@@ -272,9 +277,12 @@ class Cart extends Tools_Cart_Cart {
 
 		if ($this->_request->has('step')) {
 			$step = strtolower($this->_request->getParam('step'));
-			if ($this->_request->isGet() && (empty($this->_sessionHelper->cartCheckoutReturnAllowed)
-					|| !in_array($step, $this->_sessionHelper->cartCheckoutReturnAllowed))){
+			if ($this->_request->isGet() && (empty($this->_checkoutSession->returnAllowed)
+					|| !in_array($step, $this->_checkoutSession->returnAllowed))){
 				$step = self::STEP_LANDING;
+				self::$_lockCartEdit = false;
+			} else {
+				self::$_lockCartEdit = true;
 			}
 			switch ($step) {
 				case self::STEP_SHIPPING_ADDRESS:
@@ -284,9 +292,11 @@ class Cart extends Tools_Cart_Cart {
 					$content = $this->_checkoutStepPickup();
 					break;
 				case self::STEP_SHIPPING_METHOD:
-					$content = $this->_checkoutStepShipper();
+					$content = $this->_checkoutStepMethod();
 					break;
-				case self::STEP_SIGNUP:
+				case self::STEP_SHIPPING_OPTIONS:
+					$content = $this->_checkoutStepShipping();
+					break;
 				default:
 					$content = $this->_checkoutStepSignup();
 					break;
@@ -296,12 +306,6 @@ class Cart extends Tools_Cart_Cart {
 		}
 
 		$this->_view->content = $content;
-
-//		if(Tools_ShoppingCart::getInstance()->getCustomer()->getId()) {
-//			$this->_view->content = $this->_renderShippingOptions();
-//		} else {
-//			$this->_view->content = $this->_renderSignupForm();
-//		}
 
 		self::$_allowBuyerSummarRendering = true;
     	return $this->_view->render('checkout/wrapper.phtml');
@@ -315,20 +319,20 @@ class Cart extends Tools_Cart_Cart {
 	}
 
     protected function _makeOptionBuyersummary() {
-	    if (isset(self::$_allowBuyerSummarRendering) && !self::$_allowBuyerSummarRendering){
-		    return '{$store:buyersummary}';
-	    }
-
 	    $cart = Tools_ShoppingCart::getInstance();
 	    if (sizeof($cart->getContent()) !== 0) {
+		    if (isset(self::$_allowBuyerSummarRendering) && !self::$_allowBuyerSummarRendering){
+                return '{$store:buyersummary}';
+            }
+
 		    $checkoutPage = Tools_Misc::getCheckoutPage();
 		    if ($checkoutPage) {
 			    $this->_view->returnUrl = $this->_websiteUrl.$checkoutPage->getUrl();
 		    } else {
 			    $this->_view->returnUrl = false;
 		    }
-		    $this->_view->allowedReturn = $this->_sessionHelper->cartCheckoutReturnAllowed;
-		    $this->_view->customer = $cart->getCustomer()->toArray();
+		    $this->_view->allowedReturn = $this->_checkoutSession->returnAllowed;
+		    $this->_view->yourInformation = $this->_checkoutSession->initialCustomerInfo;
 		    $this->_view->shippingData = $cart->getShippingData();
 		    $this->_view->shippingAddress = $cart->getAddressById($cart->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING));
 		    return $this->_view->render('buyersummary.phtml');
@@ -384,19 +388,19 @@ class Cart extends Tools_Cart_Cart {
 				->save()
 				->saveCartSession($customer);
 
-			$this->_sessionHelper->cartCheckoutReturnAllowed = array(
+			$this->_checkoutSession->returnAllowed = array(
 				self::STEP_LANDING,
-				self::STEP_SHIPPING_ADDRESS
+				self::STEP_SHIPPING_OPTIONS
 			);
 
 			return $this->_renderShippingMethods();
-		} elseif ($this->_request->isGet()) {
+		} else {
 
 		}
 		return $this->_renderShippingOptions(null, $form);
 	}
 
-	private function _checkoutStepShipper() {
+	private function _checkoutStepMethod() {
 		if ($this->_request->isPost()){
 			$shipper = filter_var($this->_request->getParam('shipper'), FILTER_SANITIZE_STRING);
 			if ($shipper){
@@ -421,14 +425,20 @@ class Cart extends Tools_Cart_Cart {
 				}
 				if (isset($service)){
 					Tools_ShoppingCart::getInstance()->setShippingData($service)->save()->saveCartSession(null);
-					$this->_sessionHelper->cartCheckoutReturnAllowed = array(
+					$this->_checkoutSession->returnAllowed = array(
 						self::STEP_LANDING,
-						self::STEP_SHIPPING_ADDRESS,
+						self::STEP_SHIPPING_OPTIONS,
 						self::STEP_SHIPPING_METHOD
 					);
 					return $this->_renderPaymentZone();
 				}
 			}
+		} else {
+			Tools_ShoppingCart::getInstance()->setShippingData(null)->save()->saveCartSession(null);
+			$this->_checkoutSession->returnAllowed = array(
+				self::STEP_LANDING,
+				self::STEP_SHIPPING_OPTIONS
+			);
 		}
 		return $this->_renderShippingMethods();
 	}
@@ -440,8 +450,8 @@ class Cart extends Tools_Cart_Cart {
 				$customer = Tools_ShoppingCart::getInstance()->getCustomer();
 				$address = array_merge($pickupForm->getValues(), array(
 					'country'   => isset($this->_shoppingConfig['country']) ? $this->_shoppingConfig['country'] : null,
-					'city'      => isset($this->_shoppingConfig['city'])    ? $this->_shoppingConfig['city']    : null,
 					'state'     => isset($this->_shoppingConfig['state'])   ? $this->_shoppingConfig['state']   : null,
+					'zip'       => isset($this->_shoppingConfig['zip'])     ? $this->_shoppingConfig['zip']     : null
 				));
 				$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $address, Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
 				Tools_ShoppingCart::getInstance()->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, $addressId)
@@ -453,10 +463,9 @@ class Cart extends Tools_Cart_Cart {
 					->save()
 					->saveCartSession($customer);
 
-				$this->_sessionHelper->cartCheckoutReturnAllowed = array(
+				$this->_checkoutSession->returnAllowed = array(
 					self::STEP_LANDING,
-					self::STEP_SHIPPING_ADDRESS,
-					self::STEP_PICKUP
+					self::STEP_SHIPPING_OPTIONS
 				);
 				return $this->_renderPaymentZone();
 			}
@@ -464,30 +473,44 @@ class Cart extends Tools_Cart_Cart {
 		return $this->_renderShippingOptions($pickupForm);
 	}
 
-	protected function _checkoutStepSignup(){
-		$this->_sessionHelper->cartCheckoutReturnAllowed = array(
+	private function _checkoutStepSignup(){
+		$this->_checkoutSession->returnAllowed = array(
 			self::STEP_LANDING
 		);
 		$form = new Forms_Signup();
 
 		if ($this->_request->isPost()){
 			if ($form->isValid($this->_request->getPost())){
-				$customer    = Shopping::processCustomer($form->getValues());
-	            if ($customer) {
+				$customerData = $form->getValues();
+				$this->_checkoutSession->initialCustomerInfo = $customerData;
+				$customer    = Shopping::processCustomer($customerData);
+				if ($customer) {
 		            Tools_ShoppingCart::getInstance()->saveCartSession($customer);
 	            }
 				return $this->_renderShippingOptions();
 			}
 		} else {
-			Tools_ShoppingCart::getInstance()->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
+			$this->_checkoutSession->unsetAll();
+			Tools_ShoppingCart::getInstance()
+				->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
 				->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)
 				->setCustomerId(null)->setShippingData(null)->save();
 		}
 
-		return $this->_renderSignupForm($form);
+		return $this->_renderLandingForm($form);
 	}
 
-	protected function _renderSignupForm($signupForm = null) {
+	private function _checkoutStepShipping(){
+		$content = $this->_renderShippingOptions();
+		Tools_ShoppingCart::getInstance()
+			->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
+			->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)
+			->setShippingData(null)
+			->save();
+		return $content;
+	}
+
+	protected function _renderLandingForm($signupForm = null) {
 
 		$form = (bool)$signupForm ? $signupForm : new Forms_Signup();
 		$form->setAction($this->_view->actionUrl);
@@ -541,10 +564,11 @@ class Cart extends Tools_Cart_Cart {
             }
         }
         if (empty($customerAddress)) {
-            $customerAddress = array(
-                'country' => $this->_shoppingConfig['country'],
-                'state'   => $this->_shoppingConfig['state']
-            );
+            $customerAddress = array_merge($this->_checkoutSession->initialCustomerInfo, array(
+                'country'   => $this->_shoppingConfig['country'],
+                'state'     => $this->_shoppingConfig['state'],
+                'zip'       => $this->_shoppingConfig['zip']
+            ));
         }
 
 		if ($pickup && (bool)$pickup['enabled']){
@@ -569,15 +593,12 @@ class Cart extends Tools_Cart_Cart {
 //			$this->_view->shippingForm->setAction($this->_websiteUrl . $this->_seotoasterData['url']);
 		}
 
-
-
 		return $this->_view->render('checkout/shipping_options.phtml');
 	}
 
 	protected function _renderPaymentZone() {
 		$paymentZoneTmpl = isset($this->_sessionHelper->paymentZoneTmpl) ? $this->_sessionHelper->paymentZoneTmpl : null;
 		if ($paymentZoneTmpl !== null) {
-			$paymentZoneTmpl = '<h3>{$header:payment-zone}</h3>'.$paymentZoneTmpl; 
             $themeData = Zend_Registry::get('theme');
 			$extConfig = Zend_Registry::get('extConfig');
 			$parserOptions = array(
@@ -587,7 +608,7 @@ class Cart extends Tools_Cart_Cart {
 				'themePath'    => $themeData['path'],
 			);
 			$parser = new Tools_Content_Parser($paymentZoneTmpl, Tools_Misc::getCheckoutPage()->toArray(), $parserOptions);
-			return $parser->parse();
+			return '<div id="payment-zone">'.$parser->parse().'</div>';
 		}
 	}
 

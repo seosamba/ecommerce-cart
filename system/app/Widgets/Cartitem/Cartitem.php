@@ -69,7 +69,7 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 	}
 
 	protected function _renderQty($sid) {
-		if(isset($this->_options[0]) && $this->_options[0] == 'noedit') {
+		if((isset($this->_options[0]) && $this->_options[0] == 'noedit') || (Cart::$_lockCartEdit === true)) {
 			return '<span class="toastercart-item-qty">' . $this->_cartContent[$sid]['qty'] . '</span>';
 		}
 		return '<input type="number" class="toastercart-item-qty product-qty" min="0" data-sid="' . $sid . '" data-pid="' . $this->_cartContent[$sid]['id'] . '" value="' . $this->_cartContent[$sid]['qty'] . '" />';
@@ -93,7 +93,7 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 	}
 
 	protected function _renderRemove($sid) {
-		return '<a href="javascript:;" class="remove-item" data-sid="' . $sid . '" title="' . $this->_translator->translate('remove ') . $this->_cartContent[$sid]['name'] . $this->_translator->translate(' from the cart') . '"><img src="' . $this->_websiteHelper->getUrl() . 'plugins/cart/web/images/trash.png" alt="' . $this->_translator->translate('Remove') . '"></a>';
+		return Cart::$_lockCartEdit === true ? '' : '<a href="javascript:;" class="remove-item" data-sid="' . $sid . '" title="' . $this->_translator->translate('remove ') . $this->_cartContent[$sid]['name'] . $this->_translator->translate(' from the cart') . '"><img src="' . $this->_websiteHelper->getUrl() . 'plugins/cart/web/images/trash.png" alt="' . $this->_translator->translate('Remove') . '"></a>';
 	}
 
 	protected function _renderOptions($sid) {

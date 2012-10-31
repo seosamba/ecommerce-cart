@@ -36,8 +36,6 @@ define([ 'backbone' ], function( Backbone ){
                 form    = $(e.currentTarget),
                 valid   = true;
 
-            console.log(self);
-
             form.find('.notvalid').removeClass('notvalid');
 
             $('.required:input', form).each(function(){
@@ -53,6 +51,8 @@ define([ 'backbone' ], function( Backbone ){
                 return false;
             }
 
+            this.toggleCheckoutLock(true);
+
             $.ajax({
                 url: this.checkoutUrl,
                 type: 'POST',
@@ -66,7 +66,6 @@ define([ 'backbone' ], function( Backbone ){
                     self.updateBuyerSummary();
                 },
                 error: function(xhr, status){
-                    console.log(arguments);
                 }
             });
         },
@@ -95,32 +94,23 @@ define([ 'backbone' ], function( Backbone ){
 
             return false;
         },
-        switchCheckoutLock: function(lock){
+        toggleCheckoutLock: function(lock){
             lock = !!lock;
 
             if (lock) {
-                $('#edit-cart-btn', '#checkout-widget-preview').show();
-                $('#checkout-user-address').hide();
-                $('.product-qty').attr('disabled', 'disabled');
+                $('.toastercart-item-qty').attr('disabled', 'disabled');
                 $('.remove-item').hide();
-                $('#payment-zone').show();
                 $('#checkout-widget-address-preview').slideDown();
             } else {
-                $('#edit-cart-btn', '#checkout-widget-preview').hide();
-                $('#checkout-user-address').show();
-                $('.product-qty').removeAttr('disabled');
+                $('.toastercart-item-qty').removeAttr('disabled');
                 $('.remove-item').show();
-                $('#shipper-select').remove();
-                $('#payment-zone').empty().hide();
-                $('#checkout-widget-address-preview').slideUp().find('div.cart-address-preview').empty();
             }
 
             return this;
         },
         updateBuyerSummary: function(){
-
             var widget = $('#checkout-widget-preview');
-            if(widget.length) {
+            if (widget.length) {
                 $.post('/plugin/cart/run/buyersummary/', function(response) {
                     widget.replaceWith(response.responseText);
                 }, 'json');
