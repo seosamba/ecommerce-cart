@@ -26,8 +26,7 @@ $('ul.shipping-methods', '#shipper-select').each(function(){
         success: function(response){
             var html ='';
 	        $.each(response, function(index, shipper){
-		        console.log(arguments);
-	            if (shipper.error) {
+		        if (shipper.error) {
 		            html = '<li><label class="shipper-error">'+shipper.error+'</label></li>';
 	            } else {
 		            html = '<li><label style="cursor: pointer">' +
