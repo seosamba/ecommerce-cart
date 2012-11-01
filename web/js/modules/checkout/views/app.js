@@ -64,6 +64,7 @@ define([ 'backbone' ], function( Backbone ){
                     self.$el.html(response);
                     self.$el.find('form.address-form').addressChain();
                     self.updateBuyerSummary();
+                    refreshCartSummary();
                 },
                 error: function(xhr, status){
                 }
@@ -100,7 +101,6 @@ define([ 'backbone' ], function( Backbone ){
             if (lock) {
                 $('.toastercart-item-qty').attr('disabled', 'disabled');
                 $('.remove-item').hide();
-                $('#checkout-widget-address-preview').slideDown();
             } else {
                 $('.toastercart-item-qty').removeAttr('disabled');
                 $('.remove-item').show();
@@ -115,6 +115,8 @@ define([ 'backbone' ], function( Backbone ){
                     widget.replaceWith(response.responseText);
                 }, 'json');
             }
+
+            return this;
         }
     });
 
