@@ -361,7 +361,9 @@ class Cart extends Tools_Cart_Cart {
 			if ($this->_request->isXmlHttpRequest()){
 				echo $this->$methodName();
 				return;
-			} else {}
+			} else {
+
+			}
 		} else {
 			if ($this->_request->isXmlHttpRequest()){
 				$this->_response->clearAllHeaders()->clearBody();
@@ -382,7 +384,7 @@ class Cart extends Tools_Cart_Cart {
 		if ($this->_request->isPost() && $form->isValid($this->_request->getParams())){
 			$addressType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
 			$shoppingCart = Tools_ShoppingCart::getInstance();
-            $customer  = Tools_ShoppingCart::getInstance()->getCustomer();
+            $customer  = $shoppingCart->getCustomer();
 			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $form->getValues(), $addressType);
 			$shoppingCart->setAddressKey($addressType, $addressId)
 				->save()
@@ -484,8 +486,11 @@ class Cart extends Tools_Cart_Cart {
 				$customerData = $form->getValues();
 				$this->_checkoutSession->initialCustomerInfo = $customerData;
 				$customer    = Shopping::processCustomer($customerData);
-				if ($customer) {
-		            Tools_ShoppingCart::getInstance()->saveCartSession($customer);
+				if ($customer->getId()) {
+					Tools_ShoppingCart::getInstance()
+							->setCustomerId($customer->getId())
+							->save()
+							->saveCartSession($customer);
 	            }
 				return $this->_renderShippingOptions();
 			}
@@ -494,7 +499,9 @@ class Cart extends Tools_Cart_Cart {
 			Tools_ShoppingCart::getInstance()
 				->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
 				->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)
-				->setCustomerId(null)->setShippingData(null)->save();
+				->setCustomerId(null)
+				->setShippingData(null)
+				->save();
 		}
 
 		return $this->_renderLandingForm($form);
@@ -552,7 +559,7 @@ class Cart extends Tools_Cart_Cart {
             $customerAddress = Tools_ShoppingCart::getAddressById($uniqKey);
         } else {
             $customer = Tools_ShoppingCart::getInstance()->getCustomer();
-            if (null === ($customerAddress = $customer->getDefaultAddress($addrType)) && $customer->getId()){
+            if (Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART) && null === ($customerAddress = $customer->getDefaultAddress($addrType))){
                 $name = explode(' ', $customer->getFullName());
                 $customerAddress = array(
 	                'firstname' => $name[0],
@@ -579,7 +586,6 @@ class Cart extends Tools_Cart_Cart {
 				$this->_view->pickupForm->populate($customerAddress);
 			}
 			$this->_view->pickupForm->setAction($this->_view->actionUrl);
-//			$this->_view->pickupForm->setAction($this->_websiteUrl . $this->_seotoasterData['url']);
 		}
 
 		if (!empty($shippers)){
@@ -590,7 +596,6 @@ class Cart extends Tools_Cart_Cart {
 				$this->_view->shippingForm->populate($customerAddress);
 			}
 			$this->_view->shippingForm->setAction($this->_view->actionUrl);
-//			$this->_view->shippingForm->setAction($this->_websiteUrl . $this->_seotoasterData['url']);
 		}
 
 		return $this->_view->render('checkout/shipping_options.phtml');
