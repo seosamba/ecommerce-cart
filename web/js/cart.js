@@ -67,14 +67,14 @@ $(function() {
 function refreshCartSummary() {
 	var cartSummary = $('#cart-summary');
     if(cartSummary.length) {
-        $.post('/plugin/cart/run/summary/', function(response) {
+        return $.post('/plugin/cart/run/summary/', function(response) {
 			cartSummary.replaceWith(response.responseText);
         }, 'json');
     }
 }
 
 function refreshPrice(sid) {
-    $.post('/plugin/cart/run/cartcontent/', {sid: sid}, function(response) {
+    return $.post('/plugin/cart/run/cartcontent/', {sid: sid}, function(response) {
         $('span[data-sidprice=' + sid + ']').replaceWith(response.responseText.price);
 	    $('span[data-sidweight=' + sid + ']').replaceWith(response.responseText.weight);
     }, 'json');
