@@ -81,13 +81,7 @@ define([ 'backbone' ], function( Backbone ){
                     self.$el.html(response);
                     self.$el.find('form.address-form').addressChain();
                     self.updateBuyerSummary();
-                    refreshCartSummary().done(function(){
-                        if (self.lock) {
-                            $('h3 a.checkout-edit', '#cart-summary').show();
-                        } else {
-                            $('h3 a.checkout-edit', '#cart-summary').hide();
-                        }
-                    });
+                    refreshCartSummary();
                 },
                 error: function(xhr, status){
                 }

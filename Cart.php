@@ -506,6 +506,10 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	private function _checkoutStepShipping(){
+		if (!$this->_checkoutSession->returnAllowed) {
+			return $this->_checkoutStepSignup();
+		}
+
 		$content = $this->_renderShippingOptions();
 		self::$_lockCartEdit = false;
 		Tools_ShoppingCart::getInstance()
@@ -570,11 +574,15 @@ class Cart extends Tools_Cart_Cart {
             }
         }
         if (empty($customerAddress)) {
-            $customerAddress = array_merge($this->_checkoutSession->initialCustomerInfo, array(
-                'country'   => $this->_shoppingConfig['country'],
-                'state'     => $this->_shoppingConfig['state'],
-                'zip'       => $this->_shoppingConfig['zip']
-            ));
+
+            $customerAddress = array_merge(
+	            !empty($this->_checkoutSession->initialCustomerInfo) ? $this->_checkoutSession->initialCustomerInfo : array(),
+	            array(
+                    'country'   => $this->_shoppingConfig['country'],
+                    'state'     => $this->_shoppingConfig['state'],
+                    'zip'       => $this->_shoppingConfig['zip']
+                )
+            );
         }
 
 		if ($pickup && (bool)$pickup['enabled']){
