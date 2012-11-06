@@ -315,6 +315,8 @@ class Cart extends Tools_Cart_Cart {
 	protected function _makeOptionCartsummary() {
 		$this->_view->summary = $this->_cartStorage->calculate();
 		$this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
+		$this->_getCheckoutPage();
+		$this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
 		return $this->_view->render('cartsummary.phtml');
 	}
 
@@ -325,13 +327,9 @@ class Cart extends Tools_Cart_Cart {
                 return '{$store:buyersummary}';
             }
 
-		    $checkoutPage = Tools_Misc::getCheckoutPage();
-		    if ($checkoutPage) {
-			    $this->_view->returnUrl = $this->_websiteUrl.$checkoutPage->getUrl();
-		    } else {
-			    $this->_view->returnUrl = false;
-		    }
-		    $this->_view->allowedReturn = $this->_checkoutSession->returnAllowed;
+		    $this->_getCheckoutPage();
+
+		    $this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
 		    $this->_view->yourInformation = $this->_checkoutSession->initialCustomerInfo;
 		    $this->_view->shippingData = $cart->getShippingData();
 		    $this->_view->shippingAddress = $cart->getAddressById($cart->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING));
@@ -509,6 +507,7 @@ class Cart extends Tools_Cart_Cart {
 
 	private function _checkoutStepShipping(){
 		$content = $this->_renderShippingOptions();
+		self::$_lockCartEdit = false;
 		Tools_ShoppingCart::getInstance()
 			->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
 			->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)

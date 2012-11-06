@@ -1,9 +1,8 @@
 <?php $editMsg = '[&nbsp;'.$this->translate('edit').'&nbsp;]'; ?>
 <div id="checkout-widget-preview">
 	<?php if ($this->yourInformation) :?>
-	<div id="checkout-user-info">
-		<h3 class="checkout-widget-title"><?php echo $this->translate('Your information'); ?></h3>
-		<!--a href="<?php echo $this->returnUrl;?>">[&nbsp;<?php echo $this->translate('start over');?>&nbsp;]</a-->
+    <div id="checkout-user-info">
+        <h3 class="checkout-widget-title"><?php echo $this->translate('Your information'); ?></h3>
 	    <div class="preview-content">
 	        <span class="fullname"><?php echo $this->yourInformation['firstname'].' '.$this->yourInformation['lastname'] ; ?></span>
 	        <span class="email"><?php echo $this->yourInformation['email']; ?></span>
@@ -19,11 +18,11 @@
 			<?php else : ?>
 			<?php echo $this->translate('Shipping information'); ?>
 			<?php endif; ?>
-		</h3>
-		<?php if ($this->shippingAddress && in_array(Cart::STEP_SHIPPING_OPTIONS, $this->allowedReturn) && $this->returnUrl) : ?>
-		<a href="<?php echo $this->returnUrl.'?step='.Cart::STEP_SHIPPING_OPTIONS;?>" class="checkout-edit" data-step="<?php echo Cart::STEP_SHIPPING_OPTIONS;?>"><?php echo $editMsg;?></a>
-		<?php endif; ?>
-		<div class="preview-content">
+			<?php if ($this->shippingAddress && in_array(Cart::STEP_SHIPPING_OPTIONS, $this->returnAllowed)) : ?>
+			<a href="<?php echo $this->websiteUrl . $this->checkoutPage->getUrl().'?step='.Cart::STEP_SHIPPING_OPTIONS;?>" class="checkout-edit" data-step="<?php echo Cart::STEP_SHIPPING_OPTIONS;?>" title="<?php echo $this->translate('Edit address');?>"><?php echo $editMsg;?></a>
+			<?php endif; ?>
+        </h3>
+        <div class="preview-content">
 		<?php
 		if ($this->shippingAddress) {
 			$fullname = trim($this->shippingAddress['firstname'] .' '. $this->shippingAddress['lastname']);
@@ -51,13 +50,19 @@
 
 	<?php if ($this->shippingData) : ?>
 	<div id="checkout-shipping-selected" class="mt10px">
-	    <h3 class="checkout-widget-title <?php if (empty($this->shippingData)): ?>disabled<?php endif; ?>"><?php echo $this->translate('Shipping method')?></h3>
-		<?php if (!empty($this->shippingData)): ?>
-		<?php if (in_array(Cart::STEP_PICKUP, $this->allowedReturn)) :?>
-		<a href="<?php echo $this->returnUrl.'?step='.Cart::STEP_PICKUP;?>" class="checkout-edit" data-step="<?php echo Cart::STEP_PICKUP;?>"><?php echo $editMsg;?></a>
-		<?php elseif (in_array(Cart::STEP_SHIPPING_METHOD, $this->allowedReturn)) : ?>
-        <a href="<?php echo $this->returnUrl.'?step='.Cart::STEP_SHIPPING_METHOD;?>" class="checkout-edit" data-step="<?php echo Cart::STEP_SHIPPING_METHOD;?>"><?php echo $editMsg;?></a>
-		<?php endif ;?>
+	    <h3 class="checkout-widget-title <?php if (empty($this->shippingData)): ?>disabled<?php endif; ?>">
+		    <?php echo $this->translate('Shipping method')?>
+			<?php if (!empty($this->shippingData)): ?>
+			<?php if (in_array(Cart::STEP_PICKUP, $this->returnAllowed)) :?>
+			<a href="<?php echo $this->websiteUrl . $this->checkoutPage->getUrl().'?step='.Cart::STEP_PICKUP;?>" class="checkout-edit" data-step="<?php echo Cart::STEP_PICKUP;?>" title="<?php echo $this->translate('Edit shipping method');?>">
+				<?php echo $editMsg;?>
+			</a>
+			<?php elseif (in_array(Cart::STEP_SHIPPING_METHOD, $this->returnAllowed)) : ?>
+	        <a href="<?php echo $this->websiteUrl . $this->checkoutPage->getUrl().'?step='.Cart::STEP_SHIPPING_METHOD;?>" class="checkout-edit" data-step="<?php echo Cart::STEP_SHIPPING_METHOD;?>" title="<?php echo $this->translate('Edit shipping method');?>">
+		        <?php echo $editMsg;?>
+	        </a>
+			<?php endif ;?>
+	    </h3>
         <div class="preview-content">
 			<?php
 			if ($this->shippingData['service'] === Shopping::SHIPPING_PICKUP) {

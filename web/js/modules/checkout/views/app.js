@@ -18,16 +18,25 @@ define([ 'backbone' ], function( Backbone ){
         websiteUrl: $('#website_url').val(),
         checkoutUrl: $('#website_url').val() + 'plugin/cart/run/checkout/',
         initialize: function(){
-            $('div.spinner').fadeOut().remove();
+            var self = this;
+            $('div.spinner').fadeOut();
+            $('h3 a.checkout-edit', '#cart-summary').hide();
+
             this.$el.fadeIn();
 
-            $('body').on('click', '#checkout-widget-preview a', _.bind(this.editAction, this));
+            $('body').on('click', 'a.checkout-edit', _.bind(this.editAction, this));
+            $('body').on('click', 'a.checkout-edit[data-step=shipping]', function(){
+                !$.browser.msie && self.toggleCheckoutLock(false);
+                $('h3 a.checkout-edit', '#cart-summary').hide();
+            });
 
             if ($.fn.addressChain){
                 $.fn.addressChain.options.url = this.websiteUrl + 'api/store/geo/type/state';
             }
 
             this.$el.find('form.address-form').addressChain();
+
+            refreshCartSummary();
         },
         submitForm: function(e) {
             e.preventDefault();
@@ -58,13 +67,27 @@ define([ 'backbone' ], function( Backbone ){
                 type: 'POST',
                 data: form.serialize(),
                 dataType: 'html',
-                beforeSend: function(){ form.find('[type="submit"]').attr('disabled', 'disabled').hide(); },
-                complete: function(){ form.find('[type="submit"]').removeAttr('disabled').show(); },
+                beforeSend: function(){
+                    self.$el.hide();
+                    $('div.spinner').show();
+                    form.find('[type="submit"]').attr('disabled', 'disabled');
+                },
+                complete: function(){
+                    $('div.spinner').hide();
+                    form.find('[type="submit"]').removeAttr('disabled');
+                    self.$el.show();
+                },
                 success: function(response){
                     self.$el.html(response);
                     self.$el.find('form.address-form').addressChain();
                     self.updateBuyerSummary();
-                    refreshCartSummary();
+                    refreshCartSummary().done(function(){
+                        if (self.lock) {
+                            $('h3 a.checkout-edit', '#cart-summary').show();
+                        } else {
+                            $('h3 a.checkout-edit', '#cart-summary').hide();
+                        }
+                    });
                 },
                 error: function(xhr, status){
                 }
@@ -87,8 +110,12 @@ define([ 'backbone' ], function( Backbone ){
             e.preventDefault();
             var self = this;
 
+            self.$el.hide();
+            $('div.spinner').show();
+
             $.get(this.checkoutUrl, {step: $(e.currentTarget).data('step')}, function(response){
-                self.$el.html(response);
+                $('div.spinner').hide();
+                self.$el.html(response).show();
                 self.$el.find('form.address-form').addressChain();
                 self.updateBuyerSummary();
             });
@@ -96,9 +123,9 @@ define([ 'backbone' ], function( Backbone ){
             return false;
         },
         toggleCheckoutLock: function(lock){
-            lock = !!lock;
+            this.lock = !!lock;
 
-            if (lock) {
+            if (this.lock) {
                 $('.toastercart-item-qty').attr('disabled', 'disabled');
                 $('.remove-item').hide();
             } else {
