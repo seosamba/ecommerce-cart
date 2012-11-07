@@ -7,7 +7,7 @@ $(function() {
             return false;
         }
         $(this).val(qty);
-        console.log(qty);
+
 		$.ajax({
 			url      : '/plugin/cart/run/cart',
 			type     : qty <= 0 ? 'delete' : 'put',

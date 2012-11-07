@@ -25,9 +25,13 @@ define([ 'backbone' ], function( Backbone ){
             this.$el.fadeIn();
 
             $('body').on('click', 'a.checkout-edit', _.bind(this.editAction, this));
-            $('body').on('click', 'a.checkout-edit[data-step=shipping]', function(){
-                !$.browser.msie && self.toggleCheckoutLock(false);
-            });
+
+            if ($.browser.msie) {
+                $('body').on('click', 'a.checkout-edit[data-step=shipping]', function(){
+                    self.toggleCheckoutLock(false);
+                });
+            }
+
 
             if ($.fn.addressChain){
                 $.fn.addressChain.options.url = this.websiteUrl + 'api/store/geo/type/state';
