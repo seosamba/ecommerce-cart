@@ -2,6 +2,7 @@
  * @author Pavel Kovalyov <pavlo.kovalyov@gmail.com>
  */
 define([ 'backbone' ], function( Backbone ){
+
     var AppView = Backbone.View.extend({
         el: $('#checkout-widget'),
         events: function(){
@@ -15,13 +16,12 @@ define([ 'backbone' ], function( Backbone ){
 
             return $.browser.msie ? events : _.extend(events, nonIEEvents);
         },
-        websiteUrl: $('#website_url').val(),
-        checkoutUrl: $('#website_url').val() + 'plugin/cart/run/checkout/',
         initialize: function(){
-            var self = this;
-            $('div.spinner').fadeOut();
-            $('h3 a.checkout-edit', '#cart-summary').hide();
+            this.websiteUrl = $('#website_url').val();
+            this.checkoutUrl = this.websiteUrl + 'plugin/cart/run/checkout/';
 
+            var self = this;
+            $('div.spinner').hide();
             this.$el.fadeIn();
 
             $('body').on('click', 'a.checkout-edit', _.bind(this.editAction, this));
@@ -37,6 +37,7 @@ define([ 'backbone' ], function( Backbone ){
 
             refreshCartSummary();
         },
+
         submitForm: function(e) {
             e.preventDefault();
 
