@@ -186,7 +186,7 @@ class Cart extends Tools_Cart_Cart {
 			throw new Exceptions_SeotoasterPluginException('Can\'t add to cart: product not defined');
 		}
 		$product = $this->_productMapper->find($productId);
-		$options = ($options) ? $this->_parseProductOtions($productId, $options) : $this->_getDefaultProductOptions($product);
+		$options = ($options) ? $this->_parseProductOptions($productId, $options) : $this->_getDefaultProductOptions($product);
 		$this->_cartStorage->add($product, $options, $qty);
 		return true;
 	}
@@ -337,7 +337,7 @@ class Cart extends Tools_Cart_Cart {
 	    }
     }
     
-	protected function _parseProductOtions($productId, $options) {
+	protected function _parseProductOptions($productId, $options) {
 		parse_str($options, $options);
 		if(is_array($options)) {
 			foreach($options as $key => $option) {
