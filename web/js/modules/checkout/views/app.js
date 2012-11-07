@@ -27,7 +27,6 @@ define([ 'backbone' ], function( Backbone ){
             $('body').on('click', 'a.checkout-edit', _.bind(this.editAction, this));
             $('body').on('click', 'a.checkout-edit[data-step=shipping]', function(){
                 !$.browser.msie && self.toggleCheckoutLock(false);
-                $('h3 a.checkout-edit', '#cart-summary').hide();
             });
 
             if ($.fn.addressChain){

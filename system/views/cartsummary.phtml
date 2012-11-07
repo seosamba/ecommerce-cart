@@ -1,11 +1,7 @@
 <div id="cart-summary">
     <h3 class="checkout-widget-title">
 	    <?php echo $this->translate('Summary'); ?>
-	    <?php if ($this->returnAllowed): ?>
         <a href="<?php echo $this->websiteUrl . $this->checkoutPage->getUrl();?>" class="checkout-edit" data-step="shipping" title="<?php echo $this->translate('Edit cart content');?>">[&nbsp;<?php echo $this->translate('edit');?>&nbsp;]</a>
-	    <?php else : ?>
-        <span title="<?php echo $this->translate('Edit cart content');?>">[&nbsp;<?php echo $this->translate('edit');?>&nbsp;]</span>
-		<?php endif; ?>
 	</h3>
 	<div class="cart-summary-row cart-subtotal">
 		<span><?php echo $this->translate('Subtotal'); ?>:</span>
