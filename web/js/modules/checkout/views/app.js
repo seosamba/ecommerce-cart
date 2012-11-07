@@ -24,7 +24,7 @@ define([ 'backbone' ], function( Backbone ){
             $('div.spinner').hide();
             this.$el.fadeIn();
 
-            if ($.browser.msie) {
+            if (!$.browser.msie) {
                 $('body').on('click', 'a.checkout-edit', _.bind(this.editAction, this));
                 $('body').on('click', 'a.checkout-edit[data-step=shipping]', function(){
                     self.toggleCheckoutLock(false);
