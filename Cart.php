@@ -552,17 +552,20 @@ class Cart extends Tools_Cart_Cart {
 		$pickup = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
 		$shippers = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
 
-		if ((is_null($pickup) || (bool)$pickup['enabled'] == false) && is_null($shippers)){
-			return $this->_renderPaymentZone();
+		if (!empty($shippers)){
+			$shippers = array_filter($shippers, function($shipper){
+				return !in_array($shipper['name'], array(
+					Shopping::SHIPPING_MARKUP,
+					Shopping::SHIPPING_PICKUP
+				));
+			});
 		}
 
-		$shippers = array_filter($shippers, function($shipper){
-			return !in_array($shipper['name'], array(
-				Shopping::SHIPPING_FREESHIPPING,
-				Shopping::SHIPPING_MARKUP,
-				Shopping::SHIPPING_PICKUP
-			));
-		});
+		if (is_null($pickup) || (bool)$pickup['enabled'] == false){
+			if (empty($shippers)){
+				return $this->_renderPaymentZone();
+			}
+		}
 
 		// preparing user info for forms
 		$addrType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
@@ -634,10 +637,32 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _renderShippingMethods() {
+		if (false !== ($freeShipping = $this->_qualifyFreeShipping())) {
+			return $freeShipping;
+		}
+
+		$shippingServices = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
+		if (!empty($shippingServices)){
+			$shippingServices = array_map(function($shipper){
+				return !in_array($shipper['name'], array(Shopping::SHIPPING_MARKUP, Shopping::SHIPPING_PICKUP, Shopping::SHIPPING_FREESHIPPING)) ? array(
+					'name' => $shipper['name'],
+					'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
+				) : null ;
+			}, $shippingServices );
+			$shippingServices = array_values(array_filter($shippingServices));
+		}
+
+		$this->_view->shoppingConfig = $this->_shoppingConfig;
+		$this->_view->shippers = $shippingServices;
+
+		return $this->_view->render('checkout/shipping_methods.phtml');
+	}
+
+	protected function _qualifyFreeShipping(){
 		$cart = Tools_ShoppingCart::getInstance();
 		$shippingAddress = $cart->getAddressById($cart->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING));
 
-		//checking if freeshipping is enabled and eilgible for this order
+		//checking if freeshipping is enabled and eligible for this order
 		if (!empty($shippingAddress)){
 			$freeShipping = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_FREESHIPPING);
 			if ($freeShipping && (bool)$freeShipping['enabled'] && isset($freeShipping['config']) && !empty($freeShipping['config'])){
@@ -654,28 +679,13 @@ class Cart extends Tools_Cart_Cart {
 								'price'     => 0
 						))->save()->saveCartSession(null);
 
-						return $this->_translator->translate('Great news! Your purchase is eligible for free shipping').
+						return '<h3>'.$this->_translator->translate('Great news! Your purchase is eligible for free shipping').'</h3>'.
 							$this->_renderPaymentZone();
 					}
 				}
 			}
 		}
 
-		$shippingServices = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
-		if (!empty($shippingServices)){
-			$shippingServices = array_map(function($shipper){
-				return !in_array($shipper['name'], array(Shopping::SHIPPING_MARKUP, Shopping::SHIPPING_PICKUP, Shopping::SHIPPING_FREESHIPPING)) ? array(
-					'name' => $shipper['name'],
-					'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
-				) : null ;
-			}, $shippingServices );
-			$shippingServices = array_values(array_filter($shippingServices));
-		}
-
-		$this->_view->shippers = $shippingServices;
-
-		return $this->_view->render('checkout/shipping_methods.phtml');
+		return false;
 	}
-
-
 }
