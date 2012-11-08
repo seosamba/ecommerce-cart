@@ -27,11 +27,14 @@ $('ul.shipping-methods', '#shipper-select').each(function(){
             var html ='';
 	        $.each(response, function(index, shipper){
 		        if (shipper.error) {
-		            html = '<li><label class="shipper-error">'+shipper.error+'</label></li>';
+		            html += '<li><label class="shipper-error">'+shipper.error+'</label></li>';
 	            } else {
-		            html = '<li><label style="cursor: pointer">' +
-		            '<input type="radio" name="shipper" value="'+shipperName+'::'+index+'"/><span class="shipping-method-title">'+shipper.type+'</span>' +
-		            '<span class="shipping-price">'+shipper.price+'</span></label>' + ( shipper.descr ? '<p>'+shipper.descr+'</p>' : '' )
+		            html += '<li><label style="cursor: pointer">' +
+		            '<input type="radio" name="shipper" value="'+shipperName+'::'+index+'"/>' +
+		            '<span class="shipping-price">'+shipper.price+'</span>' +
+	                '<span class="shipping-method-title">'+shipper.type+'</span>' +
+		            '</label>' + ( shipper.descr ? '<p>'+shipper.descr+'</p>' : '' ) +
+		            '</li>'
 	            }
 	        });
 	        $(self).html(html);
