@@ -188,7 +188,8 @@ class Cart extends Tools_Cart_Cart {
 		$product = $this->_productMapper->find($productId);
 		$options = ($options) ? $this->_parseProductOptions($productId, $options) : $this->_getDefaultProductOptions($product);
 		$this->_cartStorage->add($product, $options, $qty);
-		return true;
+        return $this->_responseHelper->success($this->_cartStorage->getStorageKey($product, $options));
+		
 	}
 
 	protected function _getDefaultProductOptions(Models_Model_Product $product) {
@@ -244,6 +245,9 @@ class Cart extends Tools_Cart_Cart {
         }
 		$this->_view->checkOutPageUrl = $this->_getCheckoutPage()->getUrl();
 		$this->_view->productId       = $this->_options[1];
+        if(isset($this->_options[2]) && $this->_options[2] == 'checkbox'){
+            $this->_view->cartCheckbox = true; 
+        }
    	    return $this->_view->render('addtocart.phtml');
 	}
 
@@ -313,8 +317,12 @@ class Cart extends Tools_Cart_Cart {
 
 
 	protected function _makeOptionCartsummary() {
-		$this->_view->summary = $this->_cartStorage->calculate();
-		$this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
+		$type = $this->_request->getParam('type');
+        if (isset($type) && $type == 'json'){
+           return $this->_cartStorage->calculate();
+        }
+        $this->_view->summary = $this->_cartStorage->calculate();
+        $this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
 		$this->_getCheckoutPage();
 		$this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
 		return $this->_view->render('cartsummary.phtml');
