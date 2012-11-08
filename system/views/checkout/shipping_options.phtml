@@ -30,9 +30,9 @@
 	        <br />
 	        <span><?php echo $this->shoppingConfig['country'];?></span>
 			<br />
-	        <img src="<?php echo Tools_Geo::generateStaticGmaps($this->shoppingConfig); ?>" alt="<?php echo $this->translate('Pickup location'); ?>">
 		</div>
 	</div>
+    <img src="<?php echo Tools_Geo::generateStaticGmaps($this->shoppingConfig, 900, 300); ?>" alt="<?php echo $this->translate('Pickup location'); ?>">
 </div>
 <?php endif; ?>
 
