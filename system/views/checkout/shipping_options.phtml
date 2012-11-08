@@ -8,17 +8,38 @@
 
 <?php if ($this->pickupForm) : ?>
 <div id="checkout-pickup-form" style="<?php if ($this->shippingForm && !$this->pickupForm->isErrors()): ?>display: none;<?php endif; ?>">
-    <h3 class="checkout-forms-header"><?php echo $this->pickupForm->getLegend(); ?></h3>
+    <h3 class="checkout-forms-header">
+	    <?php echo $this->pickupForm->getLegend(); ?>
+	    <?php if ($this->shippingForm):?>
+	    <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
+	    <?php endif;?>
+    </h3>
 	<?php echo $this->pickupForm; ?>
-	<?php if ($this->shippingForm):?>
-    <a href="#back" data-role="backbutton">&lsaquo;&nbsp<?php echo $this->translate('back'); ?></a>
-	<?php endif;?>
+    <h3 class="checkout-forms-header"><?php echo $this->translate('Pickup location'); ?></h3>
+	<div>
+	    <span class="company"><?php echo $this->shoppingConfig['company'];?></span><br />
+		<span class="phone"><?php echo $this->translate('Phone').': '.$this->shoppingConfig['phone'];?></span><br />
+	    <span class="street-address"><?php echo $this->shoppingConfig['address1'].' '. $this->shoppingConfig['address2'];?></span>
+        <br/>
+        <span class="locality"><?php echo $this->shoppingConfig['city'].($this->shoppingConfig['city']&&($this->shoppingConfig['state'] || $this->shoppingConfig['zip'])?',':'');?></span>
+        <span class="region"><?php $state = Tools_Geo::getStateById($this->shoppingConfig['state']); echo $state['state']; ?></span>
+        <span class="postal-code"><?php echo $this->shoppingConfig['zip'];?></span>
+        <br />
+        <span><?php echo $this->shoppingConfig['country'];?></span>
+		<br />
+        <img src="<?php echo Tools_Geo::generateStaticGmaps($this->shoppingConfig); ?>" alt="<?php echo $this->translate('Pickup location'); ?>">
+	</div>
 </div>
 <?php endif; ?>
 
 <?php if ($this->shippingForm) : ?>
 <div id="checkout-shipping-form" style="<?php if ($this->pickupForm && !$this->shippingForm->isErrors()): ?>display: none;<?php endif; ?>">
-    <h3 class="checkout-forms-header"><?php echo $this->shippingForm->getLegend(); ?></h3>
+    <h3 class="checkout-forms-header">
+	    <?php echo $this->shippingForm->getLegend(); ?>
+	    <?php if ($this->pickupForm) : ?>
+	    <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
+	    <?php endif; ?>
+    </h3>
     <?php echo $this->shippingForm; ?>
 </div>
 <?php endif; ?>

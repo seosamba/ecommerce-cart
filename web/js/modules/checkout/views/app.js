@@ -11,7 +11,7 @@ define([ 'backbone' ], function( Backbone ){
             }
             var nonIEEvents = {
                 'submit form.toaster-checkout': 'submitForm',
-                'click a.[data-role=backbutton]': 'backAction'
+                'click a.back-button': 'backAction'
             }
 
             return $.browser.msie ? events : _.extend(events, nonIEEvents);

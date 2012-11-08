@@ -605,6 +605,7 @@ class Cart extends Tools_Cart_Cart {
 			$this->_view->shippingForm->setAction($this->_view->actionUrl);
 		}
 
+		$this->_view->shoppingConfig = $this->_shoppingConfig;
 		return $this->_view->render('checkout/shipping_options.phtml');
 	}
 
