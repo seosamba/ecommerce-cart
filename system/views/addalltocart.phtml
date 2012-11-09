@@ -1,0 +1,110 @@
+<label><?php echo $this->translate('Add all to cart'); ?></label><input type="checkbox" class="addtocart-all" name="addtocart-all" value=""/>
+ <script type="text/javascript">
+        $(function() {
+            $(document).on('click', '.addtocart-all', function() {
+                if($('.addtocart-checkbox').length > 0){
+                    var allproducts = $('.addtocart-checkbox');
+                    showSpinner();
+                    var resultQuantity = 0;
+                    var productIds = {};
+                    if($(this).is(":checked")){
+                        $('.addtocart-checkbox').each(function(index) {
+                            var pid = $(this).find('input.checkAddToCart').val();
+                            var qty = $(this).find('input.checkAddToCartQty').val();
+                            var options = $('div[data-productid=' + pid + '] *').serialize();
+                            resultQuantity += parseInt(qty);
+                            productIds[pid] = {"options":options, "qty": qty};
+                        });
+                    
+                        $.ajax({
+                                type: 'post',
+                                url: '<?php echo $this->websiteUrl;?>plugin/cart/run/cart/',
+                                dataType : 'json',
+                                data     : {
+                                    allProducts : productIds,
+                                    all : 'all'
+
+                                },
+                                success : function(response){
+                                    if(response.error == 0){
+                                       $.each(response.responseText, function(productId, sid){
+                                           $('input[name=checkAddToCart-'+productId+']').attr('data-sid', sid);
+                                       });
+                                       if ($("#toaster-cart").length > 0){
+                                            $.ajax({
+                                                type: 'post',
+                                                url: '<?php echo $this->websiteUrl;?>plugin/cart/run/summary/',
+                                                dataType : 'json',
+                                                data     : {
+                                                    type:'json'
+                                                },
+                                                success : function(response) {
+                                                    if(response.error == 0){
+                                                        var quantityProducts = $('#toaster-cart .cart-items-count').text();
+                                                        var newProductQuantity = parseInt(quantityProducts) + parseInt(resultQuantity);
+                                                        $('#toaster-cart .cart-items-count').text(newProductQuantity);
+                                                        $('#toaster-cart .cart-total-tax').text('<?php echo $this->currencySymbol;?>'+response.responseText.totalTax);
+                                                        $('#toaster-cart .cart-total-price').text('<?php echo $this->currencySymbol;?>'+response.responseText.total);
+
+                                                    }
+
+                                                }
+                                          });
+                                       }
+                                    $('input.checkAddToCartQty').attr('disabled','disabled');
+                                    $('input.checkAddToCart').attr('checked', true);
+                                  }
+                                  hideSpinner();
+
+                                }
+                          });
+                               
+                     }else{
+                        var sids = {};
+                        $('.addtocart-checkbox').each(function(index) {
+                            var sid = $(this).find('input.checkAddToCart').attr('data-sid');
+                            var qty = $(this).find('input.checkAddToCartQty').val();
+                            resultQuantity += parseInt(qty);
+                            sids[sid] = {"sid":sid};
+                        });
+                        $.ajax({
+                            type: 'delete',
+                            url: '<?php echo $this->websiteUrl;?>plugin/cart/run/cart',
+                            dataType : 'json',
+                            data     : {
+                                sids: sids,
+                                all:'all'
+                            },
+                            success : function(response) {
+                                if ($("#toaster-cart").length > 0){
+                                    $.ajax({
+                                        type: 'post',
+                                        url: '<?php echo $this->websiteUrl;?>plugin/cart/run/summary/',
+                                        dataType : 'json',
+                                        data     : {
+                                            type:'json'
+                                        },
+                                        success : function(response) {
+                                            if(response.error == 0){
+                                                var quantityProducts = $('#toaster-cart .cart-items-count').text();
+                                                var newProductQuantity = parseInt(quantityProducts) - parseInt(resultQuantity);
+                                                $('#toaster-cart .cart-items-count').text(newProductQuantity);
+                                                $('#toaster-cart .cart-total-tax').text('<?php echo $this->currencySymbol;?>'+response.responseText.totalTax);
+                                                $('#toaster-cart .cart-total-price').text('<?php echo $this->currencySymbol;?>'+response.responseText.total);
+                                            }
+                                         
+                                        }
+                                    });
+                                }
+                                $('input.checkAddToCartQty').removeAttr('disabled');
+                                $('input.checkAddToCart').attr('checked', false);
+                                hideSpinner();
+                            }
+                        });
+                     }
+                }
+               
+            });
+            
+        });
+ </script>

@@ -179,6 +179,19 @@ class Cart extends Tools_Cart_Cart {
 		if(!$this->_request->isPost()) {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
+        
+        if(isset($this->_requestedParams['all']) && $this->_requestedParams['all'] == 'all'){
+            $allProducts = $this->_requestedParams['allProducts'];
+            $sidPid = array();
+            foreach($allProducts as $productId=>$productOptions){
+                $product = $this->_productMapper->find($productId);
+                $options = ($productOptions['options']) ? $this->_parseProductOptions($productId, $productOptions['options']) : $this->_getDefaultProductOptions($product);
+                $this->_cartStorage->add($product, $options, $productOptions['qty']);
+                $storageKey = $this->_cartStorage->getStorageKey($product, $options);
+                $sidPid[$productId] = $storageKey;
+            }
+            return $this->_responseHelper->success($sidPid);
+        }
 		$productId = $this->_requestedParams['pid'];
 		$options   = $this->_requestedParams['options'];
 		$qty       = isset($this->_requestedParams['qty']) ? $this->_requestedParams['qty'] : 1;
@@ -229,6 +242,12 @@ class Cart extends Tools_Cart_Cart {
 		if(!$this->_request->isDelete()) {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
+        if(isset($this->_requestedParams['all']) && $this->_requestedParams['all'] == 'all'){
+            foreach($this->_requestedParams['sids'] as $sid){
+                $this->_cartStorage->remove($sid['sid']);
+            }
+            $this->_responseHelper->success($this->_translator->translate('Removed.'));
+        }
 		if($this->_cartStorage->remove($this->_requestedParams['sid'])) {
 			$this->_responseHelper->success($this->_translator->translate('Removed.'));
 		}
@@ -240,13 +259,16 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionAddtocart() {
+        if(isset($this->_options[1]) && $this->_options[1] == 'addall'){
+            return $this->_view->render('addalltocart.phtml');
+        }
         if(!isset($this->_options[1]) || !intval($this->_options[1])) {
             throw new Exceptions_SeotoasterPluginException('Product id is missing!');
         }
 		$this->_view->checkOutPageUrl = $this->_getCheckoutPage()->getUrl();
 		$this->_view->productId       = $this->_options[1];
         if(isset($this->_options[2]) && $this->_options[2] == 'checkbox'){
-            $this->_view->cartCheckbox = true; 
+            return $this->_view->render('addtocartcheckbox.phtml');
         }
    	    return $this->_view->render('addtocart.phtml');
 	}

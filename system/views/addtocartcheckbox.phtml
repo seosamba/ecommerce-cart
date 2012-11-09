@@ -1,0 +1,95 @@
+ <div class="addtocart-checkbox">
+        <input type="text" class="checkAddToCartQty" name="quantityCkecked-<?php echo $this->productId;?>" maxlength="5" value="1"/>
+        <label><?php echo $this->translate('Add to cart'); ?></label><input type="checkbox" class="checkAddToCart"  data-sid="" name="checkAddToCart-<?php echo $this->productId;?>" value="<?php echo $this->productId; ?>"/>
+ </div>
+ <script type="text/javascript">
+	$(function() {
+		$(document).on('click', 'input[name=checkAddToCart-<?php echo $this->productId;?>]', function() {
+			var pid  = $(this).val();
+            var sid  = $(this).attr('data-sid');
+            var qty = $('input[name=quantityCkecked-<?php echo $this->productId;?>]').val();
+            showSpinner();
+            if($(this).is(":checked") && qty>0){
+            	$.ajax({
+                    type: 'post',
+                    url: '<?php echo $this->websiteUrl;?>plugin/cart/run/cart/',
+                    dataType : 'json',
+                    data     : {
+                        pid     : pid,
+                        options : $('div[data-productid=' + pid + '] *').serialize(),
+                        qty     :qty
+                    },
+                    success : function(response){
+                        if(response.error == 0){
+                            $('input[name=checkAddToCart-<?php echo $this->productId;?>]').attr('data-sid', response.responseText);
+                            if ($("#toaster-cart").length > 0){
+                                $.ajax({
+                                    type: 'post',
+                                    url: '<?php echo $this->websiteUrl;?>plugin/cart/run/summary/',
+                                    dataType : 'json',
+                                    data     : {
+                                        pid: pid,
+                                        type:'json'
+                                    },
+                                    success : function(response) {
+                                        if(response.error == 0){
+
+                                                var quantityProducts = $('#toaster-cart .cart-items-count').text();
+                                                var newProductQuantity = parseInt(quantityProducts) + parseInt(qty);
+                                                $('#toaster-cart .cart-items-count').text(newProductQuantity);
+                                                $('#toaster-cart .cart-total-tax').text('<?php echo $this->currencySymbol;?>'+response.responseText.totalTax);
+                                                $('#toaster-cart .cart-total-price').text('<?php echo $this->currencySymbol;?>'+response.responseText.total);
+
+                                            
+                                        }
+                                        
+                                    }
+                                });
+                            }
+                            $('input[name=quantityCkecked-<?php echo $this->productId;?>]').attr('disabled','disabled');
+                            hideSpinner();
+                        }
+                    }
+                });             
+                    
+            }else{
+               $.ajax({
+                    type: 'delete',
+                    url: '<?php echo $this->websiteUrl;?>plugin/cart/run/cart',
+                    dataType : 'json',
+                    data     : {
+                        sid: sid
+                    },
+                    success : function(response) {
+                        if ($("#toaster-cart").length > 0){
+                            $.ajax({
+                                type: 'post',
+                                url: '<?php echo $this->websiteUrl;?>plugin/cart/run/summary/',
+                                dataType : 'json',
+                                data     : {
+                                    pid: pid,
+                                    type:'json'
+                                },
+                                success : function(response) {
+                                    if(response.error == 0){
+
+                                            var quantityProducts = $('#toaster-cart .cart-items-count').text();
+                                            var newProductQuantity = parseInt(quantityProducts) - parseInt(qty);
+                                            $('#toaster-cart .cart-items-count').text(newProductQuantity);
+                                            $('#toaster-cart .cart-total-tax').text('<?php echo $this->currencySymbol;?>'+response.responseText.totalTax);
+                                            $('#toaster-cart .cart-total-price').text('<?php echo $this->currencySymbol;?>'+response.responseText.total);
+
+
+                                     }
+                                     
+                                 }
+                             });
+                         }
+                         $('input[name=quantityCkecked-<?php echo $this->productId;?>]').removeAttr('disabled');
+                         hideSpinner();
+                      }
+               });
+            }
+		})
+	});
+</script>
