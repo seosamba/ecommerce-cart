@@ -37,8 +37,8 @@
                                                 var quantityProducts = $('#toaster-cart .cart-items-count').text();
                                                 var newProductQuantity = parseInt(quantityProducts) + parseInt(qty);
                                                 $('#toaster-cart .cart-items-count').text(newProductQuantity);
-                                                $('#toaster-cart .cart-total-tax').text('<?php echo $this->currencySymbol;?>'+response.responseText.totalTax);
-                                                $('#toaster-cart .cart-total-price').text('<?php echo $this->currencySymbol;?>'+response.responseText.total);
+                                                $('#toaster-cart .cart-total-tax').text(response.responseText.totalTax);
+                                                $('#toaster-cart .cart-total-price').text(response.responseText.total);
 
                                             
                                         }
@@ -76,8 +76,8 @@
                                             var quantityProducts = $('#toaster-cart .cart-items-count').text();
                                             var newProductQuantity = parseInt(quantityProducts) - parseInt(qty);
                                             $('#toaster-cart .cart-items-count').text(newProductQuantity);
-                                            $('#toaster-cart .cart-total-tax').text('<?php echo $this->currencySymbol;?>'+response.responseText.totalTax);
-                                            $('#toaster-cart .cart-total-price').text('<?php echo $this->currencySymbol;?>'+response.responseText.total);
+                                            $('#toaster-cart .cart-total-tax').text(response.responseText.totalTax);
+                                            $('#toaster-cart .cart-total-price').text(response.responseText.total);
 
 
                                      }

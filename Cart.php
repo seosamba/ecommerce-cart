@@ -341,6 +341,12 @@ class Cart extends Tools_Cart_Cart {
 	protected function _makeOptionCartsummary() {
 		$type = $this->_request->getParam('type');
         if (isset($type) && $type == 'json'){
+            $summary = $this->_cartStorage->calculate();
+            if (Zend_Registry::isRegistered('Zend_Currency')){
+               $currency = Zend_Registry::get('Zend_Currency'); 
+               return array('subTotal'=>$currency->toCurrency($summary['subTotal']), 'totalTax'=>$currency->toCurrency($summary['totalTax']),
+                   'shipping'=>$summary['shipping'], 'total'=>$currency->toCurrency($summary['total']));
+           }
            return $this->_cartStorage->calculate();
         }
         $this->_view->summary = $this->_cartStorage->calculate();
