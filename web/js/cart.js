@@ -9,7 +9,7 @@ $(function() {
         $(this).val(qty);
 
 		$.ajax({
-			url      : '/plugin/cart/run/cart',
+			url      : $('#website_url').val()+'plugin/cart/run/cart',
 			type     : qty <= 0 ? 'delete' : 'put',
 			dataType : 'json',
 			data     : {
@@ -34,7 +34,7 @@ $(function() {
 		var sid    = $(this).data('sid');
 		var rmLink = $(this);
 		$.ajax({
-			url      : '/plugin/cart/run/cart',
+			url      : $('#website_url').val()+'plugin/cart/run/cart',
 			type     : 'delete',
 			dataType : 'json',
 			data     : {
@@ -67,14 +67,14 @@ $(function() {
 function refreshCartSummary() {
 	var cartSummary = $('#cart-summary');
     if(cartSummary.length) {
-        return $.post('/plugin/cart/run/summary/', function(response) {
+        return $.post($('#website_url').val()+'plugin/cart/run/summary/', function(response) {
 			cartSummary.replaceWith(response.responseText);
         }, 'json');
     }
 }
 
 function refreshPrice(sid) {
-    return $.post('/plugin/cart/run/cartcontent/', {sid: sid}, function(response) {
+    return $.post($('#website_url').val()+'plugin/cart/run/cartcontent/', {sid: sid}, function(response) {
         $('span[data-sidprice=' + sid + ']').replaceWith(response.responseText.price);
 	    $('span[data-sidweight=' + sid + ']').replaceWith(response.responseText.weight);
     }, 'json');

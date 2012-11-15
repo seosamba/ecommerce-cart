@@ -135,7 +135,7 @@ define([ 'backbone' ], function( Backbone ){
         updateBuyerSummary: function(){
             var widget = $('#checkout-widget-preview');
             if (widget.length) {
-                $.post('/plugin/cart/run/buyersummary/', function(response) {
+                $.post($('#website_url').val() + '/plugin/cart/run/buyersummary/', function(response) {
                     widget.replaceWith(response.responseText);
                 }, 'json');
             }
