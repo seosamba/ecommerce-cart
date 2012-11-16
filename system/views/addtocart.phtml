@@ -3,11 +3,16 @@
 	$(function() {
 		$(document).on('click', 'a[data-pid="' + <?php echo $this->productId; ?> + '"]', function(e) {
 			e.preventDefault();
-			var pid  = $(this).data('pid');
-			$.post('<?php echo $this->websiteUrl;?>plugin/cart/run/cart/', {
+            var pid  = $(this).data('pid');
+            var qty = 1;
+            if($('input[name="productquantity-' + pid + '"]').length > 0){
+                qty = parseInt($('input[name="productquantity-' + pid + '"]').val());
+            }
+            $.post('<?php echo $this->websiteUrl;?>plugin/cart/run/cart/', {
 				pid     : pid,
-				options : $('div[data-productid=' + pid + '] *').serialize()
-			}, function() {
+				options : $('div[data-productid=' + pid + '] *').serialize(),
+                qty     : qty
+            }, function() {
 				window.location.href = '<?php echo $this->websiteUrl, $this->checkOutPageUrl; ?>';
 			})
 		})
