@@ -80,7 +80,7 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 		if(isset($this->_options[0])) {
 			$folder = '/' . $this->_options[0] . '/';
 		}
-		return '<img class="cart-product-image" src="/media/' . str_replace('/', $folder, $this->_cartContent[$sid]['photo']) . '" alt="' . $this->_cartContent[$sid]['name'] . '">';
+		return '<img class="cart-product-image" src="'.$this->_view->websiteUrl.'media/' . str_replace('/', $folder, $this->_cartContent[$sid]['photo']) . '" alt="' . $this->_cartContent[$sid]['name'] . '">';
 	}
 
 	protected function _renderDescription($sid) {
