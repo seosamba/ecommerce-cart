@@ -426,6 +426,7 @@ class Cart extends Tools_Cart_Cart {
             $customer  = $shoppingCart->getCustomer();
 			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $form->getValues(), $addressType);
 			$shoppingCart->setAddressKey($addressType, $addressId)
+                ->setNotes($form->getValue('notes'))
 				->save()
 				->saveCartSession($customer);
 
