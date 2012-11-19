@@ -609,8 +609,8 @@ class Cart extends Tools_Cart_Cart {
             if (Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART) && null === ($customerAddress = $customer->getDefaultAddress($addrType))){
                 $name = explode(' ', $customer->getFullName());
                 $customerAddress = array(
-	                'firstname' => iseet($name[0]) ? $name[0] : '',
-	                'lastname'  => iseet($name[1]) ? $name[1] : '',
+	                'firstname' => isset($name[0]) ? $name[0] : '',
+	                'lastname'  => isset($name[1]) ? $name[1] : '',
 	                'email'     => $customer->getEmail(),
 	                'country' => $this->_shoppingConfig['country'],
                     'state'   => $this->_shoppingConfig['state']
