@@ -51,7 +51,10 @@ define([ 'backbone' ], function( Backbone ){
             form.find('.notvalid').removeClass('notvalid');
 
             $('.required:input', form).each(function(){
-                if (_.isEmpty($(this).val())){
+                if (this.type==="text" && _.isEmpty($(this).val())){
+                    valid = false;
+                    $(this).addClass('notvalid');
+                } else if (this.type === "checkbox" && !this.checked) {
                     valid = false;
                     $(this).addClass('notvalid');
                 }
