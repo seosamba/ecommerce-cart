@@ -648,7 +648,7 @@ class Cart extends Tools_Cart_Cart {
 				$this->_view->pickupForm = $pickupForm;
 			} else {
 				$this->_view->pickupForm = new Forms_Checkout_Pickup();
-				if (!empty($customerAddress)) {
+				if (is_array($customerAddress) && !empty($customerAddress)) {
 					$this->_view->pickupForm->populate($customerAddress);
 				}
 			}
@@ -659,8 +659,10 @@ class Cart extends Tools_Cart_Cart {
 			if ((bool)$shippingForm){
 				$this->_view->shippingForm = $shippingForm;
 			} else {
-				$this->_view->shippingForm = new Forms_Checkout_Address($customerAddress);
-				$this->_view->shippingForm->populate($customerAddress);
+				$this->_view->shippingForm = new Forms_Checkout_Address();
+				if (is_array($customerAddress) && !empty($customerAddress)) {
+					$this->_view->shippingForm->populate($customerAddress);
+				}
 			}
 			$this->_view->shippingForm->setAction($this->_view->actionUrl);
 
