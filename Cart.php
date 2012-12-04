@@ -626,21 +626,21 @@ class Cart extends Tools_Cart_Cart {
             $customer = Tools_ShoppingCart::getInstance()->getCustomer();
             if (Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART) && null === ($customerAddress = $customer->getDefaultAddress($addrType))){
                 $name = explode(' ', $customer->getFullName());
-                $userData = array(
+	            $userData = array(
 	                'firstname' => isset($name[0]) ? $name[0] : '',
 	                'lastname'  => isset($name[1]) ? $name[1] : '',
 	                'email'     => $customer->getEmail()
                 );
-	            $customerAddress = array_merge(
-		            $userData,
-                    !empty($this->_checkoutSession->initialCustomerInfo) ? $this->_checkoutSession->initialCustomerInfo : array(),
-                    array(
-                        'country'   => $this->_shoppingConfig['country'],
-                        'state'     => $this->_shoppingConfig['state'],
-                        'zip'       => $this->_shoppingConfig['zip']
-                    )
-                );
             }
+			$customerAddress = array_merge(
+				isset($userData) ? $userData : array(),
+                !empty($this->_checkoutSession->initialCustomerInfo) ? $this->_checkoutSession->initialCustomerInfo : array(),
+                array(
+                    'country'   => $this->_shoppingConfig['country'],
+                    'state'     => $this->_shoppingConfig['state'],
+                    'zip'       => $this->_shoppingConfig['zip']
+                )
+            );
         }
 
 		if ($pickup && (bool)$pickup['enabled']){
