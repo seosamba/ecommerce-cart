@@ -8,6 +8,9 @@ $(function() {
         var qty = 1;
         if($('input[name="productquantity-' + pid + '"]').length > 0){
             qty = parseInt($('input[name="productquantity-' + pid + '"]').val());
+            if(isNaN(qty)){
+                qty = 1;
+            } 
         }
         $.post($('#website_url').val()+'plugin/cart/run/cart/', {
             pid     : pid,
