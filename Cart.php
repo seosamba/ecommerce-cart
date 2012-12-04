@@ -399,7 +399,7 @@ class Cart extends Tools_Cart_Cart {
 		if (method_exists($this, $methodName)){
 			if ($this->_request->isXmlHttpRequest()){
 				$content = $this->$methodName();
-				if (!empty($content) && strpos('{$', $content) !== false){
+				if (!empty($content)){
 					$themeData = Zend_Registry::get('theme');
 					$parserOptions = array(
 						'websiteUrl'   => $this->_websiteHelper->getUrl(),
