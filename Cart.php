@@ -4,7 +4,7 @@
  *
  * This plugin is using E-commerce plugin API
  * Depends on shopping (e-commerce) plugin
- *
+ * @see http://www.seotoaster.com/
  */
 class Cart extends Tools_Cart_Cart {
 
@@ -398,7 +398,20 @@ class Cart extends Tools_Cart_Cart {
 		$methodName = '_checkoutStep'.ucfirst(strtolower($step));
 		if (method_exists($this, $methodName)){
 			if ($this->_request->isXmlHttpRequest()){
-				echo $this->$methodName();
+				$content = $this->$methodName();
+				if (!empty($content) && strpos('{$', $content) !== false){
+					$themeData = Zend_Registry::get('theme');
+					$parserOptions = array(
+						'websiteUrl'   => $this->_websiteHelper->getUrl(),
+						'websitePath'  => $this->_websiteHelper->getPath(),
+						'currentTheme' => Zend_Controller_Action_HelperBroker::getExistingHelper('config')->getConfig('currentTheme'),
+						'themePath'    => $themeData['path'],
+					);
+					$parser = new Tools_Content_Parser($content, $this->_getCheckoutPage()->toArray(), $parserOptions);
+					echo $parser->parse();
+				} else {
+					echo $content;
+				}
 				return;
 			} else {
 
@@ -541,6 +554,7 @@ class Cart extends Tools_Cart_Cart {
 				->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)
 				->setCustomerId(null)
 				->setShippingData(null)
+				->setNotes(null)
 				->save();
 		}
 
@@ -563,6 +577,9 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _renderLandingForm($signupForm = null) {
+		if (!isset($this->_view->actionUrl)){
+			$this->_view->actionUrl = $this->_websiteUrl.$this->_getCheckoutPage()->getUrl();
+		}
 
 		$form = (bool)$signupForm ? $signupForm : new Forms_Signup();
 		$form->setAction($this->_view->actionUrl);
@@ -609,25 +626,21 @@ class Cart extends Tools_Cart_Cart {
             $customer = Tools_ShoppingCart::getInstance()->getCustomer();
             if (Tools_Security_Acl::isAllowed(Shopping::RESOURCE_CART) && null === ($customerAddress = $customer->getDefaultAddress($addrType))){
                 $name = explode(' ', $customer->getFullName());
-                $customerAddress = array(
+                $userData = array(
 	                'firstname' => isset($name[0]) ? $name[0] : '',
 	                'lastname'  => isset($name[1]) ? $name[1] : '',
-	                'email'     => $customer->getEmail(),
-	                'country' => $this->_shoppingConfig['country'],
-                    'state'   => $this->_shoppingConfig['state']
+	                'email'     => $customer->getEmail()
+                );
+	            $customerAddress = array_merge(
+		            $userData,
+                    !empty($this->_checkoutSession->initialCustomerInfo) ? $this->_checkoutSession->initialCustomerInfo : array(),
+                    array(
+                        'country'   => $this->_shoppingConfig['country'],
+                        'state'     => $this->_shoppingConfig['state'],
+                        'zip'       => $this->_shoppingConfig['zip']
+                    )
                 );
             }
-        }
-        if (empty($customerAddress)) {
-
-            $customerAddress = array_merge(
-	            !empty($this->_checkoutSession->initialCustomerInfo) ? $this->_checkoutSession->initialCustomerInfo : array(),
-	            array(
-                    'country'   => $this->_shoppingConfig['country'],
-                    'state'     => $this->_shoppingConfig['state'],
-                    'zip'       => $this->_shoppingConfig['zip']
-                )
-            );
         }
 
 		if ($pickup && (bool)$pickup['enabled']){
@@ -635,7 +648,9 @@ class Cart extends Tools_Cart_Cart {
 				$this->_view->pickupForm = $pickupForm;
 			} else {
 				$this->_view->pickupForm = new Forms_Checkout_Pickup();
-				$this->_view->pickupForm->populate($customerAddress);
+				if (!empty($customerAddress)) {
+					$this->_view->pickupForm->populate($customerAddress);
+				}
 			}
 			$this->_view->pickupForm->setAction($this->_view->actionUrl);
 		}
@@ -648,6 +663,10 @@ class Cart extends Tools_Cart_Cart {
 				$this->_view->shippingForm->populate($customerAddress);
 			}
 			$this->_view->shippingForm->setAction($this->_view->actionUrl);
+
+			$this->_view->shippingForm->populate(array(
+				'notes' => Tools_ShoppingCart::getInstance()->getNotes()
+			));
 		}
 
 		$this->_view->shoppingConfig = $this->_shoppingConfig;
