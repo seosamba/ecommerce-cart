@@ -432,6 +432,18 @@ class Cart extends Tools_Cart_Cart {
 
 	private function _checkoutStepAddress(){
 		$form = new Forms_Checkout_Address();
+		if (!empty($this->_options)){
+			$requiredFields = array();
+			foreach (preg_grep('/^required-.*$/', $this->_options) as $reqOpt) {
+				$fields = explode(',', str_replace('required-', '', $reqOpt));
+				$requiredFields = array_merge($requiredFields, $fields);
+				unset($reqOpt);
+			}
+
+			if (!empty($requiredFields)){
+				$form->resetRequiredFields($requiredFields);
+			}
+		}
 
 		if ($this->_request->isPost() && $form->isValid($this->_request->getParams())){
 			$addressType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
@@ -577,7 +589,7 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _renderLandingForm($signupForm = null) {
-		if (!isset($this->_view->actionUrl)){
+		if (!isset($this->_view->actionUrl)) {
 			$this->_view->actionUrl = $this->_websiteUrl.$this->_getCheckoutPage()->getUrl();
 		}
 
@@ -585,8 +597,9 @@ class Cart extends Tools_Cart_Cart {
 		$form->setAction($this->_view->actionUrl);
 
 		$this->_view->signupForm        = $form;
-
 		$this->_view->isError = $form->isErrors();
+
+		$this->_view->hideLoginForm = in_array('nologin', $this->_options);
 
 		$flashMessenger = Zend_Controller_Action_HelperBroker::getStaticHelper('flashMessenger');
 		if ($flashMessenger){
@@ -664,6 +677,18 @@ class Cart extends Tools_Cart_Cart {
 					$this->_view->shippingForm->populate($customerAddress);
 				}
 			}
+			// looking for mandatory fields
+			$requiredFields = array();
+			foreach (preg_grep('/^required-.*$/', $this->_options) as $reqOpt) {
+				$fields = explode(',', str_replace('required-', '', $reqOpt));
+				$requiredFields = array_merge($requiredFields, $fields);
+				unset($reqOpt);
+			}
+
+			if (!empty($requiredFields)){
+				$this->_view->shippingForm->resetRequiredFields($requiredFields);
+			}
+
 			$this->_view->shippingForm->setAction($this->_view->actionUrl);
 
 			$this->_view->shippingForm->populate(array(
