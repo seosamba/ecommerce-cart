@@ -99,6 +99,17 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 	protected function _renderOptions($sid) {
 		$this->_view->cartItem   = $this->_cartContent[$sid];
 		$this->_view->weightSign = $this->_shoppingConfig['weightUnit'];
+
+		$this->_view->taxRate = 0;
+		if ($this->_shoppingConfig['showPriceIncTax']) {
+			$product = Models_Mapper_ProductMapper::getInstance()->find($this->_cartContent[$sid]['id']);
+			if ($product instanceof Models_Model_Product){
+				$addressKey = Tools_ShoppingCart::getInstance()->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
+				$addressKey = is_null($addressKey) ? null : Tools_ShoppingCart::getAddressById($addressKey);
+				$this->_view->taxRate = round(Tools_Tax_Tax::calculateProductTax($product, $addressKey, true) / 100, 2);
+			}
+		}
+
 		return $this->_view->render('options.phtml');
 	}
 
