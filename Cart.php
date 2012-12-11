@@ -679,8 +679,8 @@ class Cart extends Tools_Cart_Cart {
 			}
 			// looking for mandatory fields
 			$requiredFields = array();
-			foreach (preg_grep('/^required-.*$/', $this->_options) as $reqOpt) {
-				$fields = explode(',', str_replace('required-', '', $reqOpt));
+			foreach (preg_grep('/^'.Forms_Checkout_Address::CSS_CLASS_REQUIRED.'-.*$/', $this->_options) as $reqOpt) {
+				$fields = explode(',', str_replace(Forms_Checkout_Address::CSS_CLASS_REQUIRED.'-', '', $reqOpt));
 				$requiredFields = array_merge($requiredFields, $fields);
 				unset($reqOpt);
 			}
