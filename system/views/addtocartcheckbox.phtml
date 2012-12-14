@@ -46,6 +46,9 @@
                                     }
                                 });
                             }
+                            if($('.product-options-listing[data-productid=' + pid + '] select').length > 0){
+                                $('.product-options-listing[data-productid=' + pid + '] select').attr('disabled','disabled');
+                            }
                             $('input[name=quantityCkecked-<?php echo $this->productId;?>]').attr('disabled','disabled');
                             hideSpinner();
                         }
@@ -84,6 +87,9 @@
                                      
                                  }
                              });
+                         }
+                         if($('.product-options-listing[data-productid=' + pid + '] select').length > 0){
+                            $('.product-options-listing[data-productid=' + pid + '] select').removeAttr('disabled');
                          }
                          $('input[name=quantityCkecked-<?php echo $this->productId;?>]').removeAttr('disabled');
                          hideSpinner();

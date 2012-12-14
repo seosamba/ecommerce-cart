@@ -51,6 +51,9 @@
                                                 }
                                           });
                                        }
+                                    if($('.product-options-listing select').length > 0){
+                                        $('.product-options-listing select').attr('disabled','disabled'); 
+                                    }
                                     $('input.checkAddToCartQty').attr('disabled','disabled');
                                     $('input.checkAddToCart').attr('checked', true);
                                   }
@@ -95,6 +98,9 @@
                                          
                                         }
                                     });
+                                }
+                                if($('.product-options-listing select').length > 0){
+                                    $('.product-options-listing select').removeAttr('disabled');
                                 }
                                 $('input.checkAddToCartQty').removeAttr('disabled');
                                 $('input.checkAddToCart').attr('checked', false);
