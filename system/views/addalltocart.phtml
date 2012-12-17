@@ -54,6 +54,9 @@
                                     if($('.product-options-listing select').length > 0){
                                         $('.product-options-listing select').attr('disabled','disabled'); 
                                     }
+                                    if($('.product-options-listing input[type="radio"]').length > 0){
+                                        $('.product-options-listing input[type="radio"]').attr('disabled','disabled');
+                                    }
                                     $('input.checkAddToCartQty').attr('disabled','disabled');
                                     $('input.checkAddToCart').attr('checked', true);
                                   }
@@ -101,6 +104,9 @@
                                 }
                                 if($('.product-options-listing select').length > 0){
                                     $('.product-options-listing select').removeAttr('disabled');
+                                }
+                                if($('.product-options-listing input[type="radio"]').length > 0){
+                                    $('.product-options-listing input[type="radio"]').removeAttr('disabled');
                                 }
                                 $('input.checkAddToCartQty').removeAttr('disabled');
                                 $('input.checkAddToCart').attr('checked', false);
