@@ -106,7 +106,7 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 			if ($product instanceof Models_Model_Product){
 				$addressKey = Tools_ShoppingCart::getInstance()->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
 				$addressKey = is_null($addressKey) ? null : Tools_ShoppingCart::getAddressById($addressKey);
-				$this->_view->taxRate = round(Tools_Tax_Tax::calculateProductTax($product, $addressKey, true) / 100, 2);
+				$this->_view->taxRate = Tools_Tax_Tax::calculateProductTax($product, $addressKey, true) / 100;
 			}
 		}
 
