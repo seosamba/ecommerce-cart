@@ -768,4 +768,9 @@ class Cart extends Tools_Cart_Cart {
 
 		return false;
 	}
+
+//	@TODO implement widget maker
+//	public static function getWidgetMakerContent(){
+//		return array('title'=> 'Store: Checkout', 'content' => '');
+//	}
 }
