@@ -57,7 +57,19 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 
 	protected function _renderPrice($sid) {
 		$this->_view->sid = $sid;
-		$price = (bool)$this->_shoppingConfig['showPriceIncTax'] ? $this->_cartContent[$sid]['taxPrice'] : $this->_cartContent[$sid]['price'] ;
+        if (null !== ($addrId = Tools_ShoppingCart::getInstance()->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING))){
+            $destinationAddress = Tools_ShoppingCart::getInstance()->getAddressById($addrId);
+		} else {
+            $destinationAddress = null;
+		}
+        $product = new Models_Model_Product(array(
+			'price'     => $this->_cartContent[$sid]['price'],
+            'taxClass'  => $this->_cartContent[$sid]['taxClass']
+		));
+
+		$cartItem['tax'] = Tools_Tax_Tax::calculateProductTax($product, isset($destinationAddress) ? $destinationAddress : null);
+        $price = $this->_cartContent[$sid]['price'] + $cartItem['tax'];
+		//$price = (bool)$this->_shoppingConfig['showPriceIncTax'] ? $this->_cartContent[$sid]['taxPrice'] : $this->_cartContent[$sid]['price'] ;
 		if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
 			$this->_view->price       = $price;
 			$this->_view->priceOption = 'unitprice';
@@ -106,7 +118,7 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 			if ($product instanceof Models_Model_Product){
 				$addressKey = Tools_ShoppingCart::getInstance()->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
 				$addressKey = is_null($addressKey) ? null : Tools_ShoppingCart::getAddressById($addressKey);
-				$this->_view->taxRate = round(Tools_Tax_Tax::calculateProductTax($product, $addressKey, true) / 100, 2);
+				$this->_view->taxRate = Tools_Tax_Tax::calculateProductTax($product, $addressKey, true) / 100;
 			}
 		}
 
