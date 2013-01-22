@@ -81,10 +81,13 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 	}
 
 	protected function _renderQty($sid) {
+		$html = '';
 		if((isset($this->_options[0]) && $this->_options[0] == 'noedit') || (Cart::$_lockCartEdit === true)) {
-			return '<span class="toastercart-item-qty">' . $this->_cartContent[$sid]['qty'] . '</span>';
+			$html = '<span class="toastercart-item-qty">' . $this->_cartContent[$sid]['qty'] . '</span>';
+		} else {
+			$html = '<input type="number" class="toastercart-item-qty product-qty" min="0" data-sid="' . $sid . '" data-pid="' . $this->_cartContent[$sid]['id'] . '" value="' . $this->_cartContent[$sid]['qty'] . '" />';
 		}
-		return '<input type="number" class="toastercart-item-qty product-qty" min="0" data-sid="' . $sid . '" data-pid="' . $this->_cartContent[$sid]['id'] . '" value="' . $this->_cartContent[$sid]['qty'] . '" />';
+		return $html;
 	}
 
 	protected function _renderPhoto($sid) {

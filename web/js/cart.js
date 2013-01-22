@@ -1,5 +1,6 @@
 $(function() {
 	$(document).on('change', '.product-qty', function() {
+        var self = this;
 		var sid = $(this).data('sid');
 		var qty = parseInt($(this).val());
         if (isNaN(qty)){
@@ -19,9 +20,14 @@ $(function() {
 			beforeSend : function() {showSpinner();},
 			success : function(response) {
                 hideSpinner();
-                if (qty <= 0){
-
-                }else{
+                if (!response.error){
+                    var newQty = parseInt(response.responseText.qty);
+                    if (newQty > 0){
+                        if (qty !== newQty ){
+                            showMessage(response.responseText.msg, 1);
+                            $(self).val(newQty);
+                        }
+                    }
                     refreshPrice(sid);
                 }
                 refreshCartSummary();
