@@ -191,23 +191,38 @@ class Cart extends Tools_Cart_Cart {
             foreach($allProducts as $productId=>$productOptions){
                 $product = $this->_productMapper->find($productId);
                 $options = ($productOptions['options']) ? $this->_parseProductOptions($productId, $productOptions['options']) : $this->_getDefaultProductOptions($product);
-                $this->_cartStorage->add($product, $options, $productOptions['qty']);
-                $storageKey = $this->_cartStorage->getStorageKey($product, $options);
+                $storageKey = $this->_cartStorage->add($product, $options, $productOptions['qty']);
                 $sidPid[$productId] = $storageKey;
             }
             return $this->_responseHelper->success($sidPid);
         }
-		$productId = $this->_requestedParams['pid'];
-		$options   = $this->_requestedParams['options'];
-		$qty       = isset($this->_requestedParams['qty']) ? $this->_requestedParams['qty'] : 1;
+		$productId  = $this->_requestedParams['pid'];
+		$options    = $this->_requestedParams['options'];
+		$addCount   = isset($this->_requestedParams['qty']) ? intval($this->_requestedParams['qty']) : 1;
 		if(!$productId) {
 			throw new Exceptions_SeotoasterPluginException('Can\'t add to cart: product not defined');
 		}
 		$product = $this->_productMapper->find($productId);
+		$inStockCount = $product->getInventory();
+
+		if (!is_null($inStockCount)){
+			$inStockCount = intval($inStockCount);
+			if (null !== ($cartItem = $this->_cartStorage->find($productId))){
+				$inCartCount = $cartItem['qty'];
+			} else {
+				$inCartCount = 0;
+			}
+			if ($inStockCount <= 0) {
+				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => 'The requested product is out of stock'), 1);
+			}
+			if ($inStockCount - ($addCount + $inCartCount) < 0) {
+				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => 'The requested quantity is not available'), 1);
+			}
+		}
+
 		$options = ($options) ? $this->_parseProductOptions($productId, $options) : $this->_getDefaultProductOptions($product);
-		$this->_cartStorage->add($product, $options, $qty);
-        return $this->_responseHelper->success($this->_cartStorage->getStorageKey($product, $options));
-		
+		$storageKey = $this->_cartStorage->add($product, $options, $addCount);
+        return $this->_responseHelper->success($storageKey);
 	}
 
 	protected function _getDefaultProductOptions(Models_Model_Product $product) {
@@ -236,10 +251,28 @@ class Cart extends Tools_Cart_Cart {
 		if(!$this->_request->isPut()) {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
-		$storageId = $this->_requestedParams['sid'];
-		$newQty    = $this->_requestedParams['qty'];
-		if($this->_cartStorage->updateQty($storageId, $newQty)) {
-			return $this->_cartStorage->findBySid($storageId);
+		$storageId = filter_var($this->_requestedParams['sid'], FILTER_SANITIZE_STRING);
+		$newQty    = filter_var($this->_requestedParams['qty'], FILTER_SANITIZE_NUMBER_INT);
+		$cartItem = $this->_cartStorage->findBySid($storageId);
+		if (null !== ($prod = Models_Mapper_ProductMapper::getInstance()->find($cartItem['id']))){
+			if (!is_null($prod->getInventory())){
+				$inStock = intval($prod->getInventory());
+				if ($inStock === 0) {
+					$this->_cartStorage->remove($storageId);
+					return $this->_responseHelper->fail(
+						$this->_view->translate("Sorry, %1\$s is currently out of stock", $prod->getName())
+					);
+				} elseif ($newQty > $inStock){
+					$newQty = $inStock;
+				}
+			}
+		}
+		if ($this->_cartStorage->updateQty($storageId, $newQty)) {
+			return $this->_responseHelper->success(array(
+				'sid' => $storageId,
+				'qty' => $newQty,
+				'msg' => $this->_view->translate("Only %1\$s %2\$s available at the moment", $newQty, $prod->getName())
+			));
 		}
 	}
 
