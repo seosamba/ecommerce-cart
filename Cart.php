@@ -271,7 +271,7 @@ class Cart extends Tools_Cart_Cart {
 			return $this->_responseHelper->success(array(
 				'sid' => $storageId,
 				'qty' => $newQty,
-				'msg' => $this->_view->translate("Only %1\$s %2\$s available at the moment", $newQty, $prod->getName())
+				'msg' => $this->_view->translate("Sorry, we only have %1\$s %2\$s available in stock at the moment", $newQty, $prod->getName())
 			));
 		}
 	}
