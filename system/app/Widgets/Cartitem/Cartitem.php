@@ -132,6 +132,10 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 		return '<span class="toaster-item-note">' . $this->_cartContent[$sid]['note'] . '</span>';
 	}
 
+    protected function _renderMpn($sid) {
+        return $this->_cartContent[$sid]['mpn'];
+    }
+    
 	private function _cutDescription($description) {
 		if(isset($this->_options[0]) && intval($this->_options[0])) {
 			return Tools_Text_Tools::cutText($description, $this->_options[0]);
