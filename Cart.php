@@ -762,7 +762,16 @@ class Cart extends Tools_Cart_Cart {
 					'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
 				) : null ;
 			}, $shippingServices );
+
 			$shippingServices = array_values(array_filter($shippingServices));
+
+			if (sizeof($shippingServices) === 1 && $shippingServices[0]['name'] === Shopping::SHIPPING_FLATRATE ){
+				if (false !== ($flatrate = $this->_qualifyFlatRateOnly())){
+					return $flatrate;
+				} else {
+					$shippingServices = null;
+				}
+			}
 		}
 
 		$this->_view->shoppingConfig = $this->_shoppingConfig;
@@ -797,6 +806,28 @@ class Cart extends Tools_Cart_Cart {
 					}
 				}
 			}
+		}
+
+		return false;
+	}
+
+	protected function _qualifyFlatRateOnly(){
+		try{
+			$flatratePlugin = Tools_Factory_PluginFactory::createPlugin(Shopping::SHIPPING_FLATRATE);
+
+			$result = $flatratePlugin->calculateAction(true);
+
+			if (isset($result['price']) && !empty($result['price'])){
+				Tools_ShoppingCart::getInstance()->setShippingData(array(
+					'service'   => Shopping::SHIPPING_FLATRATE,
+					'type'      => isset($result['type']) ? $result['type'] : Shopping::SHIPPING_FLATRATE ,
+					'price'     => $result['price']
+				))->save()->saveCartSession(null);
+				return $this->_renderPaymentZone(); // returning only positive result
+			}
+		} catch (Exception $e) {
+			Tools_System_Tools::debugMode() && error_log($e->getMessage());
+			return false;
 		}
 
 		return false;
