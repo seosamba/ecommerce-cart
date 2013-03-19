@@ -594,14 +594,16 @@ class Cart extends Tools_Cart_Cart {
 			}
 		} else {
 			$this->_checkoutSession->unsetAll();
-			Tools_ShoppingCart::getInstance()
-				->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
+			$cart = Tools_ShoppingCart::getInstance();
+			$cart->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
 				->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)
 				->setCustomerId(null)
 				->setShippingData(null)
 				->setNotes(null)
-				->setCoupons(null)
-				->save();
+				->setCoupons(null);
+
+			$cart->calculate(true);
+			$cart->save();
 		}
 
 		return $this->_renderLandingForm($form);
