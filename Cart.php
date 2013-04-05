@@ -788,8 +788,18 @@ class Cart extends Tools_Cart_Cart {
 		if (!empty($shippingAddress)){
 			$freeShipping = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_FREESHIPPING);
 			if ($freeShipping && (bool)$freeShipping['enabled'] && isset($freeShipping['config']) && !empty($freeShipping['config'])){
-				$cartAmount = Tools_ShoppingCart::getInstance()->calculateCartPrice();
-				if ($cartAmount > $freeShipping['config']['cartamount'] ){
+				$cartAmount = $cart->calculateCartPrice();
+                $cartContent= $cart->getContent();
+                $quantityOfCartProducts = count($cartContent);
+                $freeShippingProductsQuantity = 0;
+                if(is_array($cartContent) && !empty($cartContent)) {
+                    foreach($cartContent as $cartItem) {
+                        if($cartItem['freeShipping'] == 1){
+                            $freeShippingProductsQuantity += 1;
+                        }
+                    }
+                }
+				if ($cartAmount > $freeShipping['config']['cartamount'] || $freeShippingProductsQuantity == $quantityOfCartProducts){
 					$deliveryType = $this->_shoppingConfig['country'] == $shippingAddress['country'] ? Forms_Shipping_FreeShipping::DESTINATION_NATIONAL : Forms_Shipping_FreeShipping::DESTINATION_INTERNATIONAL ;
 
 					if ($freeShipping['config']['destination'] === Forms_Shipping_FreeShipping::DESTINATION_BOTH
