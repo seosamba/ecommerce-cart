@@ -594,13 +594,16 @@ class Cart extends Tools_Cart_Cart {
 			}
 		} else {
 			$this->_checkoutSession->unsetAll();
-			Tools_ShoppingCart::getInstance()
-				->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
+			$cart = Tools_ShoppingCart::getInstance();
+			$cart->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
 				->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)
 				->setCustomerId(null)
 				->setShippingData(null)
 				->setNotes(null)
-				->save();
+				->setCoupons(null);
+
+			$cart->calculate(true);
+			$cart->save();
 		}
 
 		return $this->_renderLandingForm($form);
@@ -783,39 +786,52 @@ class Cart extends Tools_Cart_Cart {
 	protected function _qualifyFreeShipping(){
 		$cart = Tools_ShoppingCart::getInstance();
 		$shippingAddress = $cart->getAddressById($cart->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING));
-
+		$result = false; //flag if any kind of free shipping applied
 		//checking if freeshipping is enabled and eligible for this order
 		if (!empty($shippingAddress)){
-			$freeShipping = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_FREESHIPPING);
-			if ($freeShipping && (bool)$freeShipping['enabled'] && isset($freeShipping['config']) && !empty($freeShipping['config'])){
-				$cartAmount = $cart->calculateCartPrice();
-                $cartContent= $cart->getContent();
-                $quantityOfCartProducts = count($cartContent);
-                $freeShippingProductsQuantity = 0;
-                if(is_array($cartContent) && !empty($cartContent)) {
-                    foreach($cartContent as $cartItem) {
-                        if($cartItem['freeShipping'] == 1){
-                            $freeShippingProductsQuantity += 1;
-                        }
-                    }
-                }
-				if ($cartAmount > $freeShipping['config']['cartamount'] || $freeShippingProductsQuantity == $quantityOfCartProducts){
-					$deliveryType = $this->_shoppingConfig['country'] == $shippingAddress['country'] ? Forms_Shipping_FreeShipping::DESTINATION_NATIONAL : Forms_Shipping_FreeShipping::DESTINATION_INTERNATIONAL ;
+			//check if free shipping coupons was provided
+			if (!is_null($cart->getCoupons())){
+				$fsCoupons = Tools_CouponTools::filterCoupons($cart->getCoupons(), Store_Model_Coupon::COUPON_TYPE_FREESHIPPING);
+				if (!empty($fsCoupons)){
+					$result = Tools_CouponTools::processFreeshippingCoupon(reset($fsCoupons));
+				}
+			} else {
+				$freeShipping = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_FREESHIPPING);
+				if ($freeShipping && (bool)$freeShipping['enabled'] && isset($freeShipping['config']) && !empty($freeShipping['config'])){
+					$cartAmount = $cart->calculateCartPrice();
+	                $cartContent= $cart->getContent();
+	                $quantityOfCartProducts = count($cartContent);
+	                $freeShippingProductsQuantity = 0;
+	                if(is_array($cartContent) && !empty($cartContent)) {
+	                    foreach($cartContent as $cartItem) {
+	                        if($cartItem['freeShipping'] == 1){
+	                            $freeShippingProductsQuantity += 1;
+	                        }
+	                    }
+	                }
+					if ($cartAmount > $freeShipping['config']['cartamount'] || $freeShippingProductsQuantity == $quantityOfCartProducts){
+						$deliveryType = $this->_shoppingConfig['country'] == $shippingAddress['country'] ? Forms_Shipping_FreeShipping::DESTINATION_NATIONAL : Forms_Shipping_FreeShipping::DESTINATION_INTERNATIONAL ;
 
-					if ($freeShipping['config']['destination'] === Forms_Shipping_FreeShipping::DESTINATION_BOTH
-						|| $freeShipping['config']['destination'] === $deliveryType ) {
+						if ($freeShipping['config']['destination'] === Forms_Shipping_FreeShipping::DESTINATION_BOTH
+							|| $freeShipping['config']['destination'] === $deliveryType ) {
 
-						Tools_ShoppingCart::getInstance()->setShippingData(array(
-								'service'   => Shopping::SHIPPING_FREESHIPPING,
-								'type'      => '',
-								'price'     => 0
-						))->save()->saveCartSession(null);
+							$cart->setShippingData(array(
+									'service'   => Shopping::SHIPPING_FREESHIPPING,
+									'type'      => '',
+									'price'     => 0
+							))->save()->saveCartSession(null);
 
-						return '<h3>'.$this->_translator->translate('Great news! Your purchase is eligible for free shipping').'</h3>'.
-							$this->_renderPaymentZone();
+							$result = true;
+						}
 					}
 				}
 			}
+
+			if ($result === true){
+				return '<h3>'.$this->_translator->translate('Great news! Your purchase is eligible for free shipping').'</h3>'.
+						$this->_renderPaymentZone();
+			}
+
 		}
 
 		return false;
