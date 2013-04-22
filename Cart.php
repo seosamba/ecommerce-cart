@@ -524,7 +524,9 @@ class Cart extends Tools_Cart_Cart {
 					}
 				}
 				if (isset($service)){
-					Tools_ShoppingCart::getInstance()->setShippingData($service)->save()->saveCartSession(null);
+					$cart = Tools_ShoppingCart::getInstance();
+					$cart->setShippingData($service)->calculate(true);
+					$cart->save()->saveCartSession(null);
 					$this->_checkoutSession->returnAllowed = array(
 						self::STEP_LANDING,
 						self::STEP_SHIPPING_OPTIONS,
@@ -534,7 +536,9 @@ class Cart extends Tools_Cart_Cart {
 				}
 			}
 		} else {
-			Tools_ShoppingCart::getInstance()->setShippingData(null)->save()->saveCartSession(null);
+			$cart = Tools_ShoppingCart::getInstance();
+			$cart->setShippingData(null)->calculate(true);
+			$cart->save()->saveCartSession(null);
 			$this->_checkoutSession->returnAllowed = array(
 				self::STEP_LANDING,
 				self::STEP_SHIPPING_OPTIONS
@@ -554,14 +558,16 @@ class Cart extends Tools_Cart_Cart {
 					'zip'       => isset($this->_shoppingConfig['zip'])     ? $this->_shoppingConfig['zip']     : null
 				));
 				$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $address, Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
-				Tools_ShoppingCart::getInstance()->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, $addressId)
+				$cart = Tools_ShoppingCart::getInstance();
+				$cart->setShippingAddressKey($addressId)
 					->setShippingData(array(
 						'service'   => Shopping::SHIPPING_PICKUP,
 						'type'      => null,
 						'price'     => 0
 					))
-					->save()
-					->saveCartSession($customer);
+					->calculate(true);
+
+				$cart->save()->saveCartSession($customer);
 
 				$this->_checkoutSession->returnAllowed = array(
 					self::STEP_LANDING,
@@ -579,22 +585,20 @@ class Cart extends Tools_Cart_Cart {
 		);
 		$form = new Forms_Signup();
 
+		$cart = Tools_ShoppingCart::getInstance();
 		if ($this->_request->isPost()){
 			if ($form->isValid($this->_request->getPost())){
 				$customerData = $form->getValues();
 				$this->_checkoutSession->initialCustomerInfo = $customerData;
 				$customer    = Shopping::processCustomer($customerData);
 				if ($customer->getId()) {
-					Tools_ShoppingCart::getInstance()
-							->setCustomerId($customer->getId())
-							->save()
-							->saveCartSession($customer);
+					$cart->setCustomerId($customer->getId())->calculate(true);
+					$cart->save()->saveCartSession($customer);
 	            }
 				return $this->_renderShippingOptions();
 			}
 		} else {
 			$this->_checkoutSession->unsetAll();
-			$cart = Tools_ShoppingCart::getInstance();
 			$cart->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
 				->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)
 				->setCustomerId(null)
