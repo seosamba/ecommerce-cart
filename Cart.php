@@ -599,16 +599,35 @@ class Cart extends Tools_Cart_Cart {
 				return $this->_renderShippingOptions();
 			}
 		} else {
-			$this->_checkoutSession->unsetAll();
-			$cart->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
-					->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)
-					->setCustomerId(null)
-					->setShippingData(null)
-					->setNotes(null)
-					->setCoupons(null);
+            $currentUser = $this->_sessionHelper->getCurrentUser();
+            if ($currentUser->getId()) {
+                $customerInfo = Models_Mapper_CustomerMapper::getInstance()->find($currentUser->getId());
+                if (!isset($customerInfo) || $customerInfo === null) {
+                    $customerData['firstname'] = $currentUser->getFullName();
+                    $customerData['lastname']  = '';
+                    $customerData['email']     = $currentUser->getEmail();
+                }else{
+                    $customerData = $customerInfo->toArray();
+                }
+                $customer    = Shopping::processCustomer($customerData);
+                if ($customer->getId()) {
+                    $cart->setCustomerId($customer->getId())->calculate(true);
+                    $cart->save()->saveCartSession($customer);
+                }
+                return $this->_renderShippingOptions();
 
-			$cart->calculate(true);
-			$cart->save();
+            }else{
+                $this->_checkoutSession->unsetAll();
+                $cart->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
+                    ->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)
+                    ->setCustomerId(null)
+                    ->setShippingData(null)
+                    ->setNotes(null)
+                    ->setCoupons(null);
+
+                $cart->calculate(true);
+                $cart->save();
+            }
 		}
 
 		return $this->_renderLandingForm($form);
