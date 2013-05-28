@@ -5,17 +5,10 @@ define([ 'backbone' ], function( Backbone ){
 
     var AppView = Backbone.View.extend({
         el: $('#checkout-widget'),
-        events: function(){
-            var events = {
-                'click p.checkout-button a[data-role=button]': 'checkoutAction',
-                'submit form.toaster-checkout': 'validateForm',
-                'click a.back-button': 'backAction'
-            }
-            var nonIEEvents = {
-//                'submit form.toaster-checkout': 'submitForm',
-            }
-
-            return $.browser.msie ? events : _.extend(events, nonIEEvents);
+        events: {
+            'click p.checkout-button a[data-role=button]': 'checkoutAction',
+            'submit form.toaster-checkout': 'validateForm',
+            'click a.back-button': 'backAction'
         },
         initialize: function(){
             this.websiteUrl = $('#website_url').val();
@@ -24,13 +17,6 @@ define([ 'backbone' ], function( Backbone ){
             var self = this;
             $('div.spinner').hide();
             this.$el.fadeIn();
-
-//            if (!$.browser.msie) {
-//                $('body').on('click', 'a.checkout-edit', _.bind(this.editAction, this));
-//                $('body').on('click', 'a.checkout-edit[data-step=shipping]', function(){
-//                    self.toggleCheckoutLock(false);
-//                });
-//            }
 
             if ($.fn.addressChain){
                 $.fn.addressChain.options.url = this.websiteUrl + 'api/store/geo/type/state';
