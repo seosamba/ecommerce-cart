@@ -57,7 +57,19 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 
 	protected function _renderPrice($sid) {
 		$this->_view->sid = $sid;
-		$price = (bool)$this->_shoppingConfig['showPriceIncTax'] ? $this->_cartContent[$sid]['taxPrice'] : $this->_cartContent[$sid]['price'] ;
+        if (null !== ($addrId = Tools_ShoppingCart::getInstance()->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING))){
+            $destinationAddress = Tools_ShoppingCart::getInstance()->getAddressById($addrId);
+		} else {
+            $destinationAddress = null;
+		}
+        $product = new Models_Model_Product(array(
+			'price'     => $this->_cartContent[$sid]['price'],
+            'taxClass'  => $this->_cartContent[$sid]['taxClass']
+		));
+
+		$cartItem['tax'] = Tools_Tax_Tax::calculateProductTax($product, isset($destinationAddress) ? $destinationAddress : null);
+        $price = $this->_cartContent[$sid]['price'] + $cartItem['tax'];
+		//$price = (bool)$this->_shoppingConfig['showPriceIncTax'] ? $this->_cartContent[$sid]['taxPrice'] : $this->_cartContent[$sid]['price'] ;
 		if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
 			$this->_view->price       = $price;
 			$this->_view->priceOption = 'unitprice';
@@ -69,10 +81,13 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 	}
 
 	protected function _renderQty($sid) {
+		$html = '';
 		if((isset($this->_options[0]) && $this->_options[0] == 'noedit') || (Cart::$_lockCartEdit === true)) {
-			return '<span class="toastercart-item-qty">' . $this->_cartContent[$sid]['qty'] . '</span>';
+			$html = '<span class="toastercart-item-qty">' . $this->_cartContent[$sid]['qty'] . '</span>';
+		} else {
+			$html = '<input type="number" class="toastercart-item-qty product-qty" min="0" data-sid="' . $sid . '" data-pid="' . $this->_cartContent[$sid]['id'] . '" value="' . $this->_cartContent[$sid]['qty'] . '" />';
 		}
-		return '<input type="number" class="toastercart-item-qty product-qty" min="0" data-sid="' . $sid . '" data-pid="' . $this->_cartContent[$sid]['id'] . '" value="' . $this->_cartContent[$sid]['qty'] . '" />';
+		return $html;
 	}
 
 	protected function _renderPhoto($sid) {
@@ -99,6 +114,17 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 	protected function _renderOptions($sid) {
 		$this->_view->cartItem   = $this->_cartContent[$sid];
 		$this->_view->weightSign = $this->_shoppingConfig['weightUnit'];
+
+		$this->_view->taxRate = 0;
+		if ($this->_shoppingConfig['showPriceIncTax']) {
+			$product = Models_Mapper_ProductMapper::getInstance()->find($this->_cartContent[$sid]['id']);
+			if ($product instanceof Models_Model_Product){
+				$addressKey = Tools_ShoppingCart::getInstance()->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
+				$addressKey = is_null($addressKey) ? null : Tools_ShoppingCart::getAddressById($addressKey);
+				$this->_view->taxRate = Tools_Tax_Tax::calculateProductTax($product, $addressKey, true) / 100;
+			}
+		}
+
 		return $this->_view->render('options.phtml');
 	}
 
@@ -106,6 +132,10 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 		return '<span class="toaster-item-note">' . $this->_cartContent[$sid]['note'] . '</span>';
 	}
 
+    protected function _renderMpn($sid) {
+        return $this->_cartContent[$sid]['mpn'];
+    }
+    
 	private function _cutDescription($description) {
 		if(isset($this->_options[0]) && intval($this->_options[0])) {
 			return Tools_Text_Tools::cutText($description, $this->_options[0]);

@@ -7,11 +7,12 @@ define([ 'backbone' ], function( Backbone ){
         el: $('#checkout-widget'),
         events: function(){
             var events = {
-                'click p.checkout-button a[data-role=button]': 'checkoutAction'
+                'click p.checkout-button a[data-role=button]': 'checkoutAction',
+                'submit form.toaster-checkout': 'validateForm',
+                'click a.back-button': 'backAction'
             }
             var nonIEEvents = {
-                'submit form.toaster-checkout': 'submitForm',
-                'click a.back-button': 'backAction'
+//                'submit form.toaster-checkout': 'submitForm',
             }
 
             return $.browser.msie ? events : _.extend(events, nonIEEvents);
@@ -24,13 +25,12 @@ define([ 'backbone' ], function( Backbone ){
             $('div.spinner').hide();
             this.$el.fadeIn();
 
-            if (!$.browser.msie) {
-                $('body').on('click', 'a.checkout-edit', _.bind(this.editAction, this));
-                $('body').on('click', 'a.checkout-edit[data-step=shipping]', function(){
-                    self.toggleCheckoutLock(false);
-                });
-            }
-
+//            if (!$.browser.msie) {
+//                $('body').on('click', 'a.checkout-edit', _.bind(this.editAction, this));
+//                $('body').on('click', 'a.checkout-edit[data-step=shipping]', function(){
+//                    self.toggleCheckoutLock(false);
+//                });
+//            }
 
             if ($.fn.addressChain){
                 $.fn.addressChain.options.url = this.websiteUrl + 'api/store/geo/type/state';
@@ -40,24 +40,13 @@ define([ 'backbone' ], function( Backbone ){
 
             refreshCartSummary();
         },
-
         submitForm: function(e) {
             e.preventDefault();
 
-            var self    = this,
-                form    = $(e.currentTarget),
-                valid   = true;
+            var self = this,
+                form = $(e.currentTarget);
 
-            form.find('.notvalid').removeClass('notvalid');
-
-            $('.required:input', form).each(function(){
-                if (_.isEmpty($(this).val())){
-                    valid = false;
-                    $(this).addClass('notvalid');
-                }
-            });
-
-            if (!valid) {
+            if (!this.validateForm(e)) {
                 showMessage('Missing required fields', true);
                 $('.notvalid:input:first', form).focus();
                 return false;
@@ -89,6 +78,29 @@ define([ 'backbone' ], function( Backbone ){
                 error: function(xhr, status){
                 }
             });
+        },
+        validateForm: function(e){
+            var form = $(e.currentTarget),
+                isValid   = true;
+
+            form.find('.notvalid').removeClass('notvalid');
+
+            $('.required:input', form).each(function(){
+                if (this.type==="text" && _.isEmpty($(this).val())){
+                    isValid = false;
+                    $(this).addClass('notvalid');
+                } else if (this.type === "checkbox" && !this.checked) {
+                    isValid = false;
+                    $(this).addClass('notvalid');
+                }
+            });
+
+            if (!isValid) {
+                showMessage('Missing required fields', true);
+                $('.notvalid:input:first', form).focus();
+            }
+
+            return isValid;
         },
         checkoutAction: function(e) {
             e.preventDefault();

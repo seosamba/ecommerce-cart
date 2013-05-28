@@ -1,7 +1,6 @@
 <div id="cart-summary">
     <h3 class="checkout-widget-title">
 	    <?php echo $this->translate('Summary'); ?>
-        <a href="<?php echo $this->websiteUrl . $this->checkoutPage->getUrl();?>?step=shipping" class="checkout-edit" data-step="shipping" title="<?php echo $this->translate('Edit cart content');?>">[&nbsp;<?php echo $this->translate('edit');?>&nbsp;]</a>
 	</h3>
 	<div class="cart-summary-row cart-subtotal">
 		<span><?php echo $this->translate('Subtotal'); ?>:</span>
@@ -26,6 +25,12 @@
 		<?php endif; ?>
 		<span id="totaltax-val"><?php echo $this->currency($this->summary['totalTax']);?></span>
 	</div>
+	<?php if (isset($this->summary['discount']) && !empty($this->summary['discount'])) : ?>
+    <div class="cart-summary-row cart-discount">
+	    <span><?php echo $this->translate('Discount'); ?></span>
+	    <span id="discount-val"><?php echo $this->currency($this->summary['discount']); ?></span>
+    </div>
+	<?php endif; ?>
 	<div class="cart-summary-row cart-shipping">
 		<span><?php echo $this->translate('Shipping'); ?>:</span>
 		<span id="shipping-val"><?php echo $this->currency($this->summary['shipping']); ?></span>

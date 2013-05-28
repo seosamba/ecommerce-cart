@@ -35,6 +35,7 @@ class MagicSpaces_Toastercart_Toastercart extends Tools_MagicSpaces_Abstract {
 				}, $spaceContent);
 			}
 		}
+		$this->_view->websiteUrl = Zend_Controller_Action_HelperBroker::getExistingHelper('website')->getUrl();
 		$this->_view->cartContent = $content;
 		return $this->_view->render('toastercart.phtml');
 	}

@@ -8,13 +8,26 @@ $(function() {
         var qty = 1;
         if($('input[name="productquantity-' + pid + '"]').length > 0){
             qty = parseInt($('input[name="productquantity-' + pid + '"]').val());
+            if(isNaN(qty)){
+                qty = 1;
+            } 
         }
-        $.post($('#website_url').val()+'plugin/cart/run/cart/', {
-            pid     : pid,
-            options : $('div[data-productid=' + pid + '] *').serialize(),
-            qty     : qty
-        }, function() {
-            window.location.href = $('#website_url').val()+'plugin/cart/run/checkout';
-        })
+        $.ajax({
+            url: $('#website_url').val()+'plugin/cart/run/cart/',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                pid     : pid,
+                options : $('div[data-productid=' + pid + '] *').serialize(),
+                qty     : qty
+            },
+            success: function(response){
+                if (!response.error){
+                    window.location.href = $('#website_url').val()+'plugin/cart/run/checkout';
+                } else {
+                    showMessage(response.responseText.msg, 1);
+                }
+            }
+        });
     })
 });

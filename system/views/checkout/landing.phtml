@@ -6,11 +6,13 @@
 
 <div id="checkout-landing-forms" class="checkout-forms" <?php echo $this->isError ? '' : 'style="display:none;"'; ?>>
     <div>
-        <h3 class="checkout-forms-header"><?php echo $this->translate('I am new customer'); ?></h3>
+        <h3 class="checkout-forms-header"><?php echo $this->translate('I\'m a new customer'); ?></h3>
         <?php echo $this->signupForm; ?>
     </div>
+	<?php if (!$this->hideLoginForm): ?>
     <div>
         <h3 class="checkout-forms-header"><?php echo $this->translate('I am returning customer'); ?></h3>
         {$member:login:<?php echo str_replace($this->websiteUrl, '', $this->actionUrl); ?>}
     </div>
+    <?php endif; ?>
 </div>
