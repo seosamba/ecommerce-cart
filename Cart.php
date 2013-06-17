@@ -602,20 +602,16 @@ class Cart extends Tools_Cart_Cart {
             $currentUser = $this->_sessionHelper->getCurrentUser();
             if ($currentUser->getId()) {
                 $customerInfo = Models_Mapper_CustomerMapper::getInstance()->find($currentUser->getId());
-                if (!isset($customerInfo) || $customerInfo === null) {
-                    $customerData['firstname'] = $currentUser->getFullName();
-                    $customerData['lastname']  = '';
-                    $customerData['email']     = $currentUser->getEmail();
-                }else{
-                    $customerData = $customerInfo->toArray();
-                }
-                $customer    = Shopping::processCustomer($customerData);
-                if ($customer->getId()) {
-                    $cart->setCustomerId($customer->getId())->calculate(true);
-                    $cart->save()->saveCartSession($customer);
+                $customerData = $customerInfo->toArray();
+                $customerData['firstname'] = $currentUser->getFullName();
+                $customerData['lastname']  = '';
+                $customerData['email']     = $currentUser->getEmail();
+                $this->_checkoutSession->initialCustomerInfo = $customerData;
+                if ($customerData['id']) {
+                    $cart->setCustomerId($customerData['id'])->calculate(true);
+                    $cart->save()->saveCartSession($customerInfo);
                 }
                 return $this->_renderShippingOptions();
-
             }else{
                 $this->_checkoutSession->unsetAll();
                 $cart->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
