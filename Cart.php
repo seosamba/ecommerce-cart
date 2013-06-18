@@ -602,20 +602,16 @@ class Cart extends Tools_Cart_Cart {
             $currentUser = $this->_sessionHelper->getCurrentUser();
             if ($currentUser->getId()) {
                 $customerInfo = Models_Mapper_CustomerMapper::getInstance()->find($currentUser->getId());
-                if (!isset($customerInfo) || $customerInfo === null) {
-                    $customerData['firstname'] = $currentUser->getFullName();
-                    $customerData['lastname']  = '';
-                    $customerData['email']     = $currentUser->getEmail();
-                }else{
-                    $customerData = $customerInfo->toArray();
-                }
-                $customer    = Shopping::processCustomer($customerData);
-                if ($customer->getId()) {
-                    $cart->setCustomerId($customer->getId())->calculate(true);
-                    $cart->save()->saveCartSession($customer);
+                $customerData = $customerInfo->toArray();
+                $customerData['firstname'] = $currentUser->getFullName();
+                $customerData['lastname']  = '';
+                $customerData['email']     = $currentUser->getEmail();
+                $this->_checkoutSession->initialCustomerInfo = $customerData;
+                if ($customerData['id']) {
+                    $cart->setCustomerId($customerData['id'])->calculate(true);
+                    $cart->save()->saveCartSession($customerInfo);
                 }
                 return $this->_renderShippingOptions();
-
             }else{
                 $this->_checkoutSession->unsetAll();
                 $cart->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
@@ -641,8 +637,8 @@ class Cart extends Tools_Cart_Cart {
 		$content = $this->_renderShippingOptions();
 		self::$_lockCartEdit = false;
 		Tools_ShoppingCart::getInstance()
-				->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
-				->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)
+				->setBillingAddressKey(null)
+				->setShippingAddressKey(null)
 				->setShippingData(null)
 				->save();
 		return $content;
@@ -809,7 +805,7 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _qualifyFreeShipping() {
 		$cart = Tools_ShoppingCart::getInstance();
-		$shippingAddress = $cart->getAddressById($cart->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING));
+		$shippingAddress = $cart->getAddressById($cart->getShippingAddressKey());
 		$result = false; //flag if any kind of free shipping applied
 		//checking if freeshipping is enabled and eligible for this order
 		if (!empty($shippingAddress)) {
@@ -844,7 +840,10 @@ class Cart extends Tools_Cart_Cart {
 								'service' => Shopping::SHIPPING_FREESHIPPING,
 								'type'    => '',
 								'price'   => 0
-							))->save()->saveCartSession(null);
+							));
+
+//							$cart->calculate(true);
+							$cart->save()->saveCartSession(null);
 
 							$result = true;
 						}
@@ -869,11 +868,14 @@ class Cart extends Tools_Cart_Cart {
 			$result = $flatratePlugin->calculateAction(true);
 
 			if (isset($result['price']) && !empty($result['price'])) {
-				Tools_ShoppingCart::getInstance()->setShippingData(array(
+				$cart = Tools_ShoppingCart::getInstance();
+				$cart->setShippingData(array(
 					'service' => Shopping::SHIPPING_FLATRATE,
 					'type'    => isset($result['type']) ? $result['type'] : Shopping::SHIPPING_FLATRATE,
 					'price'   => $result['price']
-				))->save()->saveCartSession(null);
+				));
+				$cart->calculate(true);
+				$cart->save()->saveCartSession(null);
 				return $this->_renderPaymentZone(); // returning only positive result
 			}
 		} catch (Exception $e) {
