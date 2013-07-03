@@ -1,5 +1,19 @@
 $(function() {
-	$(document).on('change', '.product-qty', function() {
+    $(document).on('click', '.shipping-address-more', function() {
+        if ($('#shipping-address-list .adr-shipping:visible:last').is(':last-child')) {
+            return false;
+        }
+        var allVisible = $('#shipping-address-list').children('.adr-shipping').length;
+        var currentIndex = $('#shipping-address-list').children('.adr-shipping:visible:last').index();
+        var nextIndex = currentIndex + 4;
+        if(allVisible == currentIndex+1){
+            $('.shipping-address-more').hide();
+        }
+        $('#shipping-address-list .adr-shipping').hide();
+        $('#shipping-address-list .adr-shipping:lt(' + nextIndex + ')').show();
+    });
+
+    $(document).on('change', '.product-qty', function() {
         var self = this;
 		var sid = $(this).data('sid');
 		var qty = parseInt($(this).val());

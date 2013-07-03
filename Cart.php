@@ -745,6 +745,23 @@ class Cart extends Tools_Cart_Cart {
 				$this->_view->shippingForm->resetRequiredFields($requiredFields);
 			}
 
+            if(array_search('pickaddress', $this->_options) && Tools_Security_Acl::ROLE_GUEST != $this->_sessionHelper->getCurrentUser()->getRoleId()){
+                $customerId = $this->_sessionHelper->getCurrentUser()->getId();
+                $customer = Models_Mapper_CustomerMapper::getInstance()->find($customerId);
+                if ($customer) {
+                    $this->_view->shippingForm->setLegend($this->_translator->translate('Select a shipping address or create new'));
+                    $this->_view->customer = $customer;
+                    $this->_view->checkOutPageUrl = $this->_getCheckoutPage()->getUrl();
+                    $params = $this->_request->getParams();
+                    if(isset($params['shippingAddress'])){
+                        $shippingAddress = Tools_ShoppingCart::getInstance()->getAddressById($params['shippingAddress']);
+                        $this->_view->shippingForm->populate($shippingAddress);
+                        $this->_view->pickupForm = false;
+                    }
+                    $this->_view->pickAddress = true;
+                }
+            }
+
 			$this->_view->shippingForm->setAction($this->_view->actionUrl);
 
 			$this->_view->shippingForm->populate(array(

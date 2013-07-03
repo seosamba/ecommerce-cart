@@ -44,6 +44,43 @@
 	    <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
 	    <?php endif; ?>
     </h3>
+    <?php if($this->pickAddress):?>
+        <div id="shipping-address-list" class="clearfix">
+            <?php $addressList = $this->customer->getAddresses(); ?>
+            <?php if (!empty($addressList)): ?>
+                <?php $key = 0;?>
+                <?php foreach ($addressList as $shippingAddress): ?>
+                    <?php if($shippingAddress['address_type'] == 'shipping'):?>
+                        <?php $key = $key+1;?>
+                        <?php if($key<4):?>
+                            <div class="adr-shipping">
+                        <?php else : ?>
+                            <div class="adr-shipping" style="display:none">
+                        <?php endif; ?>
+                        <span class="street-address"><?php echo $shippingAddress['address1'].' '. $shippingAddress['address2'];?></span>
+                        <br/>
+                        <span class="locality">
+                            <?php echo $shippingAddress['city'].($shippingAddress['city']&&($shippingAddress['state'] || $shippingAddress['zip'])?',':'');?>
+                        </span>
+                        <span class="region"><?php $state = Tools_Geo::getStateById($shippingAddress['state']); echo $state['state']; ?></span>
+                        <span class="postal-code"><?php echo $billingAddress['zip'];?></span>
+                        <br />
+                        <span><?php echo $countryList[$shippingAddress['country']];?></span>
+                        <span class="email clearfix"> <?php echo $shippingAddress['email'];?></span>
+                        <a href="<?php echo $this->websiteUrl .$this->checkOutPageUrl.'?step='.Cart::STEP_SHIPPING_OPTIONS.'&shippingAddress='.$shippingAddress['id'];?>" class="use-shipping-address">
+                            <?php echo $this->translate('Ship to this address');?>
+                        </a>
+                        </div>
+                    <?php endif;?>
+                <?php endforeach; ?>
+                <?php if($key>3):?>
+                    <a href="javascript:;" class="shipping-address-more">
+                        <?php echo $this->translate('Show more');?>
+                    </a>
+                <?php endif;?>
+            <?php endif;?>
+        </div>
+    <?php endif;?>
     <?php echo $this->shippingForm; ?>
 </div>
 <?php endif; ?>
