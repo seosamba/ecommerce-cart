@@ -660,7 +660,7 @@ class Cart extends Tools_Cart_Cart {
 		$flashMessenger = Zend_Controller_Action_HelperBroker::getStaticHelper('flashMessenger');
 		if ($flashMessenger) {
 			$msg = $flashMessenger->getMessages();
-			if (!empty($msg) && (in_array('There is no user with such login and password.', $msg) || in_array('Login should be a valid email address', $msg))) {
+			if (!empty($msg) && (in_array('There is no user with such login and password.', $msg) || in_array('Login should be a valid email address', $msg) || in_array('Value is required and can\'t be empty', $msg) || preg_match('~sent an email to~',$msg[0]))) {
 				$this->_view->isError = true;
 			}
 		}
