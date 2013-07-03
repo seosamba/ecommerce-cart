@@ -1,6 +1,7 @@
 <?php return array(
 
     'Select a shipping address or create new' => 'Selectionnez une adresse de livraison ou ajoutez-en une',
-    'Ship to this address' => 'Livrer a cette adresse'
+    'Ship to this address' => 'Livrer a cette adresse',
+    'back' => 'retour'
 
 ); ?>
