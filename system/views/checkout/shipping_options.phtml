@@ -1,7 +1,7 @@
 <?php if ($this->pickupForm && $this->shippingForm) :?>
 <p class="checkout-button" style="<?php if ($this->shippingForm->isErrors() || $this->pickupForm->isErrors()) { echo "display: none"; } ?>">
     <a href="" data-targetid="#checkout-pickup-form" data-role="button" title="<?php echo $this->translate('Free pickup'); ?>" id="pickup-action"><?php echo $this->translate('Free pickup'); ?></a>
-    <span class="disc">OR</span>
+    <span class="disc"><?php echo $this->translate('OR');?></span>
     <a href="" data-targetid="#checkout-shipping-form" data-role="button" title="<?php echo $this->translate('Calculate shipping'); ?>" id="shipping-action"><?php echo $this->translate('Calculate shipping'); ?></a>
 </p>
 <?php endif; ?>
