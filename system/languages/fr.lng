@@ -4,5 +4,6 @@
     'Ship to this address' => 'Livrer a cette adresse',
     'back' => 'retour',
     'OR'   => 'OU',
-    'I am returning customer'=>'Je suis déjà client'
+    'I am returning customer'=>'Je suis déjà client',
+    'I\'m a new customer'=>'Je suis un nouveau client'
 ); ?>
