@@ -11,7 +11,7 @@
         </ul>
 	    <?php endforeach; ?>
 	    <p><input type="hidden" name="step" value="<?php echo Cart::STEP_SHIPPING_METHOD; ?>"></p>
-	    <p><input type="submit" value="Apply" ></p>
+	    <p><input type="submit" value="<?php echo $this->translate('Apply');?>" ></p>
 	</form>
 	<?php else : ?>
 	<h3 class="checkout-forms-header"><?php echo $this->translate("Unfortunately we can't ship to your location."); ?></h3>
