@@ -1,6 +1,6 @@
 <p class="checkout-button" <?php echo $this->isError ? 'style="display:none;"' : ''; ?>>
     <a href="" data-targetid="#checkout-landing-forms" data-role="button" title="<?php echo $this->translate('Checkout'); ?>" id="checkout-action"><?php echo $this->translate('Checkout'); ?></a>
-    <span class="disc">OR</span>
+    <span class="disc"><?php echo $this->translate('OR');?></span>
     <a href="<?php echo $this->websiteUrl; ?>" title="<?php echo $this->translate('Keep shopping'); ?>" id="keepshopping-action"> <?php echo $this->translate('Keep shopping'); ?></a>
 </p>
 
