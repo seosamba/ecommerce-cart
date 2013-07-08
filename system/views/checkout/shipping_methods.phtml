@@ -1,6 +1,9 @@
 <div>
 	<?php if ($this->shippers) :?>
-    <h3 class="checkout-forms-header"><?php echo $this->translate('Select shipping method');?></h3>
+    <h3 class="checkout-forms-header"><?php echo $this->translate('Select shipping method');?>
+        <a href="<?php echo $this->websiteUrl . $this->checkoutPage->getUrl().'?step='.Cart::STEP_SHIPPING_METHOD;?>" class="checkout-edit" title="<?php echo $this->translate('Back');?>">
+            &laquo;&nbsp<?php echo $this->translate('Back');?>
+        </a></h3>
     <form id="shipper-select" method="post" class="toaster-checkout" enctype="application/x-www-form-urlencoded" action="<?php echo $this->actionUrl; ?>">
 	    <?php foreach($this->shippers as $shipper) :?>
 	    <ul id="<?php echo $shipper['name']; ?>-methods" class="shipping-methods" data-name="<?php echo $shipper['name']; ?>">

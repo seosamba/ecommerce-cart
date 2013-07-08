@@ -818,6 +818,7 @@ class Cart extends Tools_Cart_Cart {
 
 		$this->_view->shoppingConfig = $this->_shoppingConfig;
 		$this->_view->shippers = $shippingServices;
+        $this->_view->checkOutPageUrl = $this->_getCheckoutPage()->getUrl();
 
 		return $this->_view->render('checkout/shipping_methods.phtml');
 	}
