@@ -728,7 +728,9 @@ class Cart extends Tools_Cart_Cart {
 			if ((bool)$shippingForm) {
 				$this->_view->shippingForm = $shippingForm;
 			} else {
-				$this->_view->shippingForm = new Forms_Checkout_Address();
+				$shippingForm = new Forms_Checkout_Address();
+                $shippingForm->setLegend($this->_translator->translate('Enter your shipping address'));
+                $this->_view->shippingForm = $shippingForm;
 				if (is_array($customerAddress) && !empty($customerAddress)) {
 					$this->_view->shippingForm->populate($customerAddress);
 				}

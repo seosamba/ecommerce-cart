@@ -8,5 +8,6 @@
     'I\'m a new customer'=>'Je suis un nouveau client',
     'Great news! Your purchase is eligible for free shipping'=>'Bonnes nouvelles! Votre achat est éligible pour la livraison gratuite.',
     'Select shipping method' => 'Sélectionnez le service de livraison',
-    'Apply' => 'Valider'
+    'Apply' => 'Valider',
+    'Enter your shipping address' => 'Votre adresse de livraison'
 ); ?>
