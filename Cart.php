@@ -716,7 +716,9 @@ class Cart extends Tools_Cart_Cart {
 			if ((bool)$pickupForm) {
 				$this->_view->pickupForm = $pickupForm;
 			} else {
-				$this->_view->pickupForm = new Forms_Checkout_Pickup();
+                $formPickup = new Forms_Checkout_Pickup();
+                $formPickup->setLegend($this->_translator->translate('Enter pick up information'));
+                $this->_view->pickupForm = $formPickup;
 				if (is_array($customerAddress) && !empty($customerAddress)) {
 					$this->_view->pickupForm->populate($customerAddress);
 				}
