@@ -213,10 +213,10 @@ class Cart extends Tools_Cart_Cart {
 				$inCartCount = 0;
 			}
 			if ($inStockCount <= 0) {
-				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => 'The requested product is out of stock'), 1);
+				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $this->_translator->translate('The requested product is out of stock')), 1);
 			}
 			if ($inStockCount - ($addCount + $inCartCount) < 0) {
-				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => 'The requested quantity is not available'), 1);
+				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $this->_translator->translate('The requested quantity is not available')), 1);
 			}
 		}
 
