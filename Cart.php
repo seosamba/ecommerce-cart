@@ -842,6 +842,9 @@ class Cart extends Tools_Cart_Cart {
 				if ($freeShipping && (bool)$freeShipping['enabled'] && isset($freeShipping['config']) && !empty($freeShipping['config'])) {
 					$cartAmount = $cart->calculateCartPrice();
 					$cartContent = $cart->getContent();
+                    if(isset($freeShipping['config']['errormessage']) && $freeShipping['config']['errormessage'] != ''){
+                        $this->_view->freeShippingErrorMessage = $freeShipping['config']['errormessage'];
+                    }
 					$quantityOfCartProducts = count($cartContent);
 					$freeShippingProductsQuantity = 0;
 					if (is_array($cartContent) && !empty($cartContent)) {
