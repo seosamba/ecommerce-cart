@@ -172,12 +172,16 @@ class Cart extends Tools_Cart_Cart {
 		if (!$this->_request->isPost()) {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
-		$sid = $this->_request->getParam('sid');
-		$data = array(
-			'price'  => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'price'))->render(),
-			'weight' => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'weight'))->render()
-		);
-		$this->_responseHelper->success($data);
+		//$sid = $this->_request->getParam('sid');
+        $cartContent = $this->_cartStorage->getContent();
+       	foreach($cartContent as $sid => $item){
+            $data[$sid] = array(
+			    'price'  => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'price'))->render(),
+			    'weight' => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'weight'))->render(),
+
+            );
+        }
+        $this->_responseHelper->success($data);
 	}
 
 	protected function _addToCart() {
@@ -220,10 +224,56 @@ class Cart extends Tools_Cart_Cart {
 			}
 		}
 
+        $productFreebiesSettings = Models_Mapper_ProductFreebiesSettingsMapper::getInstance()->getFreebies($productId);
+        $freebiesProducts = array();
+        if(!empty($productFreebiesSettings)){
+            if($productFreebiesSettings[0]['quantity'] == 0 && $productFreebiesSettings[0]['price_value'] != 0){
+                if($productFreebiesSettings[0]['price_value'] <= $this->_cartStorage->getTotal()){
+                    $freebiesProducts = $this->_prepareFreebies($productFreebiesSettings);
+                }
+            }elseif($productFreebiesSettings[0]['price_value'] == 0 && $productFreebiesSettings[0]['quantity'] != 0){
+                if($productFreebiesSettings[0]['quantity'] <= $addCount){
+                    $freebiesProducts = $this->_prepareFreebies($productFreebiesSettings);
+                }
+            }elseif($productFreebiesSettings[0]['quantity'] <= $addCount && $productFreebiesSettings[0]['price_value'] <= $this->_cartStorage->getTotal()){
+                $freebiesProducts = $this->_prepareFreebies($productFreebiesSettings);
+            }
+        }
+
+        if(!empty($freebiesProducts)){
+            foreach($freebiesProducts as $prodId =>$freebiesProduct){
+                $itemKey = $this->_generateStorageKey($freebiesProduct, array(0 => 'freebies_'.$productId));
+                if (!$this->_cartStorage->findBySid($itemKey)){
+                    $freebiesProduct->setFreebies(1);
+                    $this->_cartStorage->add($freebiesProduct, array(0 => 'freebies_'.$productId), 1);
+                }
+            }
+        }
 		$options = ($options) ? $this->_parseProductOptions($productId, $options) : $this->_getDefaultProductOptions($product);
 		$storageKey = $this->_cartStorage->add($product, $options, $addCount);
 		return $this->_responseHelper->success($storageKey);
 	}
+
+    private function _prepareFreebies($productFreebiesSettings){
+        foreach($productFreebiesSettings as $freebies){
+            $freebiesProduct = $this->_productMapper->find($freebies['freebies_id']);
+            if($freebiesProduct instanceof Models_Model_Product){
+                $inStockCount = $freebiesProduct->getInventory();
+                if(!is_null($inStockCount)) {
+                    $inStockCount = intval($inStockCount);
+                    if ($inStockCount <= 0) {
+                        return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $this->_translator->translate('The requested product is out of stock')), 1);
+                    }
+                }
+                $freebiesProducts[$freebiesProduct->getId()] = $freebiesProduct;
+            }
+        }
+        return $freebiesProducts;
+    }
+
+    private function _generateStorageKey($item, $options = array()) {
+        return substr(md5($item->getName() . $item->getSku() . http_build_query($options)), 0, 10);
+    }
 
 	protected function _getDefaultProductOptions(Models_Model_Product $product) {
 		$productOptions = $product->getDefaultOptions();
@@ -287,8 +337,8 @@ class Cart extends Tools_Cart_Cart {
 			$this->_responseHelper->success($this->_translator->translate('Removed.'));
 		}
 		if ($this->_cartStorage->remove($this->_requestedParams['sid'])) {
-			$this->_responseHelper->success($this->_translator->translate('Removed.'));
-		}
+            $this->_responseHelper->success(array('sidQuantity' => count($this->_cartStorage->getContent()), 'message'=> $this->_translator->translate('Removed.')));
+        }
 		$this->_responseHelper->fail($this->_translator->translate('Cant remove product.'));
 	}
 

@@ -67,22 +67,28 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
             'taxClass'  => $this->_cartContent[$sid]['taxClass']
 		));
 
-		$cartItem['tax'] = Tools_Tax_Tax::calculateProductTax($product, isset($destinationAddress) ? $destinationAddress : null);
-        $price = $this->_cartContent[$sid]['price'] + $cartItem['tax'];
-		//$price = (bool)$this->_shoppingConfig['showPriceIncTax'] ? $this->_cartContent[$sid]['taxPrice'] : $this->_cartContent[$sid]['price'] ;
-		if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
-			$this->_view->price       = $price;
-			$this->_view->priceOption = 'unitprice';
-		} else {
-			$this->_view->price       = $price * $this->_cartContent[$sid]['qty'];
-			$this->_view->priceOption = 'price';
-		}
+        if(isset($this->_cartContent[$sid]['freebies']) && $this->_cartContent[$sid]['freebies'] == 1){
+            $price = 0;
+            $this->_view->freebies = true;
+        }else{
+		    $cartItem['tax'] = Tools_Tax_Tax::calculateProductTax($product, isset($destinationAddress) ? $destinationAddress : null);
+            $price = $this->_cartContent[$sid]['price'] + $cartItem['tax'];
+        }
+		    //$price = (bool)$this->_shoppingConfig['showPriceIncTax'] ? $this->_cartContent[$sid]['taxPrice'] : $this->_cartContent[$sid]['price'] ;
+        if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
+            $this->_view->price       = $price;
+            $this->_view->priceOption = 'unitprice';
+        } else {
+            $this->_view->price       = $price * $this->_cartContent[$sid]['qty'];
+            $this->_view->priceOption = 'price';
+        }
+
 		return $this->_view->render('commonprice.phtml');
 	}
 
 	protected function _renderQty($sid) {
 		$html = '';
-		if((isset($this->_options[0]) && $this->_options[0] == 'noedit') || (Cart::$_lockCartEdit === true)) {
+        if((isset($this->_options[0]) && $this->_options[0] == 'noedit') || (Cart::$_lockCartEdit === true) || $this->_cartContent[$sid]['freebies'] == 1) {
 			$html = '<span class="toastercart-item-qty">' . $this->_cartContent[$sid]['qty'] . '</span>';
 		} else {
 			$html = '<input type="number" class="toastercart-item-qty product-qty" min="0" data-sid="' . $sid . '" data-pid="' . $this->_cartContent[$sid]['id'] . '" value="' . $this->_cartContent[$sid]['qty'] . '" />';
@@ -130,7 +136,10 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 	}
 
 	protected function _renderRemove($sid) {
-		return Cart::$_lockCartEdit === true ? '' : '<a href="javascript:;" class="remove-item" data-sid="' . $sid . '" title="' . $this->_translator->translate('remove ') . $this->_cartContent[$sid]['name'] . $this->_translator->translate(' from the cart') . '"><img src="' . $this->_websiteHelper->getUrl() . 'plugins/cart/web/images/trash.png" alt="' . $this->_translator->translate('Remove') . '"></a>';
+		if($this->_cartContent[$sid]['freebies'] == 1){
+            return '';
+        }
+        return Cart::$_lockCartEdit === true ? '' : '<a href="javascript:;" class="remove-item" data-sid="' . $sid . '" title="' . $this->_translator->translate('remove ') . $this->_cartContent[$sid]['name'] . $this->_translator->translate(' from the cart') . '"><img src="' . $this->_websiteHelper->getUrl() . 'plugins/cart/web/images/trash.png" alt="' . $this->_translator->translate('Remove') . '"></a>';
 	}
 
 	protected function _renderOptions($sid) {
