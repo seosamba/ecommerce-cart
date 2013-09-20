@@ -241,11 +241,11 @@ class Cart extends Tools_Cart_Cart {
         }
 
         if(!empty($freebiesProducts)){
-            foreach($freebiesProducts as $prodId =>$freebiesProduct){
+            foreach($freebiesProducts['freebiesProducts'] as $prodId =>$freebiesProduct){
                 $itemKey = $this->_generateStorageKey($freebiesProduct, array(0 => 'freebies_'.$productId));
-                if (!$this->_cartStorage->findBySid($itemKey)){
+                if(!$this->_cartStorage->findBySid($itemKey)){
                     $freebiesProduct->setFreebies(1);
-                    $this->_cartStorage->add($freebiesProduct, array(0 => 'freebies_'.$productId), 1);
+                    $this->_cartStorage->add($freebiesProduct, array(0 => 'freebies_'.$productId), $freebiesProducts['freebiesQuantity'][$prodId]);
                 }
             }
         }
@@ -255,20 +255,22 @@ class Cart extends Tools_Cart_Cart {
 	}
 
     private function _prepareFreebies($productFreebiesSettings){
+        $freebiesQuantity = array();
         foreach($productFreebiesSettings as $freebies){
             $freebiesProduct = $this->_productMapper->find($freebies['freebies_id']);
             if($freebiesProduct instanceof Models_Model_Product){
                 $inStockCount = $freebiesProduct->getInventory();
                 if(!is_null($inStockCount)) {
                     $inStockCount = intval($inStockCount);
-                    if ($inStockCount <= 0) {
+                    if ($inStockCount <= 0 || $inStockCount < $freebies['freebies_quantity']) {
                         return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $this->_translator->translate('The requested product is out of stock')), 1);
                     }
                 }
                 $freebiesProducts[$freebiesProduct->getId()] = $freebiesProduct;
+                $freebiesQuantity[$freebiesProduct->getId()] = $freebies['freebies_quantity'];
             }
         }
-        return $freebiesProducts;
+        return array('freebiesProducts' => $freebiesProducts, 'freebiesQuantity' => $freebiesQuantity);
     }
 
     private function _generateStorageKey($item, $options = array()) {
