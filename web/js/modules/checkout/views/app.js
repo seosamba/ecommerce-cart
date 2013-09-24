@@ -1,7 +1,9 @@
 /**
  * @author Pavel Kovalyov <pavlo.kovalyov@gmail.com>
  */
-define([ 'backbone' ], function( Backbone ){
+define([ 'backbone',
+    'i18n!../../../nls/'+$('input[name=system-language]').val()+'_ln' ]
+,   function(Backbone, i18n){
 
     var AppView = Backbone.View.extend({
         el: $('#checkout-widget'),
@@ -33,7 +35,7 @@ define([ 'backbone' ], function( Backbone ){
                 form = $(e.currentTarget);
 
             if (!this.validateForm(e)) {
-                showMessage('Missing required fields', true);
+                showMessage(_.isUndefined(i18n['Missing required fields'])?'Missing required fields':i18n['Missing required fields'], true);
                 $('.notvalid:input:first', form).focus();
                 return false;
             }
@@ -82,7 +84,7 @@ define([ 'backbone' ], function( Backbone ){
             });
 
             if (!isValid) {
-                showMessage('Missing required fields', true);
+                showMessage(_.isUndefined(i18n['Missing required fields'])?'Missing required fields':i18n['Missing required fields'], true);
                 $('.notvalid:input:first', form).focus();
             }
 

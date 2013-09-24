@@ -4,7 +4,8 @@
 require.config({
     paths: {
         'underscore': '../../../../../shopping/web/js/libs/underscore/underscore-min',
-        'backbone'  : '../../../../../shopping/web/js/libs/backbone/backbone-min'
+        'backbone'  : '../../../../../shopping/web/js/libs/backbone/backbone-min',
+        'i18n'  : '../../../../../shopping/web/js/libs/require/i18n'
     },
     shim: {
         underscore: {exports: '_'},
