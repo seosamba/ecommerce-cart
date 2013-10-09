@@ -494,9 +494,11 @@ class Cart extends Tools_Cart_Cart {
             $ids = array();
             foreach($cartContent as $content){
                 $product = $this->_productMapper->find($content['id']);
-                $relatedProductIds = $product->getRelated();
-                if(!empty($relatedProductIds)){
-                    $ids = array_merge($ids, $relatedProductIds);
+                if($product instanceof Models_Model_Product){
+                    $relatedProductIds = $product->getRelated();
+                    if(!empty($relatedProductIds)){
+                        $ids = array_merge($ids, $relatedProductIds);
+                    }
                 }
             }
 
