@@ -27,6 +27,8 @@ class Cart extends Tools_Cart_Cart {
 	const STEP_PICKUP = 'pickup';
 
 	const STEP_SHIPPING_ADDRESS = 'address';
+
+    const DEFAULT_RELATED_QUANTITY = '20';
 	/**
 	 * Shopping cart main storage.
 	 *
@@ -478,6 +480,47 @@ class Cart extends Tools_Cart_Cart {
 	protected function _getParamsFromRawHttp() {
 		parse_str($this->_request->getRawBody(), $this->_requestedParams);
 	}
+
+    protected function _makeOptionCartrelated(){
+        $cartContent = Tools_ShoppingCart::getInstance()->getContent();
+        $miscConfig = Zend_Registry::get('misc');
+        $this->_view->addScriptPath($this->_websiteHelper->getPath() .$miscConfig['pluginsPath']. 'shopping/system/app/Widgets/Product/views/');
+        if(!empty($cartContent)){
+            $page = Application_Model_Mappers_PageMapper::getInstance()->find($this->_seotoasterData['id']);
+            $pageOptions = $page->getExtraOptions();
+            if(!empty($pageOptions) && in_array(Shopping::OPTION_CHECKOUT, $pageOptions)){
+                $this->_view->onCheckoutPage = true;
+            }
+            $ids = array();
+            foreach($cartContent as $content){
+                $product = $this->_productMapper->find($content['id']);
+                $relatedProductIds = $product->getRelated();
+                if(!empty($relatedProductIds)){
+                    $ids = array_merge($ids, $relatedProductIds);
+                }
+            }
+
+            if(!empty($ids)){
+                $where = $this->_productMapper->getDbTable()->getAdapter()->quoteInto('p.id in (?)', $ids);
+                $limit = (isset($this->_options[3])) ? $this->_options[3] : self::DEFAULT_RELATED_QUANTITY;
+                $related = $this->_productMapper->fetchAll($where, null, null, $limit);
+                $checkoutPage = Tools_Misc::getCheckoutPage();
+                $checkoutPageUrl = $checkoutPage != null?$checkoutPage->getUrl():'';
+                $imageSize = 'small';
+                if ($related !== null) {
+                    $this->_view->related = $related instanceof Models_Model_Product ? array($related) : $related ;
+                    $this->_view->imageSize = (isset($this->_options[1])) ? $this->_options[1] : $imageSize;
+                    if(isset($this->_options[2]) && $this->_options[2] == 'addtocart'){
+                        $this->_view->checkoutPageUrl = $checkoutPageUrl;
+                    }
+                    return $this->_view->render('related.phtml');
+                }
+            }
+
+        }
+
+    }
+
 
 	public function checkoutAction() {
 		$step = filter_var($this->_request->getParam('step'), FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
