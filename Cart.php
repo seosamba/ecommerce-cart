@@ -27,6 +27,8 @@ class Cart extends Tools_Cart_Cart {
 	const STEP_PICKUP = 'pickup';
 
 	const STEP_SHIPPING_ADDRESS = 'address';
+
+    const DEFAULT_RELATED_QUANTITY = '20';
 	/**
 	 * Shopping cart main storage.
 	 *
@@ -172,12 +174,16 @@ class Cart extends Tools_Cart_Cart {
 		if (!$this->_request->isPost()) {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
-		$sid = $this->_request->getParam('sid');
-		$data = array(
-			'price'  => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'price'))->render(),
-			'weight' => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'weight'))->render()
-		);
-		$this->_responseHelper->success($data);
+		//$sid = $this->_request->getParam('sid');
+        $cartContent = $this->_cartStorage->getContent();
+       	foreach($cartContent as $sid => $item){
+            $data[$sid] = array(
+			    'price'  => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'price'))->render(),
+			    'weight' => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'weight'))->render(),
+
+            );
+        }
+        $this->_responseHelper->success($data);
 	}
 
 	protected function _addToCart() {
@@ -220,10 +226,58 @@ class Cart extends Tools_Cart_Cart {
 			}
 		}
 
+        $productFreebiesSettings = Models_Mapper_ProductFreebiesSettingsMapper::getInstance()->getFreebies($productId);
+        $freebiesProducts = array();
+        if(!empty($productFreebiesSettings)){
+            if($productFreebiesSettings[0]['quantity'] == 0 && $productFreebiesSettings[0]['price_value'] != 0){
+                if($productFreebiesSettings[0]['price_value'] <= $this->_cartStorage->getTotal()){
+                    $freebiesProducts = $this->_prepareFreebies($productFreebiesSettings);
+                }
+            }elseif($productFreebiesSettings[0]['price_value'] == 0 && $productFreebiesSettings[0]['quantity'] != 0){
+                if($productFreebiesSettings[0]['quantity'] <= $addCount){
+                    $freebiesProducts = $this->_prepareFreebies($productFreebiesSettings);
+                }
+            }elseif($productFreebiesSettings[0]['quantity'] <= $addCount && $productFreebiesSettings[0]['price_value'] <= $this->_cartStorage->getTotal()){
+                $freebiesProducts = $this->_prepareFreebies($productFreebiesSettings);
+            }
+        }
+
+        if(!empty($freebiesProducts)){
+            foreach($freebiesProducts['freebiesProducts'] as $prodId =>$freebiesProduct){
+                $itemKey = $this->_generateStorageKey($freebiesProduct, array(0 => 'freebies_'.$productId));
+                if(!$this->_cartStorage->findBySid($itemKey)){
+                    $freebiesProduct->setFreebies(1);
+                    $this->_cartStorage->add($freebiesProduct, array(0 => 'freebies_'.$productId), $freebiesProducts['freebiesQuantity'][$prodId]);
+                }
+            }
+        }
 		$options = ($options) ? $this->_parseProductOptions($productId, $options) : $this->_getDefaultProductOptions($product);
 		$storageKey = $this->_cartStorage->add($product, $options, $addCount);
 		return $this->_responseHelper->success($storageKey);
 	}
+
+    private function _prepareFreebies($productFreebiesSettings){
+        $freebiesQuantity = array();
+        foreach($productFreebiesSettings as $freebies){
+            $freebiesProduct = $this->_productMapper->find($freebies['freebies_id']);
+            if($freebiesProduct instanceof Models_Model_Product){
+                $inStockCount = $freebiesProduct->getInventory();
+                if(!is_null($inStockCount)) {
+                    $inStockCount = intval($inStockCount);
+                    if ($inStockCount <= 0 || $inStockCount < $freebies['freebies_quantity']) {
+                        return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $this->_translator->translate('The requested product is out of stock')), 1);
+                    }
+                }
+                $freebiesProducts[$freebiesProduct->getId()] = $freebiesProduct;
+                $freebiesQuantity[$freebiesProduct->getId()] = $freebies['freebies_quantity'];
+            }
+        }
+        return array('freebiesProducts' => $freebiesProducts, 'freebiesQuantity' => $freebiesQuantity);
+    }
+
+    private function _generateStorageKey($item, $options = array()) {
+        return substr(md5($item->getName() . $item->getSku() . http_build_query($options)), 0, 10);
+    }
 
 	protected function _getDefaultProductOptions(Models_Model_Product $product) {
 		$productOptions = $product->getDefaultOptions();
@@ -287,8 +341,8 @@ class Cart extends Tools_Cart_Cart {
 			$this->_responseHelper->success($this->_translator->translate('Removed.'));
 		}
 		if ($this->_cartStorage->remove($this->_requestedParams['sid'])) {
-			$this->_responseHelper->success($this->_translator->translate('Removed.'));
-		}
+            $this->_responseHelper->success(array('sidQuantity' => count($this->_cartStorage->getContent()), 'message'=> $this->_translator->translate('Removed.')));
+        }
 		$this->_responseHelper->fail($this->_translator->translate('Cant remove product.'));
 	}
 
@@ -426,6 +480,74 @@ class Cart extends Tools_Cart_Cart {
 	protected function _getParamsFromRawHttp() {
 		parse_str($this->_request->getRawBody(), $this->_requestedParams);
 	}
+
+    protected function _makeOptionCartrelated(){
+        $cartContent = Tools_ShoppingCart::getInstance()->getContent();
+        $miscConfig = Zend_Registry::get('misc');
+        $step = $this->_request->getParam('step');
+        $currentStep = $this->_checkoutSession->returnAllowed;
+        if(is_array($currentStep) && !empty($currentStep)){
+            $currentStep = $currentStep[0];
+        }
+        if(isset($step) && $step != ''){
+            $currentStep = strtolower($step);
+        }
+        $this->_view->addScriptPath($this->_websiteHelper->getPath() .$miscConfig['pluginsPath']. 'shopping/system/app/Widgets/Product/views/');
+        if(!empty($cartContent)){
+            $page = Application_Model_Mappers_PageMapper::getInstance()->find($this->_seotoasterData['id']);
+            $pageOptions = $page->getExtraOptions();
+            $currentUser = $this->_sessionHelper->getCurrentUser()->getRoleId();
+            $widgetLocation = '';
+            $widgetDisplay  = true;
+            if(!empty($pageOptions) && in_array(Shopping::OPTION_CHECKOUT, $pageOptions)){
+                $widgetLocation = self::SESSION_NAMESPACE;
+                $this->_view->onCheckoutPage = true;
+            }
+            if($widgetLocation == self::SESSION_NAMESPACE && $currentUser == Tools_Security_Acl::ROLE_GUEST && $currentStep !== null){
+                $widgetDisplay = false;
+            }elseif($widgetLocation == self::SESSION_NAMESPACE && $currentUser != Tools_Security_Acl::ROLE_GUEST && ($currentStep == self::STEP_SIGNUP
+                || $currentStep == self::STEP_SHIPPING_METHOD || $currentStep == self::STEP_PICKUP || $currentStep == self::STEP_SHIPPING_ADDRESS)){
+                $widgetDisplay = false;
+            }
+
+            if($widgetDisplay){
+                $ids = array();
+                foreach($cartContent as $content){
+                    $product = $this->_productMapper->find($content['id']);
+                    if($product instanceof Models_Model_Product){
+                        $relatedProductIds = $product->getRelated();
+                        if(!empty($relatedProductIds)){
+                            $ids = array_merge($ids, $relatedProductIds);
+                        }
+                    }
+                }
+
+                if(!empty($ids)){
+                    $where = $this->_productMapper->getDbTable()->getAdapter()->quoteInto('p.id in (?)', $ids);
+                    $limit = (isset($this->_options[3])) ? $this->_options[3] : self::DEFAULT_RELATED_QUANTITY;
+
+                    if((end($this->_options) == 'wojs')){
+                        $this->_view->onCheckoutPage = true;
+                    }
+
+                    $related = $this->_productMapper->fetchAll($where, null, null, $limit);
+                    $checkoutPage = Tools_Misc::getCheckoutPage();
+                    $checkoutPageUrl = $checkoutPage != null?$checkoutPage->getUrl():'';
+                    $imageSize = 'small';
+                    if ($related !== null) {
+                        $this->_view->related = $related instanceof Models_Model_Product ? array($related) : $related ;
+                        $this->_view->imageSize = (isset($this->_options[1])) ? $this->_options[1] : $imageSize;
+                        if(isset($this->_options[2]) && $this->_options[2] == 'addtocart'){
+                            $this->_view->checkoutPageUrl = $checkoutPageUrl;
+                        }
+                        return $this->_view->render('related.phtml');
+                    }
+                }
+            }
+        }
+
+    }
+
 
 	public function checkoutAction() {
 		$step = filter_var($this->_request->getParam('step'), FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);

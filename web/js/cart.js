@@ -16,7 +16,8 @@ $(function() {
     $(document).on('change', '.product-qty', function() {
         var self = this;
 		var sid = $(this).data('sid');
-		var qty = parseInt($(this).val());
+        var sidsQuantity = $('.toastercart-item-qty').length;
+        var qty = parseInt($(this).val());
         if (isNaN(qty)){
             $(this).addClass('notvalid').val('').focus();
             return false;
@@ -42,7 +43,7 @@ $(function() {
                             $(self).val(newQty);
                         }
                     }
-                    refreshPrice(sid);
+                    refreshPrice(sid, sidsQuantity);
                 }
                 refreshCartSummary();
             },
@@ -53,6 +54,7 @@ $(function() {
 	}).on('click', '.remove-item', function() {
 		var sid    = $(this).data('sid');
 		var rmLink = $(this);
+        var sidsQuantity = $('.toastercart-item-qty').length;
 		$.ajax({
 			url      : $('#website_url').val()+'plugin/cart/run/cart',
 			type     : 'delete',
@@ -65,7 +67,14 @@ $(function() {
                 if (!response.error) {
 	                hideSpinner();
 	                rmLink.parents('tr').remove();
-	                refreshCartSummary();
+                    console.log(response.responseText.sidQuantity);
+                    if(response.responseText.sidQuantity != sidsQuantity-1){
+                        window.location.reload();
+                        //console.log(response.responseText.sidQuantity);
+                        //console.log(sidsQuantity-1);
+                    }else{
+	                    refreshCartSummary();
+                    }
                 } else {
                     hideSpinner();
                     showMessage(response.responseText, true);
@@ -93,9 +102,19 @@ function refreshCartSummary() {
     }
 }
 
-function refreshPrice(sid) {
+function refreshPrice(sid, sidsQuantity) {
     return $.post($('#website_url').val()+'plugin/cart/run/cartcontent/', {sid: sid}, function(response) {
-        $('span[data-sidprice=' + sid + ']').replaceWith(response.responseText.price);
-	    $('span[data-sidweight=' + sid + ']').replaceWith(response.responseText.weight);
+        var rowsQuantity = 0;
+        $.each(response.responseText, function(sid){
+            rowsQuantity++
+        });
+        if(rowsQuantity == sidsQuantity){
+            $.each(response.responseText, function(sid){
+                $('span[data-sidprice=' + sid + ']').replaceWith(this.price);
+                $('span[data-sidweight=' + sid + ']').replaceWith(this.weight);
+            });
+        }else{
+            window.location.reload();
+        }
     }, 'json');
 }
