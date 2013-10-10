@@ -484,41 +484,66 @@ class Cart extends Tools_Cart_Cart {
     protected function _makeOptionCartrelated(){
         $cartContent = Tools_ShoppingCart::getInstance()->getContent();
         $miscConfig = Zend_Registry::get('misc');
+        $step = $this->_request->getParam('step');
+        $currentStep = $this->_checkoutSession->returnAllowed;
+        if(is_array($currentStep) && !empty($currentStep)){
+            $currentStep = $currentStep[0];
+        }
+        if(isset($step) && $step != ''){
+            $currentStep = strtolower($step);
+        }
         $this->_view->addScriptPath($this->_websiteHelper->getPath() .$miscConfig['pluginsPath']. 'shopping/system/app/Widgets/Product/views/');
         if(!empty($cartContent)){
             $page = Application_Model_Mappers_PageMapper::getInstance()->find($this->_seotoasterData['id']);
             $pageOptions = $page->getExtraOptions();
+            $currentUser = $this->_sessionHelper->getCurrentUser()->getRoleId();
+            $widgetLocation = '';
+            $widgetDisplay  = true;
             if(!empty($pageOptions) && in_array(Shopping::OPTION_CHECKOUT, $pageOptions)){
+                $widgetLocation = self::SESSION_NAMESPACE;
                 $this->_view->onCheckoutPage = true;
             }
-            $ids = array();
-            foreach($cartContent as $content){
-                $product = $this->_productMapper->find($content['id']);
-                if($product instanceof Models_Model_Product){
-                    $relatedProductIds = $product->getRelated();
-                    if(!empty($relatedProductIds)){
-                        $ids = array_merge($ids, $relatedProductIds);
+            if($widgetLocation == self::SESSION_NAMESPACE && $currentUser == Tools_Security_Acl::ROLE_GUEST && $currentStep !== null){
+                $widgetDisplay = false;
+            }elseif($widgetLocation == self::SESSION_NAMESPACE && $currentUser != Tools_Security_Acl::ROLE_GUEST && ($currentStep == self::STEP_SIGNUP
+                || $currentStep == self::STEP_SHIPPING_METHOD || $currentStep == self::STEP_PICKUP || $currentStep == self::STEP_SHIPPING_ADDRESS)){
+                $widgetDisplay = false;
+            }
+
+            if($widgetDisplay){
+                $ids = array();
+                foreach($cartContent as $content){
+                    $product = $this->_productMapper->find($content['id']);
+                    if($product instanceof Models_Model_Product){
+                        $relatedProductIds = $product->getRelated();
+                        if(!empty($relatedProductIds)){
+                            $ids = array_merge($ids, $relatedProductIds);
+                        }
+                    }
+                }
+
+                if(!empty($ids)){
+                    $where = $this->_productMapper->getDbTable()->getAdapter()->quoteInto('p.id in (?)', $ids);
+                    $limit = (isset($this->_options[3])) ? $this->_options[3] : self::DEFAULT_RELATED_QUANTITY;
+
+                    if((end($this->_options) == 'wojs')){
+                        $this->_view->onCheckoutPage = true;
+                    }
+
+                    $related = $this->_productMapper->fetchAll($where, null, null, $limit);
+                    $checkoutPage = Tools_Misc::getCheckoutPage();
+                    $checkoutPageUrl = $checkoutPage != null?$checkoutPage->getUrl():'';
+                    $imageSize = 'small';
+                    if ($related !== null) {
+                        $this->_view->related = $related instanceof Models_Model_Product ? array($related) : $related ;
+                        $this->_view->imageSize = (isset($this->_options[1])) ? $this->_options[1] : $imageSize;
+                        if(isset($this->_options[2]) && $this->_options[2] == 'addtocart'){
+                            $this->_view->checkoutPageUrl = $checkoutPageUrl;
+                        }
+                        return $this->_view->render('related.phtml');
                     }
                 }
             }
-
-            if(!empty($ids)){
-                $where = $this->_productMapper->getDbTable()->getAdapter()->quoteInto('p.id in (?)', $ids);
-                $limit = (isset($this->_options[3])) ? $this->_options[3] : self::DEFAULT_RELATED_QUANTITY;
-                $related = $this->_productMapper->fetchAll($where, null, null, $limit);
-                $checkoutPage = Tools_Misc::getCheckoutPage();
-                $checkoutPageUrl = $checkoutPage != null?$checkoutPage->getUrl():'';
-                $imageSize = 'small';
-                if ($related !== null) {
-                    $this->_view->related = $related instanceof Models_Model_Product ? array($related) : $related ;
-                    $this->_view->imageSize = (isset($this->_options[1])) ? $this->_options[1] : $imageSize;
-                    if(isset($this->_options[2]) && $this->_options[2] == 'addtocart'){
-                        $this->_view->checkoutPageUrl = $checkoutPageUrl;
-                    }
-                    return $this->_view->render('related.phtml');
-                }
-            }
-
         }
 
     }
