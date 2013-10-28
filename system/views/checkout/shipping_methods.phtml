@@ -18,13 +18,9 @@
 	</form>
 	<?php else : ?>
 	    <h3 class="checkout-forms-header">
-            <?php if(isset($this->freeShippingErrorMessage)):?>
-                <?php echo $this->freeShippingErrorMessage;?>
-            <?php else:?>
-                <?php echo $this->translate("Unfortunately we can't ship to your location."); ?>
-            <?php endif;?>
+            {$header:checkoutShippingError:static}
         </h3>
-	<p><a href="mailto: <?php echo $this->shoppingConfig['email']; ?>"><?php echo $this->translate('Contact us');?></a> <?php echo $this->translate('to get personal quote');?></p>
+	<p><?php echo Tools_Misc::getDefaultCheckoutErrorMessage();?></p>
 	<?php endif ; ?>
 </div>
 
