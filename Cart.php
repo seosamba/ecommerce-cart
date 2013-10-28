@@ -983,10 +983,19 @@ class Cart extends Tools_Cart_Cart {
                     if ($cartAmount > $freeShipping['config']['cartamount'] || $freeShippingProductsQuantity == $quantityOfCartProducts) {
                         $deliveryType = $this->_shoppingConfig['country'] == $shippingAddress['country'] ? Forms_Shipping_FreeShipping::DESTINATION_NATIONAL : Forms_Shipping_FreeShipping::DESTINATION_INTERNATIONAL;
 
+                        $freeShippingFlag = false;
                         if ($freeShipping['config']['destination'] === Forms_Shipping_FreeShipping::DESTINATION_BOTH
                             || $freeShipping['config']['destination'] === $deliveryType
                         ) {
+                            $freeShippingFlag = true;
+                        }elseif($freeShipping['config']['destination'] > 0){
+                            $zoneId = Tools_Tax_Tax::getZone($shippingAddress);
+                            if($zoneId == $freeShipping['config']['destination']){
+                                $freeShippingFlag = true;
+                            }
+                        }
 
+                        if($freeShippingFlag){
                             $cart->setShippingData(array(
                                 'service' => Shopping::SHIPPING_FREESHIPPING,
                                 'type'    => '',
