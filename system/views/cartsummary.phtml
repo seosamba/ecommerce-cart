@@ -6,15 +6,33 @@
 		<span><?php echo $this->translate('Subtotal'); ?>:</span>
 		<span id="subtotal-val">
         <?php if ($this->taxIncPrice) : ?>
-            <?php echo $this->currency($this->summary['subTotal']+$this->summary['totalTax']); ?>
+            <?php echo $this->currency($this->summary['subTotal']+$this->summary['subTotalTax']); ?>
         <?php else : ?>
             <?php echo $this->currency($this->summary['subTotal']); ?>
         <?php endif; ?>  
         </span>
 	</div>
+    <?php if (isset($this->summary['discount']) && !empty($this->summary['discount'])) : ?>
+        <div class="cart-summary-row cart-discount">
+            <span><?php echo $this->translate('Discount'); ?></span>
+            <?php if ($this->taxIncPrice) : ?>
+                <span id="discount-val"><?php echo $this->currency($this->summary['discount']+$this->summary['discountTax']); ?></span>
+            <?php else:?>
+                <span id="discount-val"><?php echo $this->currency($this->summary['discount']); ?></span>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+    <div class="cart-summary-row cart-shipping">
+        <span><?php echo $this->translate('Shipping'); ?>:</span>
+        <?php if ($this->taxIncPrice) : ?>
+            <span id="shipping-val"><?php echo $this->currency($this->summary['shipping']+$this->summary['shippingTax']); ?></span>
+        <?php else:?>
+            <span id="shipping-val"><?php echo $this->currency($this->summary['shipping']); ?></span>
+        <?php endif;?>
+    </div>
 	<div class="cart-summary-row cart-total-tax">
 		<?php if(Tools_Misc::getTaxName() != ''):?>
-            <?php $taxName = Tools_Misc::getTaxName();?> 
+            <?php $taxName = Tools_Misc::getTaxName();?>
         <?php else:?>
             <?php $taxName = 'Tax';?>
         <?php endif;?>
@@ -25,16 +43,7 @@
 		<?php endif; ?>
 		<span id="totaltax-val"><?php echo $this->currency($this->summary['totalTax']);?></span>
 	</div>
-	<?php if (isset($this->summary['discount']) && !empty($this->summary['discount'])) : ?>
-    <div class="cart-summary-row cart-discount">
-	    <span><?php echo $this->translate('Discount'); ?></span>
-	    <span id="discount-val"><?php echo $this->currency($this->summary['discount']); ?></span>
-    </div>
-	<?php endif; ?>
-	<div class="cart-summary-row cart-shipping">
-		<span><?php echo $this->translate('Shipping'); ?>:</span>
-		<span id="shipping-val"><?php echo $this->currency($this->summary['shipping']); ?></span>
-	</div>
+
 	<div class="cart-summary-row cart-total">
 		<span><?php echo $this->translate('Total'); ?>:</span>
 		<span id="total-val"><?php echo $this->currency($this->summary['total']); ?></span>
