@@ -71,8 +71,12 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
             $price = 0;
             $this->_view->freebies = true;
         }else{
-		    $cartItem['tax'] = Tools_Tax_Tax::calculateProductTax($product, isset($destinationAddress) ? $destinationAddress : null);
-            $price = $this->_cartContent[$sid]['price'] + $cartItem['tax'];
+            if(isset($this->_shoppingConfig['showPriceIncTax']) && $this->_shoppingConfig['showPriceIncTax'] === '1'){
+                $cartItem['tax'] = Tools_Tax_Tax::calculateProductTax($product, isset($destinationAddress) ? $destinationAddress : null);
+                $price = $this->_cartContent[$sid]['price'] + $cartItem['tax'];
+            }else{
+                $price = $this->_cartContent[$sid]['price'];
+            }
         }
 		    //$price = (bool)$this->_shoppingConfig['showPriceIncTax'] ? $this->_cartContent[$sid]['taxPrice'] : $this->_cartContent[$sid]['price'] ;
         if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
