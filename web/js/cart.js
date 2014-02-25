@@ -43,6 +43,9 @@ $(function() {
                             $(self).val(newQty);
                         }
                     }
+                    if(response.responseText.minqty === false){
+                        window.location.reload();
+                    }
                     refreshPrice(sid, sidsQuantity);
                 }
                 refreshCartSummary();
@@ -67,11 +70,11 @@ $(function() {
                 if (!response.error) {
 	                hideSpinner();
 	                rmLink.parents('tr').remove();
-                    console.log(response.responseText.sidQuantity);
+                    if(response.responseText.minqty === false){
+                        window.location.reload();
+                    }
                     if(response.responseText.sidQuantity != sidsQuantity-1){
                         window.location.reload();
-                        //console.log(response.responseText.sidQuantity);
-                        //console.log(sidsQuantity-1);
                     }else{
 	                    refreshCartSummary();
                     }
