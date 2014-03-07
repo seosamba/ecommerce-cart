@@ -839,7 +839,11 @@ class Cart extends Tools_Cart_Cart {
 
         if (!empty($orderConfig)) {
             $cartContent = $this->_cartStorage->getContent();
-            $minOrderLimit = $orderConfig[1]['config']['quantity'];
+            foreach($orderConfig as $orderConf){
+                if($orderConf['name'] === Shopping::ORDER_CONFIG){
+                    $minOrderLimit = $orderConf['config']['quantity'];
+                }
+            }
             if (!empty($cartContent)) {
                 $quantity = $this->_cartStorage->findProductQuantityInCart();
                 if ($quantity < $minOrderLimit) {
