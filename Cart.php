@@ -1010,9 +1010,9 @@ class Cart extends Tools_Cart_Cart {
                     }
                 }
             }
-
+            $successMessage =  Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('checkoutShippingSuccessMessage');
 			if ($result === true) {
-				return '<h3>' . $this->_translator->translate('Great news! Your purchase is eligible for free shipping') . '</h3>' .
+				return '<h3>' . $successMessage . '</h3>' .
 				$this->_renderPaymentZone();
 			}
 
