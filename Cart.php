@@ -846,6 +846,7 @@ class Cart extends Tools_Cart_Cart {
             }
             if (!empty($cartContent)) {
                 $quantity = $this->_cartStorage->findProductQuantityInCart();
+                $this->_sessionHelper->orderQuantityState = $quantity;
                 if ($quantity < $minOrderLimit) {
                     return '{$content:orderQuantityError:static}';
                 }
