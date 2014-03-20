@@ -989,7 +989,7 @@ class Cart extends Tools_Cart_Cart {
                         ) {
                             $freeShippingFlag = true;
                         }elseif($freeShipping['config']['destination'] > 0){
-                            $zoneId = Tools_Tax_Tax::getZone($shippingAddress);
+                            $zoneId = Tools_Tax_Tax::getZone($shippingAddress, false);
                             if($zoneId == $freeShipping['config']['destination']){
                                 $freeShippingFlag = true;
                             }
