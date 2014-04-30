@@ -839,6 +839,11 @@ class Cart extends Tools_Cart_Cart {
 				$this->_view->pickupForm = $pickupForm;
 			} else {
                 $formPickup = new Forms_Checkout_Pickup();
+                $defaultPickup = false;
+                if(isset($pickup['config']['defaultPickupConfig']) && $pickup['config']['defaultPickupConfig'] === '1' || $pickup['config'] === null){
+                    $defaultPickup = true;
+                }
+                $this->_view->defaultPickup = $defaultPickup;
                 $formPickup->setLegend($this->_translator->translate('Enter pick up information'));
                 $this->_view->pickupForm = $formPickup;
 				if (is_array($customerAddress) && !empty($customerAddress)) {
@@ -1045,6 +1050,32 @@ class Cart extends Tools_Cart_Cart {
 
 		return false;
 	}
+
+    public function getPickupLocationsAction(){
+        if($this->_request->isPost()){
+            $cityName = filter_var($this->_request->getParam('cityName'), FILTER_SANITIZE_STRING);
+            $countries = Tools_Geo::getCountries(true);
+            $pickupLocationsZonesConfig = new Store_DbTable_PickupLocationZonesConfig();
+            $where = $pickupLocationsZonesConfig->getAdapter()->quoteInto('shplz.pickup_location_category_id <> ?', 0);
+            if($cityName){
+
+            }else{
+                $storeOwnerCountry = $this->_shoppingConfig['country'];
+                $countryName = $countries[$storeOwnerCountry];
+                //$where .= ' AND '. $pickupLocationsZonesConfig->getAdapter()->quoteInto('shpl.country = ?', $countryName);
+
+                $select = $pickupLocationsZonesConfig->select(Zend_Db_Table::SELECT_WITHOUT_FROM_PART)
+                    ->setIntegrityCheck(false)
+                    ->from(array('shplz'=>'shopping_pickup_location_zones'))
+                    ->joinLeft(array('shpl' => 'shopping_pickup_location'), 'shplz.pickup_location_category_id=shpl.location_category_id')
+                    ->joinLeft(array('shplcat' => 'shopping_pickup_location_category'), 'shplz.pickup_location_category_id=shplcat.id', array('imgName' => 'img'));
+            }
+            $select->where($where);
+            $result = $pickupLocationsZonesConfig->getAdapter()->fetchAll($select);
+            $this->_responseHelper->success($result);
+        }
+
+    }
 
 //	@TODO implement widget maker
 //	public static function getWidgetMakerContent(){
