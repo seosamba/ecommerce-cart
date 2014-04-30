@@ -1072,6 +1072,13 @@ class Cart extends Tools_Cart_Cart {
             }
             $select->where($where);
             $result = $pickupLocationsZonesConfig->getAdapter()->fetchAll($select);
+            $result = array_map(
+                function ($pickupLocation) {
+                    $pickupLocation['workingHours'] = unserialize($pickupLocation['workingHours']);
+                    return $pickupLocation;
+                },
+                $result
+            );
             $this->_responseHelper->success($result);
         }
 

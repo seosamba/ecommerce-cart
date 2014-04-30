@@ -3,8 +3,9 @@
  */
 define([ 'backbone',
     'i18n!../../../nls/'+$('input[name=system-language]').val()+'_ln',
-    'text!./templates/pickup-list.html'
-], function(Backbone,i18n, PickupListTemplate){
+    'text!./templates/pickup-list.html',
+    'text!./templates/pickup-info-window.html'
+], function(Backbone,i18n, PickupListTemplate, PickupInfoWindowTemplate){
 
     var AppView = Backbone.View.extend({
         el: $('#checkout-widget'),
@@ -13,7 +14,8 @@ define([ 'backbone',
             'click p.checkout-button a[data-role=button]': 'checkoutAction',
             'submit form.toaster-checkout': 'validateForm',
             'click a.back-button': 'backAction',
-            'click li.pickup-address-row': 'checkedPickupLocation'
+            'click li.pickup-address-row': 'checkedPickupLocation',
+            'click a.apply-pickup':'applyPickupPrice'
         },
         initialize: function(){
             this.websiteUrl = $('#website_url').val();
@@ -179,7 +181,6 @@ define([ 'backbone',
             }
         },
         addMarkers: function(marker){
-            var name = marker.name;
             var imageName = 'https://www.google.com/intl/en_us/mapfiles/ms/micons/red-dot.png';
 
             // The place where loc contains geocoded coordinates
@@ -197,22 +198,18 @@ define([ 'backbone',
             });
             newMarker.set("id", marker.id);
 
+
+
             var infoWindow = new google.maps.InfoWindow({
-                content: '<span>'+name+'</span><p>'+marker.address1+'</p>'
+                content: _.template(PickupInfoWindowTemplate, marker)
             });
 
             google.maps.event.addListener(newMarker, 'click', function() {
                 infoWindow.open(this.map, this);
             });
 
+            this.mapBounds.push(latLng);
             this.mapMarkers.push(newMarker);
-
-            if(this.mapBounds.length === 0){
-                this.mapBounds = new google.maps.LatLngBounds();
-            }else{
-                this.mapBounds = this.mapBounds.extend(latLng);
-            }
-            this.map.fitBounds(this.mapBounds);
         },
         getPickupLocations: function(city){
             var self = this;
@@ -223,10 +220,14 @@ define([ 'backbone',
                         if(!_.isNull(marker.name) || !_.isNull(marker.address1)){
                             self.addMarkers(marker);
                             console.log(marker);
-                            self.pickupLocationHolder.append(_.template(PickupListTemplate, marker));
+                            //self.pickupLocationHolder.append(_.template(PickupListTemplate, marker));
                         }
-
                     });
+                    var latlngbounds = new google.maps.LatLngBounds();
+                    _.each(self.mapBounds, function(marker){
+                        latlngbounds.extend(marker);
+                    });
+                    self.map.setCenter(latlngbounds.getCenter(), self.map.fitBounds(latlngbounds));
                 }
             },'json');
         },
@@ -242,8 +243,9 @@ define([ 'backbone',
                 return parseInt(marker.get('id')) === currentPickupLocationId;
             });
             google.maps.event.trigger(currentMarker[0], 'click');
-            console.log(currentMarker);
-            //infowindow.open(this.map,marker);
+        },
+        applyPickupPrice: function(){
+            console.log('asd');
         }
 
 
