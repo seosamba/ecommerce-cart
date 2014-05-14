@@ -671,22 +671,73 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	private function _checkoutStepPickup() {
-		$pickupForm = new Forms_Checkout_Pickup();
+        $pickup = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
+        if ($pickup && (bool)$pickup['enabled']) {
+            if(isset($pickup['config']['defaultPickupConfig']) && $pickup['config']['defaultPickupConfig'] === '1' || $pickup['config'] === null){
+                $pickupForm = new Forms_Checkout_Pickup();
+                $defaultPickup = true;
+                $price = 0;
+            }else{
+                $pickupForm = new Forms_Checkout_PickupWithPrice();
+                $defaultPickup = false;
+            }
+        }
 		if ($this->_request->isPost()) {
 			if ($pickupForm->isValid($this->_request->getPost())) {
+                $cart = Tools_ShoppingCart::getInstance();
 				$customer = Tools_ShoppingCart::getInstance()->getCustomer();
-				$address = array_merge($pickupForm->getValues(), array(
-					'country' => isset($this->_shoppingConfig['country']) ? $this->_shoppingConfig['country'] : null,
-					'state'   => isset($this->_shoppingConfig['state']) ? $this->_shoppingConfig['state'] : null,
-					'zip'     => isset($this->_shoppingConfig['zip']) ? $this->_shoppingConfig['zip'] : null
-				));
+                if ($defaultPickup) {
+                    $address = array_merge($pickupForm->getValues(), array(
+                        'country' => isset($this->_shoppingConfig['country']) ? $this->_shoppingConfig['country'] : null,
+                        'state'   => isset($this->_shoppingConfig['state']) ? $this->_shoppingConfig['state'] : null,
+                        'zip'     => isset($this->_shoppingConfig['zip']) ? $this->_shoppingConfig['zip'] : null
+                    ));
+                } else {
+                    $address = $pickupForm->getValues();
+                    $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
+                    if(!isset($address['pickupLocationId']) || $address['pickupLocationId'] === ''){
+                        $this->_redirector->gotoUrl($this->_websiteUrl);
+                    }
+                    $locationId = filter_var($address['pickupLocationId'], FILTER_SANITIZE_NUMBER_INT);
+
+                    if(empty($cart)){
+                        throw new Exceptions_SeotoasterPluginException('empty cart content');
+                    }
+                    if (!$pickup || !isset($pickup['config'])) {
+                        throw new Exceptions_SeotoasterPluginException('pickup not configured');
+                    }
+                    switch ($pickup['config']['units']) {
+                        case Shopping::COMPARE_BY_AMOUNT:
+                            $comparator = $cart->getTotal();
+                            break;
+                        case Shopping::COMPARE_BY_WEIGHT:
+                            $comparator = $cart->calculateCartWeight();
+                            break;
+                    }
+
+                    $result = $pickupLocationConfigMapper->getLocations($comparator, $locationId);
+                    if(empty($result)){
+                        $this->_redirector->gotoUrl($this->_websiteUrl);
+                    }
+                    $countries = Tools_Geo::getCountries(true);
+                    $price = $result['price'];
+                    if($result['limitType'] === Shopping::AMOUNT_TYPE_EACH_OVER){
+                        $price = round(($comparator - $result['amount_limit'])*$result['price'], 2);
+                    }
+                    $address['country'] = array_search($result['country'], $countries);
+                    $address['zip'] = $result['zip'];
+                    $address['address1'] = $result['address1'];
+                    $address['address2'] = $result['address2'];
+                    $address['city']    = $result['city'];
+                    unset($address['pickupLocationId']);
+                }
 				$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $address, Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
 				$cart = Tools_ShoppingCart::getInstance();
 				$cart->setShippingAddressKey($addressId)
 						->setShippingData(array(
 							'service' => Shopping::SHIPPING_PICKUP,
 							'type'    => null,
-							'price'   => 0
+							'price'   => $price
 						))
 						->calculate(true);
 
@@ -838,12 +889,18 @@ class Cart extends Tools_Cart_Cart {
 			if ((bool)$pickupForm) {
 				$this->_view->pickupForm = $pickupForm;
 			} else {
-                $formPickup = new Forms_Checkout_Pickup();
-                $defaultPickup = false;
                 if(isset($pickup['config']['defaultPickupConfig']) && $pickup['config']['defaultPickupConfig'] === '1' || $pickup['config'] === null){
                     $defaultPickup = true;
+                    $formPickup = new Forms_Checkout_Pickup();
+                }else{
+                    $defaultPickup = false;
+                    $formPickup = new Forms_Checkout_PickupWithPrice();
                 }
                 $this->_view->defaultPickup = $defaultPickup;
+                $checkoutPage = Tools_Misc::getCheckoutPage();
+                if ($checkoutPage instanceof Application_Model_Models_Page) {
+                    $this->_view->checkoutPage = $checkoutPage;
+                }
                 $formPickup->setLegend($this->_translator->translate('Enter pick up information'));
                 $this->_view->pickupForm = $formPickup;
 				if (is_array($customerAddress) && !empty($customerAddress)) {
@@ -1051,37 +1108,63 @@ class Cart extends Tools_Cart_Cart {
 		return false;
 	}
 
-    public function getPickupLocationsAction(){
-        if($this->_request->isPost()){
-            $cityName = filter_var($this->_request->getParam('cityName'), FILTER_SANITIZE_STRING);
-            $countries = Tools_Geo::getCountries(true);
-            $pickupLocationsZonesConfig = new Store_DbTable_PickupLocationZonesConfig();
-            $where = $pickupLocationsZonesConfig->getAdapter()->quoteInto('shplz.pickup_location_category_id <> ?', 0);
-            if($cityName){
-
-            }else{
-                $storeOwnerCountry = $this->_shoppingConfig['country'];
-                $countryName = $countries[$storeOwnerCountry];
-                //$where .= ' AND '. $pickupLocationsZonesConfig->getAdapter()->quoteInto('shpl.country = ?', $countryName);
-
-                $select = $pickupLocationsZonesConfig->select(Zend_Db_Table::SELECT_WITHOUT_FROM_PART)
-                    ->setIntegrityCheck(false)
-                    ->from(array('shplz'=>'shopping_pickup_location_zones'))
-                    ->joinLeft(array('shpl' => 'shopping_pickup_location'), 'shplz.pickup_location_category_id=shpl.location_category_id')
-                    ->joinLeft(array('shplcat' => 'shopping_pickup_location_category'), 'shplz.pickup_location_category_id=shplcat.id', array('imgName' => 'img'));
+    public function getPickupLocationsAction()
+    {
+        if ($this->_request->isPost()) {
+            $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
+            $cartContent = Tools_ShoppingCart::getInstance();
+            if (!empty($cartContent)) {
+                $pickupSettings = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
+                if (!$pickupSettings || !isset($pickupSettings['config'])) {
+                    throw new Exceptions_SeotoasterPluginException('pickup not configured');
+                }
+                switch ($pickupSettings['config']['units']) {
+                    case Shopping::COMPARE_BY_AMOUNT:
+                        $comparator = $cartContent->getTotal();
+                        break;
+                    case Shopping::COMPARE_BY_WEIGHT:
+                        $comparator = $cartContent->calculateCartWeight();
+                        break;
+                }
+                $result = $pickupLocationConfigMapper->getLocations($comparator);
+                if (!empty($result)) {
+                    $result = array_map(
+                        function ($pickupLocation) use ($comparator) {
+                            $pickupLocation['working_hours'] = unserialize($pickupLocation['working_hours']);
+                            $pickupLocation['comparator'] = $comparator;
+                            return $pickupLocation;
+                        },
+                        $result
+                    );
+                    $this->_responseHelper->success($result);
+                }
             }
-            $select->where($where);
-            $result = $pickupLocationsZonesConfig->getAdapter()->fetchAll($select);
-            $result = array_map(
-                function ($pickupLocation) {
-                    $pickupLocation['workingHours'] = unserialize($pickupLocation['workingHours']);
-                    return $pickupLocation;
-                },
-                $result
-            );
-            $this->_responseHelper->success($result);
+            $this->_responseHelper->fail('');
         }
 
+    }
+
+    public function pickupLocationTaxAction(){
+        if($this->_request->isPost()){
+            $locationId = filter_var($this->_request->getParam('locationId'), FILTER_SANITIZE_NUMBER_INT);
+            $price = filter_var($this->_request->getParam('price'), FILTER_SANITIZE_STRING);
+            $cartContent = Tools_ShoppingCart::getInstance();
+            if (!empty($cartContent)) {
+                $pickupSettings = Store_Mapper_PickupLocationMapper::getInstance()->find($locationId);
+                if (!empty($pickupSettings)) {
+                    $result = $pickupSettings->toArray();
+                    $countries = Tools_Geo::getCountries(true);
+                    $address = Tools_Misc::clenupAddress($result);
+                    $address['country'] = array_search($address['country'], $countries);
+                    $shippingTax = Tools_Tax_Tax::calculateShippingTax($price, $address);
+
+                    $result['working_hours'] = unserialize($result['workingHours']);
+                    $result['withTax'] = '';
+                    $result['price'] = $price+$shippingTax;
+                    $this->_responseHelper->success($result);
+                }
+            }
+        }
     }
 
 //	@TODO implement widget maker

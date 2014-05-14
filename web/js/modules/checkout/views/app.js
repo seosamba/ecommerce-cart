@@ -4,8 +4,9 @@
 define([ 'backbone',
     'i18n!../../../nls/'+$('input[name=system-language]').val()+'_ln',
     'text!./templates/pickup-list.html',
-    'text!./templates/pickup-info-window.html'
-], function(Backbone,i18n, PickupListTemplate, PickupInfoWindowTemplate){
+    'text!./templates/pickup-info-window.html',
+    'text!./templates/pickup-result.html'
+], function(Backbone,i18n, PickupListTemplate, PickupInfoWindowTemplate, PickupResultTemplate){
 
     var AppView = Backbone.View.extend({
         el: $('#checkout-widget'),
@@ -116,7 +117,12 @@ define([ 'backbone',
                         this.clearPickupLocationMap(currentMarkers);
                     }
                     this.mapMarkers = [];
+                    this.pickupLocations = [];
+                    this.infoWindowsData = [];
                     this.getPickupLocations();
+                    if($('#pickup-map-locations').hasClass('hidden')){
+                        $('#pickup-map-locations').toggleClass('hidden');
+                    }
                     google.maps.event.trigger(this.map, 'resize');
                 }
                 $(e.currentTarget).closest('p.checkout-button').hide();
@@ -190,37 +196,54 @@ define([ 'backbone',
                 var imageName = $('#website_url').val()+'media/'+'/pickup-logos/small/'+marker.imgName;
             }
 
+            var infoWindow = new google.maps.InfoWindow({
+                content: _.template(PickupInfoWindowTemplate, marker)
+            });
+            this.infoWindowsData.push(infoWindow);
             var newMarker = new google.maps.Marker({
                 map: this.map,
                 title: marker.name,
                 position: latLng,
-                icon: imageName
+                icon: imageName,
+                infoWindow:this.infoWindowsData
             });
             newMarker.set("id", marker.id);
+            newMarker.set("price", marker.price);
 
-
-
-            var infoWindow = new google.maps.InfoWindow({
-                content: _.template(PickupInfoWindowTemplate, marker)
+            google.maps.event.addListener(this.map, 'click', function() {
+                infoWindow.close();
             });
 
             google.maps.event.addListener(newMarker, 'click', function() {
-                infoWindow.open(this.map, this);
+                for (var i=0;i<this.infoWindow.length;i++) {
+                    this.infoWindow[i].close();
+                }
+                //calculate shipping tax
+                var currentMap = this;
+
+                $.post($('#website_url').val()+'plugin/cart/run/pickupLocationTax/', {locationId:currentMap.id, price:currentMap.price}, function(response){
+                    infoWindow.setContent(_.template(PickupInfoWindowTemplate, response.responseText));
+                    infoWindow.open(currentMap.map, currentMap);
+                }, 'json');
+                //infoWindow.open(this.map, this);
+            });
+            google.maps.event.addListener(infoWindow,'open',function(){
+                infoWindow.close();
             });
 
             this.mapBounds.push(latLng);
             this.mapMarkers.push(newMarker);
         },
-        getPickupLocations: function(city){
+        getPickupLocations: function(){
             var self = this;
-            $.post($('#website_url').val()+'plugin/cart/run/getPickupLocations/',{city:city}, function(response){
+            $.post($('#website_url').val()+'plugin/cart/run/getPickupLocations/', function(response){
                 self.pickupLocationHolder.empty();
                 if(response.error === 0){
                     $.each(response.responseText, function(value, marker){
+                        self.pickupLocations[marker.id] = marker;
                         if(!_.isNull(marker.name) || !_.isNull(marker.address1)){
                             self.addMarkers(marker);
-                            console.log(marker);
-                            //self.pickupLocationHolder.append(_.template(PickupListTemplate, marker));
+                             console.log(marker);
                         }
                     });
                     var latlngbounds = new google.maps.LatLngBounds();
@@ -244,8 +267,20 @@ define([ 'backbone',
             });
             google.maps.event.trigger(currentMarker[0], 'click');
         },
-        applyPickupPrice: function(){
-            console.log('asd');
+        applyPickupPrice: function(e){
+            var pickupId = $(e.currentTarget).data('pickup-id');
+            if(typeof  this.pickupLocations[pickupId] !== 'undefined'){
+                var locationData = this.pickupLocations[pickupId];
+                console.log(locationData);
+                $.post($('#website_url').val()+'plugin/cart/run/pickupLocationTax/', {locationId:locationData.id, price:locationData.price}, function(response){
+                    $('#pickup-map-locations').toggleClass('hidden');
+                    $('#pickup-result').append(_.template(PickupResultTemplate, response.responseText));
+                    $('#pickup-with-price-result').show();
+                    $('#pickup-address-result').toggleClass('hidden');
+                    $('#pickupLocationId').val(locationData.id);
+                }, 'json');
+
+            }
         }
 
 

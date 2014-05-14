@@ -35,17 +35,28 @@
     <img src="<?php echo Tools_Geo::generateStaticGmaps($this->shoppingConfig, 640, 320); ?>" alt="<?php echo $this->translate('Pickup location'); ?>">
 </div>
 <?php elseif($this->pickupForm && !$this->defaultPickup):?>
-
-    <div id="checkout-pickup-form" style="<?php if ($this->shippingForm && !$this->pickupForm->isErrors()): ?>display: none;<?php endif; ?>">
-        <div id="pickup-map-locations">
+    <div id="checkout-pickup-form" class="hidden">
+          <div id="pickup-with-price-result" class="hidden">
+            <h3 class="checkout-forms-header">
+                <?php echo $this->pickupForm->getLegend(); ?>
+            </h3>
+            <?php echo $this->pickupForm; ?>
+            <?php if ($this->shippingForm):?>
+        </div>
+        <div id="pickup-address-result" class="hidden">
+        <h3 class="checkout-forms-header"><?php echo $this->translate('Pickup location');?>
+            <a href="<?php echo $this->websiteUrl . isset($this->checkoutPage) ? $this->checkoutPage->getUrl():'';?>" class="checkout-edit" title="<?php echo $this->translate('Edit location');?>"><?php echo '[&nbsp;'.$this->translate('edit').'&nbsp;]';?></a>
+        </h3>
+        <?php endif;?>
+        <div id="pickup-result"></div>
+        </div>
+        <div id="pickup-map-locations" style="width:auto;">
             <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
             <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
             <ul id="pickup-location-grid"></ul>
             <div class="pickup-locations" id="pickup-locations" style="width:500px; height:400px"></div>
         </div>
     </div>
-
-
 <?php endif; ?>
 
 <?php if ($this->shippingForm) : ?>
