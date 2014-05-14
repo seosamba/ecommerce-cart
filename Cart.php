@@ -672,9 +672,9 @@ class Cart extends Tools_Cart_Cart {
 
 	private function _checkoutStepPickup() {
         $pickup = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
+        $pickupForm = new Forms_Checkout_Pickup();
         if ($pickup && (bool)$pickup['enabled']) {
             if(isset($pickup['config']['defaultPickupConfig']) && $pickup['config']['defaultPickupConfig'] === '1' || $pickup['config'] === null){
-                $pickupForm = new Forms_Checkout_Pickup();
                 $defaultPickup = true;
                 $price = 0;
             }else{
