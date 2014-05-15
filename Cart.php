@@ -75,6 +75,8 @@ class Cart extends Tools_Cart_Cart {
 
 	public static $_lockCartEdit = false;
 
+    public static $_pickupLocationRadius = array('5', '10', '15');
+
 	protected function _init() {
 		$this->_cartStorage = Tools_ShoppingCart::getInstance();
 		$this->_productMapper = Models_Mapper_ProductMapper::getInstance();
@@ -1111,7 +1113,14 @@ class Cart extends Tools_Cart_Cart {
     public function getPickupLocationsAction()
     {
         if ($this->_request->isPost()) {
-            $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
+            $locationSearch = filter_var($this->_request->getParam('locationAddress'), FILTER_SANITIZE_STRING);
+            if (!$locationSearch) {
+                $this->_responseHelper->fail('');
+            }
+            $locationCoordinates = Tools_Geo::getMapCoordinates($locationSearch);
+            if ($locationCoordinates['lat'] === null || $locationCoordinates['lng'] === null) {
+                $this->_responseHelper->fail('');
+            }
             $cartContent = Tools_ShoppingCart::getInstance();
             if (!empty($cartContent)) {
                 $pickupSettings = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
@@ -1126,7 +1135,25 @@ class Cart extends Tools_Cart_Cart {
                         $comparator = $cartContent->calculateCartWeight();
                         break;
                 }
-                $result = $pickupLocationConfigMapper->getLocations($comparator);
+                $result = array();
+                $locationsRadius = self::$_pickupLocationRadius;
+                $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
+                foreach ($locationsRadius as $key => $radius) {
+                    $radiusDiffValue = $radius / 111;
+                    $radiusDiffValue = number_format($radiusDiffValue, 7, '.', '');
+                    $userLatitude = $locationCoordinates['lat'];
+                    $userLongitude = $locationCoordinates['lng'];
+                    $coordinates = array(
+                        'latitudeStart' => $userLatitude - $radiusDiffValue,
+                        'latitudeEnd' => $userLatitude + $radiusDiffValue,
+                        'longitudeStart' => $userLongitude - $radiusDiffValue,
+                        'longitudeEnd' => $userLongitude + $radiusDiffValue
+                    );
+                    $result = $pickupLocationConfigMapper->getLocations($comparator, false, $coordinates);
+                    if (!empty($result)) {
+                        break;
+                    }
+                }
                 if (!empty($result)) {
                     $result = array_map(
                         function ($pickupLocation) use ($comparator) {
@@ -1136,7 +1163,13 @@ class Cart extends Tools_Cart_Cart {
                         },
                         $result
                     );
-                    $this->_responseHelper->success($result);
+                    $result[] = array('userLocation' => true, 'lat' => $userLatitude, 'lng' => $userLongitude);
+                    $this->_responseHelper->success(
+                        array(
+                            'result' => $result,
+                            'userLocation' => array('lat' => $userLatitude, 'lng' => $userLongitude)
+                        )
+                    );
                 }
             }
             $this->_responseHelper->fail('');

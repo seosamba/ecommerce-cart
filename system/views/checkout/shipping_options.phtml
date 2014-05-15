@@ -36,7 +36,13 @@
 </div>
 <?php elseif($this->pickupForm && !$this->defaultPickup):?>
     <div id="checkout-pickup-form" class="hidden">
-          <div id="pickup-with-price-result" class="hidden">
+        <div id="initial-pickup-info">
+            <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
+            <p><label><?php echo $this->translate('Enter location');?></label>
+            <input type="text" name="user-location" id="user-info-location"/></p>
+            <input id="user-info-pickup" type="button" value="Search" />
+        </div>
+        <div id="pickup-with-price-result" class="hidden">
             <h3 class="checkout-forms-header">
                 <?php echo $this->pickupForm->getLegend(); ?>
             </h3>
@@ -50,8 +56,8 @@
         <?php endif;?>
         <div id="pickup-result"></div>
         </div>
-        <div id="pickup-map-locations" style="width:auto;">
-            <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
+        <div id="pickup-map-locations" class="hidden" style="width:auto;">
+
             <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
             <ul id="pickup-location-grid"></ul>
             <div class="pickup-locations" id="pickup-locations" style="width:500px; height:400px"></div>

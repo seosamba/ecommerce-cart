@@ -10,13 +10,14 @@ define([ 'backbone',
 
     var AppView = Backbone.View.extend({
         el: $('#checkout-widget'),
-        pickupLocationHolder: $('#pickup-location-grid'),
         events: {
             'click p.checkout-button a[data-role=button]': 'checkoutAction',
             'submit form.toaster-checkout': 'validateForm',
             'click a.back-button': 'backAction',
             'click li.pickup-address-row': 'checkedPickupLocation',
-            'click a.apply-pickup':'applyPickupPrice'
+            'click a.apply-pickup':'applyPickupPrice',
+            'click #user-info-pickup': 'searchPickupLocations',
+            'keypress #user-info-location':'searchPickup'
         },
         initialize: function(){
             this.websiteUrl = $('#website_url').val();
@@ -40,7 +41,10 @@ define([ 'backbone',
         initMap: function () {
             var geocoder = new google.maps.Geocoder();
             var myOptions = this.initOptionsMap();
+            this.directionsDisplay = new google.maps.DirectionsRenderer();
             this.map = new google.maps.Map(document.getElementById('pickup-locations'), myOptions);
+            this.directionsDisplay.setMap(this.map);
+            this.directionsService = new google.maps.DirectionsService();
 
         },
         submitForm: function(e) {
@@ -110,21 +114,6 @@ define([ 'backbone',
             var target = $(e.currentTarget).data('targetid');
             if (target && $(target).size()){
                 $(target).show();
-                if(this.$el.find('#pickup-locations').length > 0){
-                    this.mapBounds = [];
-                    var currentMarkers = this.mapMarkers;
-                    if(!_.isEmpty(currentMarkers)){
-                        this.clearPickupLocationMap(currentMarkers);
-                    }
-                    this.mapMarkers = [];
-                    this.pickupLocations = [];
-                    this.infoWindowsData = [];
-                    this.getPickupLocations();
-                    if($('#pickup-map-locations').hasClass('hidden')){
-                        $('#pickup-map-locations').toggleClass('hidden');
-                    }
-                    google.maps.event.trigger(this.map, 'resize');
-                }
                 $(e.currentTarget).closest('p.checkout-button').hide();
             }
         },
@@ -172,6 +161,29 @@ define([ 'backbone',
 
             return this;
         },
+        searchPickup: function(e){
+            if (e.keyCode === 13){
+                this.searchPickupLocations(e);
+            }
+        },
+        searchPickupLocations: function(e){
+            if(this.$el.find('#pickup-locations').length > 0){
+                var locationAddress = $.trim($('#user-info-location').val());
+                if(locationAddress === ''){
+                    showMessage(_.isUndefined(i18n['Please enter location'])?'Please enter location':i18n['Please enter location'], true);
+                    return false;
+                }
+                this.mapBounds = [];
+                var currentMarkers = this.mapMarkers;
+                if(!_.isEmpty(currentMarkers)){
+                    this.clearPickupLocationMap(currentMarkers);
+                }
+                this.mapMarkers = [];
+                this.pickupLocations = [];
+                this.infoWindowsData = [];
+                this.getPickupLocations(locationAddress, currentMarkers);
+            }
+        },
         initOptionsMap: function() {
             return {
                zoom: 8,
@@ -183,74 +195,115 @@ define([ 'backbone',
                disableDefaultUI: true,
                zoomControl: true,
                scrollwheel: false,
-               mapTypeId: google.maps.MapTypeId.ROADMAP
+               mapTypeId: google.maps.MapTypeId.ROADMAP,
+               streetViewControl: true,
+               panControl: true
             }
         },
-        addMarkers: function(marker){
+        addMarkers: function(marker, userLocation){
+            //default image
             var imageName = 'https://www.google.com/intl/en_us/mapfiles/ms/micons/red-dot.png';
+            //user location image
+            var userLocationImageName = 'https://www.google.com/intl/en_us/mapfiles/ms/micons/green-dot.png';
 
             // The place where loc contains geocoded coordinates
             var latLng    = new google.maps.LatLng(parseFloat(marker.lat), parseFloat(marker.lng));
 
             if(!_.isNull(marker.imgName)){
-                var imageName = $('#website_url').val()+'media/'+'/pickup-logos/small/'+marker.imgName;
+                imageName = $('#website_url').val()+'media/'+'/pickup-logos/small/'+marker.imgName;
             }
 
-            var infoWindow = new google.maps.InfoWindow({
-                content: _.template(PickupInfoWindowTemplate, marker)
-            });
+            if(typeof marker.userLocation !== 'undefined'){
+                imageName = userLocationImageName;
+                var infoWindow = new google.maps.InfoWindow({
+                    content: ''
+                });
+            }else{
+                var infoWindow = new google.maps.InfoWindow({
+                    content: _.template(PickupInfoWindowTemplate, marker)
+                });
+            }
+
+            //infoWindows data
             this.infoWindowsData.push(infoWindow);
             var newMarker = new google.maps.Marker({
                 map: this.map,
                 title: marker.name,
                 position: latLng,
                 icon: imageName,
-                infoWindow:this.infoWindowsData
+                infoWindow:this.infoWindowsData,
+                directionsService:this.directionsService,
+                directionsDisplay:this.directionsDisplay,
+                userLocation:userLocation
             });
-            newMarker.set("id", marker.id);
-            newMarker.set("price", marker.price);
+            if(typeof marker.userLocation === 'undefined'){
+                newMarker.set("id", marker.id);
+                newMarker.set("price", marker.price);
 
-            google.maps.event.addListener(this.map, 'click', function() {
-                infoWindow.close();
-            });
+                google.maps.event.addListener(this.map, 'click', function() {
+                    infoWindow.close();
+                });
 
-            google.maps.event.addListener(newMarker, 'click', function() {
-                for (var i=0;i<this.infoWindow.length;i++) {
-                    this.infoWindow[i].close();
-                }
-                //calculate shipping tax
-                var currentMap = this;
+                google.maps.event.addListener(newMarker, 'click', function() {
+                    //map route
+                    var end = new google.maps.LatLng(parseFloat(this.position.lat()), parseFloat(this.position.lng()));
+                    var start = this.userLocation;
 
-                $.post($('#website_url').val()+'plugin/cart/run/pickupLocationTax/', {locationId:currentMap.id, price:currentMap.price}, function(response){
-                    infoWindow.setContent(_.template(PickupInfoWindowTemplate, response.responseText));
-                    infoWindow.open(currentMap.map, currentMap);
-                }, 'json');
-                //infoWindow.open(this.map, this);
-            });
-            google.maps.event.addListener(infoWindow,'open',function(){
-                infoWindow.close();
-            });
+                    var request = {
+                        origin:start,
+                        destination:end,
+                        travelMode: google.maps.TravelMode.DRIVING
+                    };
+                    var directionDisplay = this.directionsDisplay;
+                    this.directionsService.route(request, function(response, status) {
+                        if (status == google.maps.DirectionsStatus.OK) {
+                            directionDisplay.setDirections(response);
+                            directionDisplay.setOptions( { suppressMarkers: true } );
+                        }
+                    });
+                    //remove all opened info windows
+                    for (var i=0;i<this.infoWindow.length;i++) {
+                        this.infoWindow[i].close();
+                    }
+                    //calculate shipping tax
+                    var currentMap = this;
+
+                    $.post($('#website_url').val()+'plugin/cart/run/pickupLocationTax/', {locationId:currentMap.id, price:currentMap.price}, function(response){
+                        infoWindow.setContent(_.template(PickupInfoWindowTemplate, response.responseText));
+                        infoWindow.open(currentMap.map, currentMap);
+                    }, 'json');
+                    //infoWindow.open(this.map, this);
+                });
+                google.maps.event.addListener(infoWindow,'open',function(){
+                    infoWindow.close();
+                });
+            }
 
             this.mapBounds.push(latLng);
             this.mapMarkers.push(newMarker);
         },
-        getPickupLocations: function(){
+        getPickupLocations: function(locationAddress){
             var self = this;
-            $.post($('#website_url').val()+'plugin/cart/run/getPickupLocations/', function(response){
-                self.pickupLocationHolder.empty();
+            $.post($('#website_url').val()+'plugin/cart/run/getPickupLocations/', {locationAddress:locationAddress}, function(response){
                 if(response.error === 0){
-                    $.each(response.responseText, function(value, marker){
+                    var userLocation = new google.maps.LatLng(parseFloat(response.responseText.userLocation.lat), parseFloat(response.responseText.userLocation.lng));
+                    $.each(response.responseText.result, function(value, marker){
                         self.pickupLocations[marker.id] = marker;
                         if(!_.isNull(marker.name) || !_.isNull(marker.address1)){
-                            self.addMarkers(marker);
-                             console.log(marker);
+                             self.addMarkers(marker, userLocation);
                         }
                     });
                     var latlngbounds = new google.maps.LatLngBounds();
                     _.each(self.mapBounds, function(marker){
                         latlngbounds.extend(marker);
                     });
+                    if($('#pickup-map-locations').hasClass('hidden')){
+                        $('#pickup-map-locations').toggleClass('hidden');
+                    }
+                    google.maps.event.trigger(self.map, 'resize');
                     self.map.setCenter(latlngbounds.getCenter(), self.map.fitBounds(latlngbounds));
+                }else{
+                    showMessage('No locations found', true);
                 }
             },'json');
         },
@@ -258,6 +311,7 @@ define([ 'backbone',
             for (var i = 0; i < currentMarkers.length; i++) {
                 currentMarkers[i].setMap(null);
             }
+            this.directionsDisplay.setDirections({routes:[]});
         },
         checkedPickupLocation: function(e){
             e.preventDefault();
@@ -271,12 +325,12 @@ define([ 'backbone',
             var pickupId = $(e.currentTarget).data('pickup-id');
             if(typeof  this.pickupLocations[pickupId] !== 'undefined'){
                 var locationData = this.pickupLocations[pickupId];
-                console.log(locationData);
                 $.post($('#website_url').val()+'plugin/cart/run/pickupLocationTax/', {locationId:locationData.id, price:locationData.price}, function(response){
                     $('#pickup-map-locations').toggleClass('hidden');
                     $('#pickup-result').append(_.template(PickupResultTemplate, response.responseText));
                     $('#pickup-with-price-result').show();
                     $('#pickup-address-result').toggleClass('hidden');
+                    $('#initial-pickup-info').toggleClass('hidden');
                     $('#pickupLocationId').val(locationData.id);
                 }, 'json');
 
