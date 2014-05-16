@@ -75,7 +75,7 @@ class Cart extends Tools_Cart_Cart {
 
 	public static $_lockCartEdit = false;
 
-    public static $_pickupLocationRadius = array('5', '10', '15');
+    public static $_pickupLocationRadius = array('5', '10', '50');
 
 	protected function _init() {
 		$this->_cartStorage = Tools_ShoppingCart::getInstance();
@@ -459,6 +459,15 @@ class Cart extends Tools_Cart_Cart {
 			}
 
 			$this->_getCheckoutPage();
+
+            $pickup = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
+            $defaultPickup = false;
+            if ($pickup && (bool)$pickup['enabled']) {
+                if (isset($pickup['config']['defaultPickupConfig']) && $pickup['config']['defaultPickupConfig'] === '1' || $pickup['config'] === null) {
+                    $defaultPickup = true;
+                }
+            }
+            $this->_view->defaultPickup = $defaultPickup;
 
 			$this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
 			$this->_view->yourInformation = $this->_checkoutSession->initialCustomerInfo;

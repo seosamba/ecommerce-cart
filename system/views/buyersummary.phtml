@@ -67,13 +67,17 @@
 			<?php endif ;?>
 	    </h3>
         <div class="preview-content">
-			<?php
-			if ($this->shippingData['service'] === Shopping::SHIPPING_PICKUP) {
-					echo $this->translate('Free pickup').'<br />';
-				} else {
-					echo $this->shippingData['service'] .': '. $this->shippingData['type'];
-				}
-			?>
+            <?php
+            if ($this->shippingData['service'] === Shopping::SHIPPING_PICKUP) {
+                $pickupLabel = $this->translate('Pickup');
+                if ($this->defaultPickup) {
+                    $pickupLabel = $this->translate('Free pickup');
+                }
+                echo $pickupLabel . '<br />';
+            } else {
+                echo $this->shippingData['service'] . ': ' . $this->shippingData['type'];
+            }
+            ?>
 		</div>
         <?php endif; ?>
 	</div>

@@ -1,6 +1,11 @@
 <?php if ($this->pickupForm && $this->shippingForm) :?>
 <p class="checkout-button" style="<?php if ($this->shippingForm->isErrors() || $this->pickupForm->isErrors()) { echo "display: none"; } ?>">
-    <a href="" data-targetid="#checkout-pickup-form" data-role="button" title="<?php echo $this->translate('Free pickup'); ?>" id="pickup-action"><?php echo $this->translate('Free pickup'); ?></a>
+    <?php if($this->defaultPickup):?>
+        <?php $pickupLabel =  $this->translate('Free pickup'); ?>
+    <?php else:?>
+        <?php $pickupLabel =  $this->translate('Pickup'); ?>
+    <?php endif;?>
+    <a href="" data-targetid="#checkout-pickup-form" data-role="button" title="<?php echo $pickupLabel ?>" id="pickup-action"><?php echo $pickupLabel ?></a>
     <span class="disc"><?php echo $this->translate('OR');?></span>
     <a href="" data-targetid="#checkout-shipping-form" data-role="button" title="<?php echo $this->translate('Calculate shipping'); ?>" id="shipping-action"><?php echo $this->translate('Calculate shipping'); ?></a>
 </p>
