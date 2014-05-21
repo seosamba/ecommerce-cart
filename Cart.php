@@ -956,11 +956,13 @@ class Cart extends Tools_Cart_Cart {
                     $this->_view->customer = $customer;
                     $this->_view->checkOutPageUrl = $this->_getCheckoutPage()->getUrl();
                     $params = $this->_request->getParams();
+                    $pickupLocationAddresses = Store_Mapper_PickupLocationConfigMapper::getInstance()->getUserAddressByUserId($customerId);
                     if(isset($params['shippingAddress'])){
                         $shippingAddress = Tools_ShoppingCart::getInstance()->getAddressById($params['shippingAddress']);
                         $this->_view->shippingForm->populate($shippingAddress);
                         $this->_view->pickupForm = false;
                     }
+                    $this->_view->pickupLocationAddresses = $pickupLocationAddresses;
                     $this->_view->pickAddress = true;
                 }
             }

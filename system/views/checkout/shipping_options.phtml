@@ -84,7 +84,7 @@
             <?php if (!empty($addressList)): ?>
                 <?php $key = 0;?>
                 <?php foreach ($addressList as $shippingAddress): ?>
-                    <?php if($shippingAddress['address_type'] == 'shipping'):?>
+                    <?php if($shippingAddress['address_type'] === 'shipping' && !in_array($shippingAddress['id'], $this->pickupLocationAddresses)):?>
                         <?php $key = $key+1;?>
                         <?php if($key<4):?>
                             <div class="adr-shipping">
