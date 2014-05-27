@@ -6,20 +6,25 @@
 <% if(typeof withTax === 'undefined'){%>
     <% if(limitType === 'eachover'){ %>
        <% price = parseFloat((comparator - amount_limit)*price).toFixed(2) %>
-        <p> Price : <%= price %></p>
+        <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= price %></p>
     <% } else {%>
-        <p> Price : <%= price %></p>
+        <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= price %></p>
     <%}%>
 <% } else { %>
-    <p> Price : <%= price %></p>
+    <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= price %></p>
 <% } %>
-<p><span><%= working_hours.sunday %></span></p>
-<p><span><%= working_hours.monday %></span></p>
-<p><span><%= working_hours.tuesday %></span></p>
-<p><span><%= working_hours.wednesday %></span></p>
-<p><span><%= working_hours.thursday %></span></p>
-<p><span><%= working_hours.friday %></span></p>
-<p><span><%= working_hours.saturday %></span></p>
+<p><span><%= _.isUndefined(i18n['Sunday'])?'Sunday':i18n['Sunday'] %>: <%= working_hours.sunday %></span></p>
+<p><span><%= _.isUndefined(i18n['Monday'])?'Monday':i18n['Monday'] %>: <%= working_hours.monday %></span></p>
+<p><span><%= _.isUndefined(i18n['Tuesday'])?'Tuesday':i18n['Tuesday'] %>: <%= working_hours.tuesday %></span></p>
+<p><span><%= _.isUndefined(i18n['Wednesday'])?'Wednesday':i18n['Wednesday'] %>: <%= working_hours.wednesday %></span></p>
+<p><span><%= _.isUndefined(i18n['Thursday'])?'Thursday':i18n['Thursday'] %>: <%= working_hours.thursday %></span></p>
+<p><span><%= _.isUndefined(i18n['Friday'])?'Friday':i18n['Friday'] %>: <%= working_hours.friday %></span></p>
+<p><span><%= _.isUndefined(i18n['Saturday'])?'Saturday':i18n['Saturday'] %>: <%= working_hours.saturday %></span></p>
+
+<% if(!_.isNull(notes)){ %>
+    <br/>
+    <p><%= notes %></p>
+<% }%>
 <br/>
 
 <a href="javascript:;" class="apply-pickup" data-pickup-id="<%= id %>">apply pickup</a>

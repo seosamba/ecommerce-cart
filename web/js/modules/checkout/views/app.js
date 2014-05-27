@@ -39,7 +39,6 @@ define([ 'backbone',
             refreshCartSummary();
         },
         initMap: function () {
-            var geocoder = new google.maps.Geocoder();
             var myOptions = this.initOptionsMap();
             this.directionsDisplay = new google.maps.DirectionsRenderer();
             this.map = new google.maps.Map(document.getElementById('pickup-locations'), myOptions);
@@ -213,6 +212,7 @@ define([ 'backbone',
                 imageName = $('#website_url').val()+'media/'+'/pickup-logos/small/'+marker.imgName;
             }
 
+            marker.i18n = i18n;
             if(typeof marker.userLocation !== 'undefined'){
                 imageName = userLocationImageName;
                 var infoWindow = new google.maps.InfoWindow({
@@ -269,6 +269,7 @@ define([ 'backbone',
                     var currentMap = this;
 
                     $.post($('#website_url').val()+'plugin/cart/run/pickupLocationTax/', {locationId:currentMap.id, price:currentMap.price}, function(response){
+                        response.responseText.i18n = i18n;
                         infoWindow.setContent(_.template(PickupInfoWindowTemplate, response.responseText));
                         infoWindow.open(currentMap.map, currentMap);
                     }, 'json');
@@ -327,6 +328,7 @@ define([ 'backbone',
                 var locationData = this.pickupLocations[pickupId];
                 $.post($('#website_url').val()+'plugin/cart/run/pickupLocationTax/', {locationId:locationData.id, price:locationData.price}, function(response){
                     $('#pickup-map-locations').toggleClass('hidden');
+                    response.responseText.i18n = i18n;
                     $('#pickup-result').append(_.template(PickupResultTemplate, response.responseText));
                     $('#pickup-with-price-result').show();
                     $('#pickup-address-result').toggleClass('hidden');
