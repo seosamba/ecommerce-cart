@@ -1150,6 +1150,7 @@ class Cart extends Tools_Cart_Cart {
                         $comparator = $cartContent->calculateCartWeight();
                         break;
                 }
+                $cartFullWeight = $cartContent->calculateCartWeight();
                 $result = array();
                 $locationsRadius = self::$_pickupLocationRadius;
                 $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
@@ -1164,7 +1165,7 @@ class Cart extends Tools_Cart_Cart {
                         'longitudeStart' => $userLongitude - $radiusDiffValue,
                         'longitudeEnd' => $userLongitude + $radiusDiffValue
                     );
-                    $result = $pickupLocationConfigMapper->getLocations($comparator, false, $coordinates);
+                    $result = $pickupLocationConfigMapper->getLocations($comparator, false, $coordinates, $cartFullWeight);
                     if (!empty($result)) {
                         break;
                     }
