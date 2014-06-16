@@ -8,12 +8,12 @@
 <% if(typeof withTax === 'undefined'){%>
     <% if(limitType === 'eachover'){ %>
        <% price = parseFloat((comparator - amount_limit)*price).toFixed(2) %>
-        <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= currency %> <%= price %></p>
+        <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= currency %><%= price %></p>
     <% } else {%>
-        <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= currency %> <%= price %></p>
+        <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= currency %><%= price %></p>
     <%}%>
 <% } else { %>
-    <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= currency %> <%= price %></p>
+    <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= currency %><%= price %></p>
 <% } %>
 <table>
 <tr>
