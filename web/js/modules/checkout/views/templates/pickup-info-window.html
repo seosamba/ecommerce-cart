@@ -1,16 +1,19 @@
 <h3><%= name %></h3>
 <p><%= address1 %> <%= address2 %> , <%= city %><br/>
 <%= zip %> <%= country %><br />
-<%= _.isUndefined(i18n['Phone'])?'Monday':i18n['Phone'] %>: <%= phone %></p>
+<%= _.isUndefined(i18n['Phone'])?'Phone':i18n['Phone'] %>: <%= phone %></p>
+<% if(typeof currency === 'undefined'){%>
+    <% currency = '' %>
+<% } %>
 <% if(typeof withTax === 'undefined'){%>
     <% if(limitType === 'eachover'){ %>
        <% price = parseFloat((comparator - amount_limit)*price).toFixed(2) %>
-        <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= price %></p>
+        <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= currency %> <%= price %></p>
     <% } else {%>
-        <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= price %></p>
+        <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= currency %> <%= price %></p>
     <%}%>
 <% } else { %>
-    <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= price %></p>
+    <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= currency %> <%= price %></p>
 <% } %>
 <table>
 <tr>
@@ -50,4 +53,4 @@
 <% }%>
 <br/>
 
-<a href="javascript:;" class="apply-pickup btn link success" data-pickup-id="<%= id %>">apply pickup</a>
+<a href="javascript:;" class="apply-pickup btn link success" data-pickup-id="<%= id %>"><%= _.isUndefined(i18n['Select this pickup location'])?'Select this pickup location':i18n['Select this pickup location'] %></a>

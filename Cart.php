@@ -1200,6 +1200,8 @@ class Cart extends Tools_Cart_Cart {
             $cartContent = Tools_ShoppingCart::getInstance();
             if (!empty($cartContent)) {
                 $pickupSettings = Store_Mapper_PickupLocationMapper::getInstance()->find($locationId);
+                $correctCurrency = isset($this->_shoppingConfig['currency']) ? $this->_shoppingConfig['currency'] : self::DEFAULT_CURRENCY_NAME;
+                $currencySymbol = $this->_currency->getSymbol($correctCurrency, self::DEFAULT_LOCALE);
                 if (!empty($pickupSettings)) {
                     $result = $pickupSettings->toArray();
                     $countries = Tools_Geo::getCountries(true);
@@ -1210,6 +1212,7 @@ class Cart extends Tools_Cart_Cart {
                     $result['working_hours'] = unserialize($result['workingHours']);
                     $result['withTax'] = '';
                     $result['price'] = $price+$shippingTax;
+                    $result['currency'] = $currencySymbol;
                     $this->_responseHelper->success($result);
                 }
             }
