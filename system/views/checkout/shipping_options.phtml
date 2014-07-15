@@ -40,7 +40,7 @@
     <img src="<?php echo Tools_Geo::generateStaticGmaps($this->shoppingConfig, 640, 320); ?>" alt="<?php echo $this->translate('Pickup location'); ?>">
 </div>
 <?php elseif($this->pickupForm && !$this->defaultPickup):?>
-    <div id="checkout-pickup-form" class="hidden">
+    <div id="checkout-pickup-form" style="<?php if ($this->shippingForm && !$this->pickupForm->isErrors()): ?>display: none;<?php endif; ?>">
         <div id="initial-pickup-info">
             <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
             <p><label><?php echo $this->translate('Enter location');?></label>
