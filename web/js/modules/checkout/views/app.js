@@ -327,12 +327,10 @@ define([ 'backbone',
             if(typeof  this.pickupLocations[pickupId] !== 'undefined'){
                 var locationData = this.pickupLocations[pickupId];
                 $.post($('#website_url').val()+'plugin/cart/run/pickupLocationTax/', {locationId:locationData.id, price:locationData.price}, function(response){
-                    $('#pickup-map-locations').toggleClass('hidden');
+                    $('#pickup-map-locations,#pickup-address-result,#initial-pickup-info').toggle();
                     response.responseText.i18n = i18n;
                     $('#pickup-result').append(_.template(PickupResultTemplate, response.responseText));
                     $('#pickup-with-price-result').show();
-                    $('#pickup-address-result').toggleClass('hidden');
-                    $('#initial-pickup-info').toggleClass('hidden');
                     $('#pickupLocationId').val(locationData.id);
                 }, 'json');
 
