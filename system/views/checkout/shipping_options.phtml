@@ -63,7 +63,7 @@
                             <?php echo $shippingAddress['city'].($shippingAddress['city']&&($shippingAddress['state'] || $shippingAddress['zip'])?',':'');?>
                         </span>
                         <span class="region"><?php $state = Tools_Geo::getStateById($shippingAddress['state']); echo $state['state']; ?></span>
-                        <span class="postal-code"><?php echo $billingAddress['zip'];?></span>
+                        <span class="postal-code"><?php echo $shippingAddress['zip'];?></span>
                         <br />
                         <span><?php echo $countryList[$shippingAddress['country']];?></span>
                         <span class="email clearfix"> <?php echo $shippingAddress['email'];?></span>
