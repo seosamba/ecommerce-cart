@@ -89,10 +89,14 @@ class Cart extends Tools_Cart_Cart {
 
 	}
 
-	public function beforeController() {
-		$layout = Zend_Layout::getMvcInstance();
-		$layout->getView()->headScript()->appendFile($this->_websiteUrl . 'plugins/cart/web/js/toastercart.js');
-	}
+    public function beforeController()
+    {
+        $currentController = $this->_request->getParam('controller');
+        if (!preg_match('~backend_~', $currentController)) {
+            $layout = Zend_Layout::getMvcInstance();
+            $layout->getView()->headScript()->appendFile($this->_websiteUrl . 'plugins/cart/web/js/toastercart.js');
+        }
+    }
 
 	private function _initCurrency() {
 		if (!Zend_Registry::isRegistered('Zend_Currency')) {
