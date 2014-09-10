@@ -1,10 +1,13 @@
 <?php
-$this->jQuery()->addJavascriptFile($this->websiteUrl.'plugins/shopping/web/js/libs/jquery/addresschain.jquery.js');
+$this->inlineScript()
+    ->appendFile($this->websiteUrl.'plugins/shopping/web/js/libs/jquery/addresschain.jquery.js')
+    ->appendFile($this->websiteUrl . 'plugins/shopping/web/js/libs/require.min.js',
+        null,
+        array('data-main' => $this->websiteUrl . 'plugins/cart/web/js/modules/checkout/main.js')
+    );
 ?>
 <input type="hidden" name="system-language" value="<?php echo Tools_Misc::getJsTranslationLanguage();?>"/>
-<div class="spinner"><img src="<?php echo $this->websiteUrl;?>/plugins/shopping/web/images/spinner.gif" alt=""></div>
+<div class="spinner text-center"><img src="<?php echo $this->websiteUrl;?>/system/images/spinner2.gif" alt=""></div>
 <div id="checkout-widget" style="display: none;">
 	<?php echo $this->content; ?>
 </div>
-
-<script data-main="<?php echo $this->websiteUrl;?>plugins/cart/web/js/modules/checkout/main.js" src="<?php echo $this->websiteUrl;?>plugins/shopping/web/js/libs/require.min.js"></script>
