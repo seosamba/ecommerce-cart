@@ -3,7 +3,7 @@ $this->inlineScript()
     ->appendFile($this->websiteUrl.'plugins/shopping/web/js/libs/jquery/addresschain.jquery.js')
     ->appendFile($this->websiteUrl . 'plugins/shopping/web/js/libs/require.min.js',
         null,
-        array('data-main' => $this->websiteUrl . 'plugins/cart/web/js/modules/checkout/main.js')
+        array('data-main' => $this->websiteUrl . 'plugins/cart/web/js/modules/checkout/main.js', 'noconcat' => true)
     );
 ?>
 <input type="hidden" name="system-language" value="<?php echo Tools_Misc::getJsTranslationLanguage();?>"/>
