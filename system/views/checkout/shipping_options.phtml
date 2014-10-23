@@ -81,6 +81,7 @@
     <?php if($this->pickAddress):?>
         <div id="shipping-address-list" class="clearfix">
             <?php $addressList = $this->customer->getAddresses(); ?>
+            <?php $countryList = Tools_Geo::getCountries(true);?>
             <?php if (!empty($addressList)): ?>
                 <?php $key = 0;?>
                 <?php foreach ($addressList as $shippingAddress): ?>

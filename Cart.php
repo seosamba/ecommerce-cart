@@ -216,6 +216,13 @@ class Cart extends Tools_Cart_Cart {
 		}
 		$product = $this->_productMapper->find($productId);
 		$inStockCount = $product->getInventory();
+        $productDisabled = $product->getEnabled();
+        if (!$productDisabled) {
+            return $this->_responseHelper->response(
+                array('msg' => $this->_translator->translate('This product is not available')),
+                1
+            );
+        }
 
 		if (!is_null($inStockCount)) {
 			$inStockCount = intval($inStockCount);
@@ -327,10 +334,12 @@ class Cart extends Tools_Cart_Cart {
 				}
 			}
 		}
-		if ($this->_cartStorage->updateQty($storageId, $newQty)) {
-			return $this->_responseHelper->success(array(
+        if ($this->_cartStorage->updateQty($storageId, $newQty)) {
+            $orderMinQty = $this->_analyzeOrderQuantity();
+            return $this->_responseHelper->success(array(
 				'sid' => $storageId,
 				'qty' => $newQty,
+                'minqty' => $orderMinQty,
 				'msg' => $this->_view->translate("Sorry, we only have %1\$s %2\$s available in stock at the moment", $newQty, $prod->getName())
 			));
 		}
@@ -347,10 +356,36 @@ class Cart extends Tools_Cart_Cart {
 			$this->_responseHelper->success($this->_translator->translate('Removed.'));
 		}
 		if ($this->_cartStorage->remove($this->_requestedParams['sid'])) {
-            $this->_responseHelper->success(array('sidQuantity' => count($this->_cartStorage->getContent()), 'message'=> $this->_translator->translate('Removed.')));
+            $orderMinQty = $this->_analyzeOrderQuantity();
+            $this->_responseHelper->success(array('sidQuantity' => count($this->_cartStorage->getContent()), 'message'=> $this->_translator->translate('Removed.'), 'minqty' => $orderMinQty));
         }
 		$this->_responseHelper->fail($this->_translator->translate('Cant remove product.'));
 	}
+
+    protected function _analyzeOrderQuantity()
+    {
+        $orderMinQty = true;
+        $cartContent = $this->_cartStorage->getContent();
+        $orderConfig = Models_Mapper_ShippingConfigMapper::getInstance()->find(
+            Shopping::ORDER_CONFIG
+        );
+        if (!empty($cartContent) && !empty($orderConfig) && $orderConfig['enabled'] === 1) {
+            $quantity = $this->_cartStorage->findProductQuantityInCart();
+            $previousQuantity = $quantity;
+            if (isset($this->_sessionHelper->orderQuantityState)) {
+                $previousQuantity = $this->_sessionHelper->orderQuantityState;
+            }
+            $minOrderLimit = $orderConfig['config']['quantity'];
+            if (($quantity >= $minOrderLimit && $previousQuantity < $minOrderLimit) ||
+                ($previousQuantity >= $minOrderLimit && $quantity < $minOrderLimit)
+            ) {
+                $orderMinQty = false;
+            }
+            $this->_sessionHelper->orderQuantityState = $quantity;
+        }
+        return $orderMinQty;
+    }
+
 
 	protected function _getCart() {
 		return array_values($this->_cartStorage->getContent());
@@ -871,7 +906,29 @@ class Cart extends Tools_Cart_Cart {
 					Shopping::SHIPPING_PICKUP
 				));
 			});
+
+            $orderConfig = array_filter($shippers, function ($shipper) {
+                    return in_array($shipper['name'], array(
+                            Shopping::ORDER_CONFIG
+                    ));
+            });
 		}
+
+        if (!empty($orderConfig)) {
+            $cartContent = $this->_cartStorage->getContent();
+            foreach($orderConfig as $orderConf){
+                if($orderConf['name'] === Shopping::ORDER_CONFIG){
+                    $minOrderLimit = $orderConf['config']['quantity'];
+                }
+            }
+            if (!empty($cartContent)) {
+                $quantity = $this->_cartStorage->findProductQuantityInCart();
+                $this->_sessionHelper->orderQuantityState = $quantity;
+                if ($quantity < $minOrderLimit) {
+                    return '{$content:orderQuantityError:static}';
+                }
+            }
+        }
 
 		if (is_null($pickup) || (bool)$pickup['enabled'] == false) {
 			if (empty($shippers)) {
@@ -1006,7 +1063,7 @@ class Cart extends Tools_Cart_Cart {
 		$shippingServices = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
 		if (!empty($shippingServices)) {
 			$shippingServices = array_map(function ($shipper) {
-				return !in_array($shipper['name'], array(Shopping::SHIPPING_MARKUP, Shopping::SHIPPING_PICKUP, Shopping::SHIPPING_FREESHIPPING)) ? array(
+				return !in_array($shipper['name'], array(Shopping::SHIPPING_MARKUP, Shopping::SHIPPING_PICKUP, Shopping::SHIPPING_FREESHIPPING, Shopping::ORDER_CONFIG)) ? array(
 					'name'  => $shipper['name'],
 					'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
 				) : null;
