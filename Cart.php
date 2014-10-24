@@ -500,10 +500,10 @@ class Cart extends Tools_Cart_Cart {
 			$this->_getCheckoutPage();
 
             $pickup = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
-            $defaultPickup = false;
+            $defaultPickup = true;
             if ($pickup && (bool)$pickup['enabled']) {
-                if (isset($pickup['config']['defaultPickupConfig']) && $pickup['config']['defaultPickupConfig'] === '1' || $pickup['config'] === null) {
-                    $defaultPickup = true;
+                if(isset($pickup['config']['defaultPickupConfig']) && $pickup['config']['defaultPickupConfig'] === '0'){
+                    $defaultPickup = false;
                 }
             }
             $this->_view->defaultPickup = $defaultPickup;
@@ -723,11 +723,10 @@ class Cart extends Tools_Cart_Cart {
 	private function _checkoutStepPickup() {
         $pickup = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
         $pickupForm = new Forms_Checkout_Pickup();
+        $defaultPickup = true;
+        $price = 0;
         if ($pickup && (bool)$pickup['enabled']) {
-            if(isset($pickup['config']['defaultPickupConfig']) && $pickup['config']['defaultPickupConfig'] === '1' || $pickup['config'] === null){
-                $defaultPickup = true;
-                $price = 0;
-            }else{
+            if(isset($pickup['config']['defaultPickupConfig']) && $pickup['config']['defaultPickupConfig'] === '0'){
                 $pickupForm = new Forms_Checkout_PickupWithPrice();
                 $defaultPickup = false;
             }
@@ -759,6 +758,7 @@ class Cart extends Tools_Cart_Cart {
                     if (!$pickup || !isset($pickup['config'])) {
                         throw new Exceptions_SeotoasterPluginException('pickup not configured');
                     }
+                    $comparator = 0;
                     switch ($pickup['config']['units']) {
                         case Shopping::COMPARE_BY_AMOUNT:
                             $comparator = $cart->getTotal();
