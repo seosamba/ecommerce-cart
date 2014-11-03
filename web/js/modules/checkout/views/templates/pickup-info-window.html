@@ -16,6 +16,7 @@
     <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= currency %><%= price %></p>
 <% } %>
 <table>
+<a href="javascript:;" class="apply-pickup btn link success" data-pickup-id="<%= id %>"><%= _.isUndefined(i18n['Select this pickup location'])?'Select this pickup location':i18n['Select this pickup location'] %></a>
 <tr>
     <th><%= _.isUndefined(i18n['Sunday'])?'Sunday':i18n['Sunday'] %>: </th>
     <td>
@@ -53,4 +54,4 @@
 <% }%>
 <br/>
 
-<a href="javascript:;" class="apply-pickup btn link success" data-pickup-id="<%= id %>"><%= _.isUndefined(i18n['Select this pickup location'])?'Select this pickup location':i18n['Select this pickup location'] %></a>
+
