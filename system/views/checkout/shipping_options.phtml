@@ -43,21 +43,35 @@
     <div id="checkout-pickup-form" style="<?php if ($this->shippingForm && !$this->pickupForm->isErrors()): ?>display: none;<?php endif; ?>">
         <div id="initial-pickup-info">
             <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
-            <p><label><?php echo $this->translate('Enter location');?></label>
-            <input type="text" name="user-location" id="user-info-location"/></p>
-            <input id="user-info-pickup" type="button" value="Search" />
+            <?php if(!empty($this->pickupLocationConfig['searchEnabled'])):?>
+                <p><label><?php echo $this->translate('Enter location');?></label>
+                <input type="text" name="user-location" id="user-info-location"/></p>
+                <input id="user-info-pickup" type="button" value="Search" />
+            <?php else:?>
+                <?php if(!empty($this->locationList)):?>
+                    <select name="location-list-pickup" id="location-list-pickup">
+                        <option value="-1"><?php echo $this->translate('Select pickup location');?></option>
+                        <?php foreach($this->locationList as $pickupLocation):?>
+                            <option value="<?php echo $pickupLocation['id'];?>"><?php echo $pickupLocation['city'];?> (<?php echo $pickupLocation['country'];?>)</option>
+                        <?php endforeach;?>
+                    </select>
+                <?php else:?>
+                    <?php echo $this->translate('There are no pickup locations');?>
+                <?php endif;?>
+            <?php endif;?>
         </div>
         <div id="pickup-with-price-result" class="hide">
             <h3 class="checkout-forms-header">
                 <?php echo $this->pickupForm->getLegend(); ?>
             </h3>
             <?php echo $this->pickupForm; ?>
-            <?php if ($this->shippingForm):?>
         </div>
-        <div id="pickup-address-result" class="hide">
-        <h3 class="checkout-forms-header"><?php echo $this->translate('Pickup location');?>
-            <a href="<?php echo $this->websiteUrl . isset($this->checkoutPage) ? $this->checkoutPage->getUrl():'';?>" class="checkout-edit" title="<?php echo $this->translate('Edit location');?>"><?php echo '[&nbsp;'.$this->translate('edit').'&nbsp;]';?></a>
-        </h3>
+
+        <?php if ($this->shippingForm):?>
+             <div id="pickup-address-result" class="hide">
+            <h3 class="checkout-forms-header"><?php echo $this->translate('Pickup location');?>
+                <a href="<?php echo $this->websiteUrl . isset($this->checkoutPage) ? $this->checkoutPage->getUrl():'';?>" class="checkout-edit" title="<?php echo $this->translate('Edit location');?>"><?php echo '[&nbsp;'.$this->translate('edit').'&nbsp;]';?></a>
+            </h3>
         <?php endif;?>
         <div id="pickup-result"></div>
         </div>

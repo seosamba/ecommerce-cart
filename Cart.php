@@ -970,6 +970,8 @@ class Cart extends Tools_Cart_Cart {
                     $formPickup = new Forms_Checkout_Pickup();
                 }else{
                     $defaultPickup = false;
+                    $this->_view->pickupLocationConfig = $pickup['config'];
+                    $this->_view->locationList = self::getPickupLocationCities();
                     $formPickup = new Forms_Checkout_PickupWithPrice();
                 }
                 $this->_view->defaultPickup = $defaultPickup;
@@ -1186,6 +1188,14 @@ class Cart extends Tools_Cart_Cart {
 		return false;
 	}
 
+    /**
+     * Analyze pickup locations on checkout
+     * Search by pickup location id and use the same city and country
+     * or
+     * by provided information about user location
+     *
+     * @throws Exceptions_SeotoasterPluginException
+     */
     public function getPickupLocationsAction()
     {
         if ($this->_request->isPost()) {
@@ -1193,10 +1203,17 @@ class Cart extends Tools_Cart_Cart {
             if (!$locationSearch) {
                 $this->_responseHelper->fail('');
             }
-            $locationCoordinates = Tools_Geo::getMapCoordinates($locationSearch);
-            if ($locationCoordinates['lat'] === null || $locationCoordinates['lng'] === null) {
-                $this->_responseHelper->fail('');
+            $searchByLocationId = false;
+            if (is_numeric($locationSearch)) {
+                $searchByLocationId = true;
             }
+            if (!$searchByLocationId) {
+                $locationCoordinates = Tools_Geo::getMapCoordinates($locationSearch);
+                if ($locationCoordinates['lat'] === null || $locationCoordinates['lng'] === null) {
+                    $this->_responseHelper->fail('');
+                }
+            }
+
             $cartContent = Tools_ShoppingCart::getInstance();
             if (!empty($cartContent)) {
                 $pickupSettings = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
@@ -1213,22 +1230,46 @@ class Cart extends Tools_Cart_Cart {
                 }
                 $cartFullWeight = $cartContent->calculateCartWeight();
                 $result = array();
-                $locationsRadius = self::$_pickupLocationRadius;
                 $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
-                foreach ($locationsRadius as $key => $radius) {
-                    $radiusDiffValue = $radius / 111;
-                    $radiusDiffValue = number_format($radiusDiffValue, 7, '.', '');
-                    $userLatitude = $locationCoordinates['lat'];
-                    $userLongitude = $locationCoordinates['lng'];
-                    $coordinates = array(
-                        'latitudeStart' => $userLatitude - $radiusDiffValue,
-                        'latitudeEnd' => $userLatitude + $radiusDiffValue,
-                        'longitudeStart' => $userLongitude - $radiusDiffValue,
-                        'longitudeEnd' => $userLongitude + $radiusDiffValue
-                    );
-                    $result = $pickupLocationConfigMapper->getLocations($comparator, false, $coordinates, $cartFullWeight);
-                    if (!empty($result)) {
-                        break;
+                if (!$searchByLocationId) {
+                    $locationsRadius = self::$_pickupLocationRadius;
+                    foreach ($locationsRadius as $key => $radius) {
+                        $radiusDiffValue = $radius / 111;
+                        $radiusDiffValue = number_format($radiusDiffValue, 7, '.', '');
+                        $userLatitude = $locationCoordinates['lat'];
+                        $userLongitude = $locationCoordinates['lng'];
+                        $coordinates = array(
+                            'latitudeStart' => $userLatitude - $radiusDiffValue,
+                            'latitudeEnd' => $userLatitude + $radiusDiffValue,
+                            'longitudeStart' => $userLongitude - $radiusDiffValue,
+                            'longitudeEnd' => $userLongitude + $radiusDiffValue
+                        );
+                        $result = $pickupLocationConfigMapper->getLocations(
+                            $comparator,
+                            false,
+                            $coordinates,
+                            $cartFullWeight
+                        );
+                        if (!empty($result)) {
+                            break;
+                        }
+                    }
+                } else {
+                    $initialLocation = Store_Mapper_PickupLocationMapper::getInstance()->find($locationSearch);
+                    if ($initialLocation instanceof Store_Model_PickupLocation) {
+                        $result = $pickupLocationConfigMapper->getLocations(
+                            $comparator,
+                            false,
+                            array(),
+                            $cartFullWeight,
+                            false,
+                            array(
+                                'shpl.city' => $initialLocation->getCity(),
+                                'shpl.country' => $initialLocation->getCountry()
+                            )
+                        );
+                    } else {
+                        $this->_responseHelper->fail('');
                     }
                 }
                 if (!empty($result)) {
@@ -1251,11 +1292,14 @@ class Cart extends Tools_Cart_Cart {
             }
             $this->_responseHelper->fail('');
         }
-
     }
 
-    public function pickupLocationTaxAction(){
-        if($this->_request->isPost()){
+    /**
+     * Calculate pickup location with tax
+     */
+    public function pickupLocationTaxAction()
+    {
+        if ($this->_request->isPost()) {
             $locationId = filter_var($this->_request->getParam('locationId'), FILTER_SANITIZE_NUMBER_INT);
             $price = filter_var($this->_request->getParam('price'), FILTER_SANITIZE_STRING);
             $cartContent = Tools_ShoppingCart::getInstance();
@@ -1272,12 +1316,46 @@ class Cart extends Tools_Cart_Cart {
 
                     $result['working_hours'] = unserialize($result['workingHours']);
                     $result['withTax'] = '';
-                    $result['price'] = $price+$shippingTax;
+                    $result['price'] = $price + $shippingTax;
                     $result['currency'] = $currencySymbol;
                     $this->_responseHelper->success($result);
                 }
             }
         }
+    }
+
+
+    /**
+     * Return pickup locations with distinct cities and countries
+     *
+     * @return array|mixed
+     * @throws Exceptions_SeotoasterPluginException (if pickup locations not configured)
+     */
+    public static function getPickupLocationCities()
+    {
+        $cartContent = Tools_ShoppingCart::getInstance();
+        if (!empty($cartContent)) {
+            $pickupSettings = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
+            if (!$pickupSettings || !isset($pickupSettings['config'])) {
+                throw new Exceptions_SeotoasterPluginException('pickup not configured');
+            }
+            switch ($pickupSettings['config']['units']) {
+                case Shopping::COMPARE_BY_AMOUNT:
+                    $comparator = $cartContent->getTotal();
+                    break;
+                case Shopping::COMPARE_BY_WEIGHT:
+                    $comparator = $cartContent->calculateCartWeight();
+                    break;
+            }
+            $cartFullWeight = $cartContent->calculateCartWeight();
+            $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
+            $result = $pickupLocationConfigMapper->getLocations($comparator, false, array(), $cartFullWeight, true);
+            if (!empty($result)) {
+                return $result;
+            }
+            return array();
+        }
+
     }
 
 //	@TODO implement widget maker

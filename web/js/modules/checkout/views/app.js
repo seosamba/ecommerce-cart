@@ -17,7 +17,8 @@ define([ 'backbone',
             'click li.pickup-address-row': 'checkedPickupLocation',
             'click a.apply-pickup':'applyPickupPrice',
             'click #user-info-pickup': 'searchPickupLocations',
-            'keypress #user-info-location':'searchPickup'
+            'keypress #user-info-location':'searchPickup',
+            'change #location-list-pickup ': 'searchByPickupLocation'
         },
         initialize: function(){
             this.websiteUrl = $('#website_url').val();
@@ -165,6 +166,21 @@ define([ 'backbone',
                 this.searchPickupLocations(e);
             }
         },
+        searchByPickupLocation: function(e){
+            this.mapBounds = [];
+            var currentMarkers = this.mapMarkers,
+                pickupLocationId = $(e.currentTarget).val();
+            if(pickupLocationId == '-1'){
+                return false;
+            }
+            if(!_.isEmpty(currentMarkers)){
+                this.clearPickupLocationMap(currentMarkers);
+            }
+            this.mapMarkers = [];
+            this.pickupLocations = [];
+            this.infoWindowsData = [];
+            this.getPickupLocations(pickupLocationId, true);
+        },
         searchPickupLocations: function(e){
             if(this.$el.find('#pickup-locations').length > 0){
                 var locationAddress = $.trim($('#user-info-location').val());
@@ -180,7 +196,7 @@ define([ 'backbone',
                 this.mapMarkers = [];
                 this.pickupLocations = [];
                 this.infoWindowsData = [];
-                this.getPickupLocations(locationAddress, currentMarkers);
+                this.getPickupLocations(locationAddress);
             }
         },
         initOptionsMap: function() {
@@ -199,13 +215,12 @@ define([ 'backbone',
                panControl: true
             }
         },
-        addMarkers: function(marker, userLocation){
+        addMarkers: function(marker, userLocation, withoutSearch){
             //default image
             var imageName = 'https://www.google.com/intl/en_us/mapfiles/ms/micons/red-dot.png';
             //user location image
             var userLocationImageName = 'https://www.google.com/intl/en_us/mapfiles/ms/micons/green-dot.png';
 
-            // The place where loc contains geocoded coordinates
             var latLng    = new google.maps.LatLng(parseFloat(marker.lat), parseFloat(marker.lng));
 
             if(!_.isNull(marker.imgName)){
@@ -214,6 +229,9 @@ define([ 'backbone',
 
             marker.i18n = i18n;
             if(typeof marker.userLocation !== 'undefined'){
+                if(withoutSearch){
+                    return false;
+                }
                 imageName = userLocationImageName;
                 var infoWindow = new google.maps.InfoWindow({
                     content: ''
@@ -246,21 +264,25 @@ define([ 'backbone',
 
                 google.maps.event.addListener(newMarker, 'click', function() {
                     //map route
-                    var end = new google.maps.LatLng(parseFloat(this.position.lat()), parseFloat(this.position.lng()));
-                    var start = this.userLocation;
+                    //display only with search by pickup locations
+                    if(!withoutSearch){
+                        var end = new google.maps.LatLng(parseFloat(this.position.lat()), parseFloat(this.position.lng()));
+                        var start = this.userLocation;
 
-                    var request = {
-                        origin:start,
-                        destination:end,
-                        travelMode: google.maps.TravelMode.DRIVING
-                    };
-                    var directionDisplay = this.directionsDisplay;
-                    this.directionsService.route(request, function(response, status) {
+                        var request = {
+                            origin:start,
+                            destination:end,
+                            travelMode: google.maps.TravelMode.DRIVING
+                        };
+
+                        var directionDisplay = this.directionsDisplay;
+                        this.directionsService.route(request, function(response, status) {
                         if (status == google.maps.DirectionsStatus.OK) {
                             directionDisplay.setDirections(response);
                             directionDisplay.setOptions( { suppressMarkers: true } );
-                        }
-                    });
+                            }
+                        });
+                    }
                     //remove all opened info windows
                     for (var i=0;i<this.infoWindow.length;i++) {
                         this.infoWindow[i].close();
@@ -283,15 +305,16 @@ define([ 'backbone',
             this.mapBounds.push(latLng);
             this.mapMarkers.push(newMarker);
         },
-        getPickupLocations: function(locationAddress){
-            var self = this;
-            $.post($('#website_url').val()+'plugin/cart/run/getPickupLocations/', {locationAddress:locationAddress}, function(response){
+        getPickupLocations: function(locationAddress, withoutSearch){
+            var self = this,
+                withoutSearch = withoutSearch || false;
+            $.post($('#website_url').val()+'plugin/cart/run/getPickupLocations/', {locationAddress:locationAddress, withoutSearch:withoutSearch}, function(response){
                 if(response.error === 0){
                     var userLocation = new google.maps.LatLng(parseFloat(response.responseText.userLocation.lat), parseFloat(response.responseText.userLocation.lng));
                     $.each(response.responseText.result, function(value, marker){
                         self.pickupLocations[marker.id] = marker;
                         if(!_.isNull(marker.name) || !_.isNull(marker.address1)){
-                             self.addMarkers(marker, userLocation);
+                             self.addMarkers(marker, userLocation, withoutSearch);
                         }
                     });
                     var latlngbounds = new google.maps.LatLngBounds();
