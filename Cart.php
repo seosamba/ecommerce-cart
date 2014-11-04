@@ -1281,22 +1281,17 @@ class Cart extends Tools_Cart_Cart {
                         },
                         $result
                     );
-                    if ($searchByLocationId) {
-                        $result[] = array('userLocation' => true, 'lat' => $userLatitude, 'lng' => $userLongitude);
-                        $this->_responseHelper->success(
-                            array(
-                                'result' => $result,
-                                'userLocation' => array('lat' => $userLatitude, 'lng' => $userLongitude)
-                            )
-                        );
-                    }else{
-                        $this->_responseHelper->success(
-                            array(
-                                'result' => $result
-                            )
-                        );
+                    if($searchByLocationId){
+                        $userLatitude = '';
+                        $userLongitude = '';
                     }
-
+                    $result[] = array('userLocation' => true, 'lat' => $userLatitude, 'lng' => $userLongitude);
+                    $this->_responseHelper->success(
+                        array(
+                            'result' => $result,
+                            'userLocation' => array('lat' => $userLatitude, 'lng' => $userLongitude)
+                        )
+                    );
                 }
             }
             $this->_responseHelper->fail('');
