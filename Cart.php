@@ -215,6 +215,13 @@ class Cart extends Tools_Cart_Cart {
 		}
 		$product = $this->_productMapper->find($productId);
 		$inStockCount = $product->getInventory();
+        $productDisabled = $product->getEnabled();
+        if (!$productDisabled) {
+            return $this->_responseHelper->response(
+                array('msg' => $this->_translator->translate('This product is not available')),
+                1
+            );
+        }
 
 		if (!is_null($inStockCount)) {
 			$inStockCount = intval($inStockCount);

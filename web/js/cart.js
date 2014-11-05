@@ -13,7 +13,7 @@ $(function() {
         $('#shipping-address-list .adr-shipping:lt(' + nextIndex + ')').show();
     });
 
-    $(document).on('change', '.product-qty', function() {
+    $(document).on('change', 'input.product-qty', function() {
         var self = this;
 		var sid = $(this).data('sid');
         var sidsQuantity = $('.toastercart-item-qty').length;
