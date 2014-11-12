@@ -1,57 +1,66 @@
-<h3><%= name %></h3>
-<p><%= address1 %> <%= address2 %> , <%= city %><br/>
-<%= zip %> <%= country %><br />
-<%= _.isUndefined(i18n['Phone'])?'Phone':i18n['Phone'] %>: <%= phone %></p>
-<% if(typeof currency === 'undefined'){%>
-    <% currency = '' %>
-<% } %>
-<% if(typeof withTax === 'undefined'){%>
-    <% if(limitType === 'eachover'){ %>
-       <% price = parseFloat((comparator - amount_limit)*price).toFixed(2) %>
-        <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= currency %><%= price %></p>
-    <% } else {%>
-        <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= currency %><%= price %></p>
-    <%}%>
-<% } else { %>
-    <p> <%= _.isUndefined(i18n['Price'])?'Price':i18n['Price'] %> : <%= currency %><%= price %></p>
-<% } %>
-<table>
-<a href="javascript:;" class="apply-pickup btn link success" data-pickup-id="<%= id %>"><%= _.isUndefined(i18n['Select this pickup location'])?'Select this pickup location':i18n['Select this pickup location'] %></a>
-<tr>
-    <th><%= _.isUndefined(i18n['Sunday'])?'Sunday':i18n['Sunday'] %>: </th>
-    <td>
-        <%= working_hours.sunday %>
-    </td>
-</tr>
-<tr>
-    <th><%= _.isUndefined(i18n['Monday'])?'Monday':i18n['Monday'] %>:</th>
-    <td><%= working_hours.monday %></td>
-</tr>
-<tr>
-    <th><%= _.isUndefined(i18n['Tuesday'])?'Tuesday':i18n['Tuesday'] %>:</th>
-    <td><%= working_hours.tuesday %></td>
-</tr>
-<tr>
-    <th><%= _.isUndefined(i18n['Wednesday'])?'Wednesday':i18n['Wednesday'] %>:</th>
-    <td><%= working_hours.wednesday %></td>
-</tr>
-<tr>
-    <th><%= _.isUndefined(i18n['Thursday'])?'Thursday':i18n['Thursday'] %>:</th>
-    <td><%= working_hours.thursday %></td>
-</tr>
-<tr>
-    <th><%= _.isUndefined(i18n['Friday'])?'Friday':i18n['Friday'] %>:</th>
-    <td><%= working_hours.friday %></td>
-</tr>
-<tr>
-    <th><%= _.isUndefined(i18n['Saturday'])?'Saturday':i18n['Saturday'] %>:</th>
-    <td><%= working_hours.saturday %></td>
-</tr>
-</table>
-<% if(!_.isNull(notes)){ %>
-    <br/>
-    <p><%= notes %></p>
+<div style="max-width: 500px;">
+    <h3><%= name %></h3>
+    <div class="grid_6 alpha">
+        <p>
+            <i class="ticon-location icon24 fl-left gray-light" style="margin-right: 10px;"></i>
+            <span class="block wrap large">
+            <%= address1 %> <%= address2 %>,<br/>
+            <%= city %> <%= zip %> <%= country %>
+            </span>
+        </p>
+        <p>
+            <i class="ticon-phone2 icon24 fl-left gray-light" style="margin-right: 10px;"></i> <span class="block wrap large"><%= phone %></span>
+        </p>
+    </div>
+    <div class="grid_6 omega text-center">
+        <% if(typeof currency === 'undefined'){%>
+            <% currency = '' %>
+        <% } %>
+        <span class="primary-bg larger" style="padding: 30px 10px;border-radius: 10em;display: inline-block;min-width: 94px;">
+            <% if(typeof withTax === 'undefined' && limitType === 'eachover'){ %>
+               <% price = parseFloat((comparator - amount_limit)*price).toFixed(2) %>
+            <% } %>
+            <%= currency %><%= price %>
+        </span>
+        <br>
+        <a href="javascript:;" class="apply-pickup large text-bold" data-pickup-id="<%= id %>"><%= _.isUndefined(i18n['Select this pickup location'])?'Select this pickup location':i18n['Select this pickup location'] %></a>
+    </div>
+    <span class="clearfix"></span>
+    <br>
+    <i class="ticon-time icon24 fl-left gray-light" style="margin-right: 10px;"></i>
+    <div class="wrap">
+        <table class="table-striped">
+            <tr>
+                <td><%= _.isUndefined(i18n['Sunday'])?'Sunday':i18n['Sunday'] %>: </td>
+                <td><%= working_hours.sunday %></td>
+            </tr>
+            <tr>
+                <td><%= _.isUndefined(i18n['Monday'])?'Monday':i18n['Monday'] %>:</td>
+                <td><%= working_hours.monday %></td>
+            </tr>
+            <tr>
+                <td><%= _.isUndefined(i18n['Tuesday'])?'Tuesday':i18n['Tuesday'] %>:</td>
+                <td><%= working_hours.tuesday %></td>
+            </tr>
+            <tr>
+                <td><%= _.isUndefined(i18n['Wednesday'])?'Wednesday':i18n['Wednesday'] %>:</td>
+                <td><%= working_hours.wednesday %></td>
+            </tr>
+            <tr>
+                <td><%= _.isUndefined(i18n['Thursday'])?'Thursday':i18n['Thursday'] %>:</td>
+                <td><%= working_hours.thursday %></td>
+            </tr>
+            <tr>
+                <td><%= _.isUndefined(i18n['Friday'])?'Friday':i18n['Friday'] %>:</td>
+                <td><%= working_hours.friday %></td>
+            </tr>
+            <tr>
+                <td><%= _.isUndefined(i18n['Saturday'])?'Saturday':i18n['Saturday'] %>:</td>
+                <td><%= working_hours.saturday %></td>
+            </tr>
+        </table>
+    </div>
+    <% if(!_.isNull(notes)){ %>
+        <p><%= notes %></p>
 <% }%>
-<br/>
-
-
+</div>
