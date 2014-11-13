@@ -7,8 +7,8 @@
 	        <a href="<?php echo $this->websiteUrl . $this->checkoutPage->getUrl();?>" class="checkout-edit" title="<?php echo $this->translate('Edit address');?>"><?php echo $editMsg;?></a>
         </h3>
 	    <div class="preview-content">
-	        <span class="fullname ticon-user"> <?php echo $this->yourInformation['firstname'].' '.$this->yourInformation['lastname'] ; ?></span>
-	        <span class="email icon-mail"> <?php echo $this->yourInformation['email']; ?></span>
+	        <span class="fullname"><i class="ticon-user icon24"></i> <?php echo $this->yourInformation['firstname'].' '.$this->yourInformation['lastname'] ; ?></span>
+	        <span class="email"><i class="ticon-email icon24"></i> <?php echo $this->yourInformation['email']; ?></span>
 	    </div>
 	</div>
 	<?php endif; ?>
