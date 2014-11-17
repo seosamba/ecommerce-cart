@@ -1,12 +1,17 @@
 <?php if ($this->pickupForm && $this->shippingForm) :?>
 <p class="checkout-button" style="<?php if ($this->shippingForm->isErrors() || $this->pickupForm->isErrors()) { echo "display: none"; } ?>">
-    <a href="" data-targetid="#checkout-pickup-form" data-role="button" title="<?php echo $this->translate('Free pickup'); ?>" id="pickup-action"><?php echo $this->translate('Free pickup'); ?></a>
+    <?php if($this->defaultPickup):?>
+        <?php $pickupLabel =  $this->translate('Free pickup'); ?>
+    <?php else:?>
+        <?php $pickupLabel =  $this->translate('Pickup'); ?>
+    <?php endif;?>
+    <a href="" data-targetid="#checkout-pickup-form" data-role="button" title="<?php echo $pickupLabel ?>" id="pickup-action"><?php echo $pickupLabel ?></a>
     <span class="disc"><?php echo $this->translate('OR');?></span>
     <a href="" data-targetid="#checkout-shipping-form" data-role="button" title="<?php echo $this->translate('Calculate shipping'); ?>" id="shipping-action"><?php echo $this->translate('Calculate shipping'); ?></a>
 </p>
 <?php endif; ?>
 
-<?php if ($this->pickupForm) : ?>
+<?php if ($this->pickupForm && $this->defaultPickup) : ?>
 <div id="checkout-pickup-form" style="<?php if ($this->shippingForm && !$this->pickupForm->isErrors()): ?>display: none;<?php endif; ?>">
 	<div>
 	    <h3 class="checkout-forms-header">
@@ -34,6 +39,49 @@
 	</div>
     <img src="<?php echo Tools_Geo::generateStaticGmaps($this->shoppingConfig, 640, 320); ?>" alt="<?php echo $this->translate('Pickup location'); ?>">
 </div>
+<?php elseif($this->pickupForm && !$this->defaultPickup):?>
+    <div id="checkout-pickup-form" style="<?php if ($this->shippingForm && !$this->pickupForm->isErrors()): ?>display: none;<?php endif; ?>">
+        <div id="initial-pickup-info">
+            <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
+            <?php if(!empty($this->pickupLocationConfig['searchEnabled'])):?>
+                <p><label><?php echo $this->translate('Enter location');?></label>
+                <input type="text" name="user-location" id="user-info-location"/></p>
+                <input id="user-info-pickup" type="button" value="Search" />
+            <?php else:?>
+                <?php if(!empty($this->locationList)):?>
+                    <select name="location-list-pickup" id="location-list-pickup">
+                        <option value="-1"><?php echo $this->translate('Select pickup location');?></option>
+                        <?php foreach($this->locationList as $pickupLocation):?>
+                            <option value="<?php echo $pickupLocation['id'];?>"><?php echo $pickupLocation['city'];?> (<?php echo $pickupLocation['country'];?>)</option>
+                        <?php endforeach;?>
+                    </select>
+                <?php else:?>
+                    <?php echo $this->translate('There are no pickup locations');?>
+                <?php endif;?>
+            <?php endif;?>
+        </div>
+        <div id="pickup-with-price-result" class="hide">
+            <h3 class="checkout-forms-header">
+                <?php echo $this->pickupForm->getLegend(); ?>
+            </h3>
+            <?php echo $this->pickupForm; ?>
+        </div>
+
+        <?php if ($this->shippingForm):?>
+             <div id="pickup-address-result" class="hide">
+            <h3 class="checkout-forms-header"><?php echo $this->translate('Pickup location');?>
+                <a href="<?php echo $this->websiteUrl . isset($this->checkoutPage) ? $this->checkoutPage->getUrl():'';?>" class="checkout-edit" title="<?php echo $this->translate('Edit location');?>"><?php echo '[&nbsp;'.$this->translate('edit').'&nbsp;]';?></a>
+            </h3>
+        <?php endif;?>
+        <div id="pickup-result"></div>
+        </div>
+        <div id="pickup-map-locations" class="hidden" style="width:100%; padding: 0px;">
+
+            <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+            <ul id="pickup-location-grid"></ul>
+            <div class="pickup-locations" id="pickup-locations" style="width:100%; height:600px"></div>
+        </div>
+    </div>
 <?php endif; ?>
 
 <?php if ($this->shippingForm) : ?>
@@ -51,7 +99,7 @@
             <?php if (!empty($addressList)): ?>
                 <?php $key = 0;?>
                 <?php foreach ($addressList as $shippingAddress): ?>
-                    <?php if($shippingAddress['address_type'] == 'shipping'):?>
+                    <?php if($shippingAddress['address_type'] === 'shipping' && !in_array($shippingAddress['id'], $this->pickupLocationAddresses)):?>
                         <?php $key = $key+1;?>
                         <?php if($key<4):?>
                             <div class="adr-shipping">
@@ -85,3 +133,6 @@
     <?php echo $this->shippingForm; ?>
 </div>
 <?php endif; ?>
+    <style>
+        #pickup-locations img{max-width: none;}
+    </style>

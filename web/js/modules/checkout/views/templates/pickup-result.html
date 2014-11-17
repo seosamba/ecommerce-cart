@@ -1,0 +1,13 @@
+<% if(typeof currency === 'undefined'){%>
+    <% currency = '' %>
+<% } %>
+<div>
+    <span class="company"><%= name %></span><br>
+    <span class="phone"><%= phone %></span><br>
+    <span class="street-address"><%= address1 %> <%= address2 %></span>
+    <br>
+    <span class="locality"><%= city %></span>
+    <span class="region"><%= country %></span>
+    <span class="postal-code"><%= zip %></span>
+    <span class="price">Price: <%= currency %><%= price %></span>
+</div>

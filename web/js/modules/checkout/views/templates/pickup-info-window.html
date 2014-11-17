@@ -1,0 +1,120 @@
+<div class="pickup-info" style="max-width: 500px;">
+    <h3><%= name %></h3>
+    <div class="grid_6 alpha location-info">
+        <p class="address">
+            <i class="ticon-location icon24"></i>
+            <span class="wrap large">
+            <%= address1 %> <%= address2 %>,<br/>
+            <%= city %> <%= zip %> <%= country %>
+            </span>
+        </p>
+        <p class="phone">
+            <i class="ticon-phone2 icon24"></i> <span class="wrap large"><%= phone %></span>
+        </p>
+    </div>
+    <div class="location-price grid_6 omega" style="text-align: center;">
+        <% if(typeof currency === 'undefined'){%>
+            <% currency = '' %>
+        <% } %>
+        <span class="price primary-bg larger" style="padding: 30px 10px;border-radius: 10em;display: inline-block;min-width: 94px;">
+            <% if(typeof withTax === 'undefined' && limitType === 'eachover'){ %>
+               <% price = parseFloat((comparator - amount_limit)*price).toFixed(2) %>
+            <% } %>
+            <%= currency %><%= price %>
+        </span>
+        <br>
+        <a href="javascript:;" class="apply-pickup large" data-pickup-id="<%= id %>"><%= _.isUndefined(i18n['Select this pickup location'])?'Select this pickup location':i18n['Select this pickup location'] %></a>
+    </div>
+    <span class="clearfix"></span>
+    <br>
+    <i class="ticon-time icon24"></i>
+    <div class="wrap">
+        <table class="table-striped">
+            <tr>
+                <td><%= _.isUndefined(i18n['Sunday'])?'Sunday':i18n['Sunday'] %>: </td>
+                <td><%= working_hours.sunday %></td>
+            </tr>
+            <tr>
+                <td><%= _.isUndefined(i18n['Monday'])?'Monday':i18n['Monday'] %>:</td>
+                <td><%= working_hours.monday %></td>
+            </tr>
+            <tr>
+                <td><%= _.isUndefined(i18n['Tuesday'])?'Tuesday':i18n['Tuesday'] %>:</td>
+                <td><%= working_hours.tuesday %></td>
+            </tr>
+            <tr>
+                <td><%= _.isUndefined(i18n['Wednesday'])?'Wednesday':i18n['Wednesday'] %>:</td>
+                <td><%= working_hours.wednesday %></td>
+            </tr>
+            <tr>
+                <td><%= _.isUndefined(i18n['Thursday'])?'Thursday':i18n['Thursday'] %>:</td>
+                <td><%= working_hours.thursday %></td>
+            </tr>
+            <tr>
+                <td><%= _.isUndefined(i18n['Friday'])?'Friday':i18n['Friday'] %>:</td>
+                <td><%= working_hours.friday %></td>
+            </tr>
+            <tr>
+                <td><%= _.isUndefined(i18n['Saturday'])?'Saturday':i18n['Saturday'] %>:</td>
+                <td><%= working_hours.saturday %></td>
+            </tr>
+        </table>
+    </div>
+    <% if(!_.isNull(notes)){ %>
+        <p><%= notes %></p>
+<% }%>
+</div>
+<style type="text/css">
+    .pickup-info .location-info, .pickup-info .location-price{
+        float: left;
+        width: 48%;
+        margin: 0;
+    }
+    .pickup-info .location-info{
+        margin-right: 4%;
+    }
+    .pickup-info .clearfix:after,
+    .pickup-info .clearfix:before {
+        content: "";
+        display: table;
+    }
+    .pickup-info .clearfix:after {
+        clear: both;
+    }
+    .pickup-info i{
+        float: left;
+        margin-right: 10px;
+        color: #bbb;
+    }
+    .pickup-info .wrap{
+        overflow: hidden;
+        display: block;
+    }
+    .pickup-info .large{
+        font-size: 1.25em;
+    }
+    .pickup-info .larger{
+        font-size: 1.5em;
+    }
+    .pickup-info .apply-pickup{
+        font-weight: bold;
+    }
+    .pickup-info table {
+        width: 100%;
+        background-color: transparent;
+        border-spacing: 0;
+        border-collapse: collapse;
+    }
+    .pickup-info table th, .pickup-info table td {
+        padding: .5em .75em;
+        border-top: 1px solid #afafaf;
+        vertical-align: middle;
+    }
+    .pickup-info table.table-striped tr > td {
+        border-top: 0;
+    }
+    .pickup-info table.table-striped > tr:nth-child(even),
+    .pickup-info table.table-striped tbody tr:nth-child(odd) {
+        background-color: #eeeeee;
+    }
+</style>
