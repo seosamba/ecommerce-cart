@@ -14,7 +14,7 @@
 	<?php endif; ?>
 
 	<?php if ($this->shippingAddress) : ?>
-	<div id="checkout-address-preview" class="mt10px">
+	<div id="checkout-address-preview">
 		<h3 class="checkout-widget-title <?php if ($this->shippingAddress): ?>disabled<?php endif; ?>">
 			<?php if ($this->shippingData && $this->shippingData['service'] === Shopping::SHIPPING_PICKUP ):?>
 			<?php echo $this->translate('Pickup information'); ?>
@@ -52,7 +52,7 @@
 	<?php endif; ?>
 
 	<?php if ($this->shippingData) : ?>
-	<div id="checkout-shipping-selected" class="mt10px">
+	<div id="checkout-shipping-selected">
 	    <h3 class="checkout-widget-title <?php if (empty($this->shippingData)): ?>disabled<?php endif; ?>">
 		    <?php echo $this->translate('Shipping method')?>
 			<?php if (!empty($this->shippingData)): ?>
