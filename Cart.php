@@ -75,6 +75,8 @@ class Cart extends Tools_Cart_Cart {
 
 	public static $_lockCartEdit = false;
 
+    public static $_pickupLocationRadius = array('5', '10', '50');
+
 	protected function _init() {
 		$this->_cartStorage = Tools_ShoppingCart::getInstance();
 		$this->_productMapper = Models_Mapper_ProductMapper::getInstance();
@@ -498,6 +500,15 @@ class Cart extends Tools_Cart_Cart {
 
 			$this->_getCheckoutPage();
 
+            $pickup = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
+            $defaultPickup = true;
+            if ($pickup && (bool)$pickup['enabled']) {
+                if(isset($pickup['config']['defaultPickupConfig']) && $pickup['config']['defaultPickupConfig'] === '0'){
+                    $defaultPickup = false;
+                }
+            }
+            $this->_view->defaultPickup = $defaultPickup;
+
 			$this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
 			$this->_view->yourInformation = $this->_checkoutSession->initialCustomerInfo;
 			$this->_view->shippingData = $cart->getShippingData();
@@ -711,22 +722,77 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	private function _checkoutStepPickup() {
-		$pickupForm = new Forms_Checkout_Pickup();
+        $pickup = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
+        $pickupForm = new Forms_Checkout_Pickup();
+        $defaultPickup = true;
+        $price = 0;
+        if ($pickup && (bool)$pickup['enabled']) {
+            if(isset($pickup['config']['defaultPickupConfig']) && $pickup['config']['defaultPickupConfig'] === '0'){
+                $pickupForm = new Forms_Checkout_PickupWithPrice();
+                $defaultPickup = false;
+            }
+        }
 		if ($this->_request->isPost()) {
 			if ($pickupForm->isValid($this->_request->getPost())) {
+                $cart = Tools_ShoppingCart::getInstance();
 				$customer = Tools_ShoppingCart::getInstance()->getCustomer();
-				$address = array_merge($pickupForm->getValues(), array(
-					'country' => isset($this->_shoppingConfig['country']) ? $this->_shoppingConfig['country'] : null,
-					'state'   => isset($this->_shoppingConfig['state']) ? $this->_shoppingConfig['state'] : null,
-					'zip'     => isset($this->_shoppingConfig['zip']) ? $this->_shoppingConfig['zip'] : null
-				));
+                if ($defaultPickup) {
+                    $address = array_merge(
+                        $pickupForm->getValues(),
+                        array(
+                            'country' => isset($this->_shoppingConfig['country']) ? $this->_shoppingConfig['country'] : null,
+                            'state' => isset($this->_shoppingConfig['state']) ? $this->_shoppingConfig['state'] : null,
+                            'zip' => isset($this->_shoppingConfig['zip']) ? $this->_shoppingConfig['zip'] : null
+                        )
+                    );
+                } else {
+                    $address = $pickupForm->getValues();
+                    $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
+                    if (!isset($address['pickupLocationId']) || $address['pickupLocationId'] === '') {
+                        $this->_redirector->gotoUrl($this->_websiteUrl);
+                    }
+                    $locationId = filter_var($address['pickupLocationId'], FILTER_SANITIZE_NUMBER_INT);
+
+                    if (empty($cart)) {
+                        throw new Exceptions_SeotoasterPluginException('empty cart content');
+                    }
+                    if (!$pickup || !isset($pickup['config'])) {
+                        throw new Exceptions_SeotoasterPluginException('pickup not configured');
+                    }
+                    $comparator = 0;
+                    switch ($pickup['config']['units']) {
+                        case Shopping::COMPARE_BY_AMOUNT:
+                            $comparator = $cart->getTotal();
+                            break;
+                        case Shopping::COMPARE_BY_WEIGHT:
+                            $comparator = $cart->calculateCartWeight();
+                            break;
+                    }
+
+                    $result = $pickupLocationConfigMapper->getLocations($comparator, $locationId);
+                    if (empty($result)) {
+                        $this->_redirector->gotoUrl($this->_websiteUrl);
+                    }
+                    $countries = Tools_Geo::getCountries(true);
+                    $price = $result['price'];
+                    if ($result['limitType'] === Shopping::AMOUNT_TYPE_EACH_OVER) {
+                        $price = round(($comparator - $result['amount_limit']) * $result['price'], 2);
+                    }
+                    $address['country'] = array_search($result['country'], $countries);
+                    $address['zip'] = $result['zip'];
+                    $address['address1'] = $result['address1'];
+                    $address['address2'] = $result['address2'];
+                    $address['city'] = $result['city'];
+                    $pickupLocationConfigMapper->saveCartPickupLocation($cart->getCartId(), $result);
+                    unset($address['pickupLocationId']);
+
+                }
 				$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $address, Models_Model_Customer::ADDRESS_TYPE_SHIPPING);
-				$cart = Tools_ShoppingCart::getInstance();
 				$cart->setShippingAddressKey($addressId)
 						->setShippingData(array(
 							'service' => Shopping::SHIPPING_PICKUP,
 							'type'    => null,
-							'price'   => 0
+							'price'   => $price
 						))
 						->calculate(true);
 
@@ -900,7 +966,20 @@ class Cart extends Tools_Cart_Cart {
 			if ((bool)$pickupForm) {
 				$this->_view->pickupForm = $pickupForm;
 			} else {
-                $formPickup = new Forms_Checkout_Pickup();
+                if(isset($pickup['config']['defaultPickupConfig']) && $pickup['config']['defaultPickupConfig'] === '1' || $pickup['config'] === null){
+                    $defaultPickup = true;
+                    $formPickup = new Forms_Checkout_Pickup();
+                }else{
+                    $defaultPickup = false;
+                    $this->_view->pickupLocationConfig = $pickup['config'];
+                    $this->_view->locationList = self::getPickupLocationCities();
+                    $formPickup = new Forms_Checkout_PickupWithPrice();
+                }
+                $this->_view->defaultPickup = $defaultPickup;
+                $checkoutPage = Tools_Misc::getCheckoutPage();
+                if ($checkoutPage instanceof Application_Model_Models_Page) {
+                    $this->_view->checkoutPage = $checkoutPage;
+                }
                 $formPickup->setLegend($this->_translator->translate('Enter pick up information'));
                 $this->_view->pickupForm = $formPickup;
 				if (is_array($customerAddress) && !empty($customerAddress)) {
@@ -941,11 +1020,13 @@ class Cart extends Tools_Cart_Cart {
                     $this->_view->customer = $customer;
                     $this->_view->checkOutPageUrl = $this->_getCheckoutPage()->getUrl();
                     $params = $this->_request->getParams();
+                    $pickupLocationAddresses = Store_Mapper_PickupLocationConfigMapper::getInstance()->getUserAddressByUserId($customerId);
                     if(isset($params['shippingAddress'])){
                         $shippingAddress = Tools_ShoppingCart::getInstance()->getAddressById($params['shippingAddress']);
                         $this->_view->shippingForm->populate($shippingAddress);
                         $this->_view->pickupForm = false;
                     }
+                    $this->_view->pickupLocationAddresses = $pickupLocationAddresses;
                     $this->_view->pickAddress = true;
                 }
             }
@@ -1107,6 +1188,180 @@ class Cart extends Tools_Cart_Cart {
 
 		return false;
 	}
+
+    /**
+     * Analyze pickup locations on checkout
+     * Search by pickup location id and use the same city and country
+     * or
+     * by provided information about user location
+     *
+     * @throws Exceptions_SeotoasterPluginException
+     */
+    public function getPickupLocationsAction()
+    {
+        if ($this->_request->isPost()) {
+            $locationSearch = filter_var($this->_request->getParam('locationAddress'), FILTER_SANITIZE_STRING);
+            if (!$locationSearch) {
+                $this->_responseHelper->fail('');
+            }
+            $searchByLocationId = false;
+            if (is_numeric($locationSearch)) {
+                $searchByLocationId = true;
+            }
+            if (!$searchByLocationId) {
+                $locationCoordinates = Tools_Geo::getMapCoordinates($locationSearch);
+                if ($locationCoordinates['lat'] === null || $locationCoordinates['lng'] === null) {
+                    $this->_responseHelper->fail('');
+                }
+            }
+
+            $cartContent = Tools_ShoppingCart::getInstance();
+            if (!empty($cartContent)) {
+                $pickupSettings = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
+                if (!$pickupSettings || !isset($pickupSettings['config'])) {
+                    throw new Exceptions_SeotoasterPluginException('pickup not configured');
+                }
+                switch ($pickupSettings['config']['units']) {
+                    case Shopping::COMPARE_BY_AMOUNT:
+                        $comparator = $cartContent->getTotal();
+                        break;
+                    case Shopping::COMPARE_BY_WEIGHT:
+                        $comparator = $cartContent->calculateCartWeight();
+                        break;
+                }
+                $cartFullWeight = $cartContent->calculateCartWeight();
+                $result = array();
+                $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
+                if (!$searchByLocationId) {
+                    $locationsRadius = self::$_pickupLocationRadius;
+                    foreach ($locationsRadius as $key => $radius) {
+                        $radiusDiffValue = $radius / 111;
+                        $radiusDiffValue = number_format($radiusDiffValue, 7, '.', '');
+                        $userLatitude = $locationCoordinates['lat'];
+                        $userLongitude = $locationCoordinates['lng'];
+                        $coordinates = array(
+                            'latitudeStart' => $userLatitude - $radiusDiffValue,
+                            'latitudeEnd' => $userLatitude + $radiusDiffValue,
+                            'longitudeStart' => $userLongitude - $radiusDiffValue,
+                            'longitudeEnd' => $userLongitude + $radiusDiffValue
+                        );
+                        $result = $pickupLocationConfigMapper->getLocations(
+                            $comparator,
+                            false,
+                            $coordinates,
+                            $cartFullWeight
+                        );
+                        if (!empty($result)) {
+                            break;
+                        }
+                    }
+                } else {
+                    $initialLocation = Store_Mapper_PickupLocationMapper::getInstance()->find($locationSearch);
+                    if ($initialLocation instanceof Store_Model_PickupLocation) {
+                        $result = $pickupLocationConfigMapper->getLocations(
+                            $comparator,
+                            false,
+                            array(),
+                            $cartFullWeight,
+                            false,
+                            array(
+                                'shpl.city' => $initialLocation->getCity(),
+                                'shpl.country' => $initialLocation->getCountry()
+                            )
+                        );
+                    } else {
+                        $this->_responseHelper->fail('');
+                    }
+                }
+                if (!empty($result)) {
+                    $result = array_map(
+                        function ($pickupLocation) use ($comparator) {
+                            $pickupLocation['working_hours'] = unserialize($pickupLocation['working_hours']);
+                            $pickupLocation['comparator'] = $comparator;
+                            return $pickupLocation;
+                        },
+                        $result
+                    );
+                    if($searchByLocationId){
+                        $userLatitude = '';
+                        $userLongitude = '';
+                    }
+                    $result[] = array('userLocation' => true, 'lat' => $userLatitude, 'lng' => $userLongitude);
+                    $this->_responseHelper->success(
+                        array(
+                            'result' => $result,
+                            'userLocation' => array('lat' => $userLatitude, 'lng' => $userLongitude)
+                        )
+                    );
+                }
+            }
+            $this->_responseHelper->fail('');
+        }
+    }
+
+    /**
+     * Calculate pickup location with tax
+     */
+    public function pickupLocationTaxAction()
+    {
+        if ($this->_request->isPost()) {
+            $locationId = filter_var($this->_request->getParam('locationId'), FILTER_SANITIZE_NUMBER_INT);
+            $price = filter_var($this->_request->getParam('price'), FILTER_SANITIZE_STRING);
+            $cartContent = Tools_ShoppingCart::getInstance();
+            if (!empty($cartContent)) {
+                $pickupSettings = Store_Mapper_PickupLocationMapper::getInstance()->find($locationId);
+                $correctCurrency = isset($this->_shoppingConfig['currency']) ? $this->_shoppingConfig['currency'] : self::DEFAULT_CURRENCY_NAME;
+                $currencySymbol = $this->_currency->getSymbol($correctCurrency, self::DEFAULT_LOCALE);
+                if (!empty($pickupSettings)) {
+                    $result = $pickupSettings->toArray();
+                    $countries = Tools_Geo::getCountries(true);
+                    $address = Tools_Misc::clenupAddress($result);
+                    $address['country'] = array_search($address['country'], $countries);
+                    $shippingTax = Tools_Tax_Tax::calculateShippingTax($price, $address);
+
+                    $result['working_hours'] = unserialize($result['workingHours']);
+                    $result['withTax'] = '';
+                    $result['price'] = $price + $shippingTax;
+                    $result['currency'] = $currencySymbol;
+                    $this->_responseHelper->success($result);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Return pickup locations with distinct cities and countries
+     *
+     * @return array|mixed
+     * @throws Exceptions_SeotoasterPluginException (if pickup locations not configured)
+     */
+    public static function getPickupLocationCities()
+    {
+        $cartContent = Tools_ShoppingCart::getInstance();
+        if (!empty($cartContent)) {
+            $pickupSettings = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
+            if (!$pickupSettings || !isset($pickupSettings['config'])) {
+                throw new Exceptions_SeotoasterPluginException('pickup not configured');
+            }
+            switch ($pickupSettings['config']['units']) {
+                case Shopping::COMPARE_BY_AMOUNT:
+                    $comparator = $cartContent->getTotal();
+                    break;
+                case Shopping::COMPARE_BY_WEIGHT:
+                    $comparator = $cartContent->calculateCartWeight();
+                    break;
+            }
+            $cartFullWeight = $cartContent->calculateCartWeight();
+            $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
+            $result = $pickupLocationConfigMapper->getLocations($comparator, false, array(), $cartFullWeight, true);
+            if (!empty($result)) {
+                return $result;
+            }
+            return array();
+        }
+
+    }
 
 //	@TODO implement widget maker
 //	public static function getWidgetMakerContent(){
