@@ -96,7 +96,8 @@ class Cart extends Tools_Cart_Cart {
         $currentController = $this->_request->getParam('controller');
         if (!preg_match('~backend_~', $currentController)) {
             $layout = Zend_Layout::getMvcInstance();
-            $layout->getView()->headScript()->appendFile($this->_websiteUrl . 'plugins/cart/web/js/toastercart.js');
+            $layout->getView()->inlineScript()
+                   ->appendFile($this->_websiteUrl . 'plugins/cart/web/js/toastercart.min.js');
         }
     }
 
