@@ -115,6 +115,7 @@ function refreshPrice(sid, sidsQuantity) {
             $.each(response.responseText, function(sid){
                 $('span[data-sidprice=' + sid + ']').replaceWith(this.price);
                 $('span[data-sidweight=' + sid + ']').replaceWith(this.weight);
+                $('span[data-sidunitprice=' + sid + ']').replaceWith(this.price_unit);
             });
         }else{
             window.location.reload();
