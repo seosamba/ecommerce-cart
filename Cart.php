@@ -186,7 +186,8 @@ class Cart extends Tools_Cart_Cart {
             $data[$sid] = array(
 			    'price'  => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'price'))->render(),
 			    'weight' => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'weight'))->render(),
-                'price_unit' => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'price', 'unit'))->render()
+                'price_unit' => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'price', 'unit'))->render(),
+                'price_unit_discount' => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'price', 'unit', 'withdiscount'))->render()
 
             );
         }

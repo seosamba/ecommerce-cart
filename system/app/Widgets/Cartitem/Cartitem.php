@@ -82,6 +82,10 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
         if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
             $this->_view->price       = $price;
             $this->_view->priceOption = 'unitprice';
+            if (isset($this->_options[1]) && $this->_options[1] === 'withdiscount') {
+                $this->_view->priceOption = 'unitprice-with-discount';
+                $this->_view->discountList =  $this->_cartContent[$sid]['productDiscounts'];
+            }
         } else {
             $this->_view->price       = $price * $this->_cartContent[$sid]['qty'];
             $this->_view->priceOption = 'price';
