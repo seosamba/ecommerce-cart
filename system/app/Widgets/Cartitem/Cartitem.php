@@ -82,10 +82,15 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
         if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
             $this->_view->price       = $price;
             $this->_view->priceOption = 'unitprice';
-            if (isset($this->_options[1]) && $this->_options[1] === 'withdiscount') {
-                $this->_view->priceOption = 'unitprice-with-discount';
-                $this->_view->discountList =  $this->_cartContent[$sid]['productDiscounts'];
-            }
+            $discounts = array_filter(
+                $this->_cartContent[$sid]['productDiscounts'],
+                function ($discount) {
+                    if (!empty($discount['discount'])) {
+                        return $discount;
+                    }
+                }
+            );
+            $this->_view->discountList = $discounts;
         } else {
             $this->_view->price       = $price * $this->_cartContent[$sid]['qty'];
             $this->_view->priceOption = 'price';

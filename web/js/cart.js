@@ -116,7 +116,7 @@ function refreshPrice(sid, sidsQuantity) {
                 $('span[data-sidprice=' + sid + ']').replaceWith(this.price);
                 $('span[data-sidweight=' + sid + ']').replaceWith(this.weight);
                 $('span[data-sidunitprice=' + sid + ']').replaceWith(this.price_unit);
-                $('span[data-sidunitprice-with-discount=' + sid + ']').replaceWith(this.price_unit_discount);
+                $('div[data-sidunitprice=' + sid + ']').replaceWith(this.price_unit);
             });
         }else{
             window.location.reload();
