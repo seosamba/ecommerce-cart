@@ -55,4 +55,5 @@
 		</tr>
 	</table>
 </div>
-<?php $this->jQuery()->addJavascriptFile($this->websiteUrl . 'plugins/cart/web/js/cart.js'); ?>
+<?php $this->inlineScript()
+           ->appendFile($this->websiteUrl . 'plugins/cart/web/js/cart.js'); ?>

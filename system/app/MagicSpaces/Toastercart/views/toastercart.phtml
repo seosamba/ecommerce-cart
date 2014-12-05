@@ -1,3 +1,4 @@
 <?php
     echo $this->cartContent;
-    $this->jQuery()->addJavascriptFile($this->websiteUrl . 'plugins/cart/web/js/cart.js');
+    $this->inlineScript()
+         ->appendFile($this->websiteUrl . 'plugins/cart/web/js/cart.js');
