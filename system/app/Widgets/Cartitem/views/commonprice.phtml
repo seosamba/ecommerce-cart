@@ -2,17 +2,17 @@
     <span class="toastercart-item-<?php echo $this->priceOption; ?>" data-sid<?php echo $this->priceOption; ?>="<?php echo $this->sid; ?>"><?php echo $this->translate('free'); ?></span>
 <?php else:?>
     <?php if(!empty($this->discountList)):?>
-        <div class="toastercart-item-<?php echo $this->priceOption; ?>" data-sid<?php echo $this->priceOption; ?>="<?php echo $this->sid; ?>"><?php echo $this->currency($this->price); ?>
+        <div class="toastercart-item-<?php echo $this->priceOption; ?> text-left" data-sid<?php echo $this->priceOption; ?>="<?php echo $this->sid; ?>">Unit price <?php echo $this->currency($this->price); ?>
         <?php foreach($this->discountList as $discountData):?>
             <?php if($discountData['type'] === 'percent'):?>
-                <?php $discount = number_format($discountData['discount'], 2).'%'; ?>
+                <?php $discount = $this->currency($discountData['unitSave']); ?>
             <?php else:?>
                 <?php $discount = $this->currency($discountData['discount']); ?>
             <?php endif;?>
-                <span class="item-discount <?php echo $discountData['name'];?>"><?php echo $discountData['name'].' '.$discount;?></span>
+                <p class="item-discount <?php echo $discountData['name'];?> m0px"><?php echo ucfirst($discountData['name']);?>: you save <?php echo $discount ?> per unit</p>
         <?php endforeach;?>
         </div>
     <?php else:?>
-        <span class="toastercart-item-<?php echo $this->priceOption; ?>" data-sid<?php echo $this->priceOption; ?>="<?php echo $this->sid; ?>"><?php echo $this->currency($this->price); ?></span>
+        <p class="toastercart-item-<?php echo $this->priceOption; ?> m0px" data-sid<?php echo $this->priceOption; ?>="<?php echo $this->sid; ?>"><?php echo $this->currency($this->price); ?></p>
     <?php endif;?>
 <?php endif;?>
