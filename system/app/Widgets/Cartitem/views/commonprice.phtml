@@ -9,10 +9,10 @@
             <?php else:?>
                 <?php $discount = $this->currency($discountData['discount']); ?>
             <?php endif;?>
-                <p class="item-discount <?php echo $discountData['name'];?> m0px"><?php echo ucfirst($discountData['name']);?>: you save <?php echo $discount ?> per unit</p>
+                <span class="item-discount <?php echo $discountData['name'];?>"><?php echo ucfirst($discountData['name']);?>: you save <?php echo $discount ?> per unit</span>
         <?php endforeach;?>
         </div>
     <?php else:?>
-        <p class="toastercart-item-<?php echo $this->priceOption; ?> m0px" data-sid<?php echo $this->priceOption; ?>="<?php echo $this->sid; ?>"><?php echo $this->currency($this->price); ?></p>
+        <span class="toastercart-item-<?php echo $this->priceOption; ?>" data-sid<?php echo $this->priceOption; ?>="<?php echo $this->sid; ?>"><?php echo $this->currency($this->price); ?></span>
     <?php endif;?>
 <?php endif;?>
