@@ -20,7 +20,25 @@
 		    <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
 		    <?php endif;?>
 	    </h3>
-		<?php echo $this->pickupForm; ?>
+        <form id="<?php echo $this->pickupForm->getAttrib('id');?>"
+              class="<?php echo $this->pickupForm->getAttrib('class');?>"
+              method="<?php echo $this->pickupForm->getAttrib('method');?>"
+              action="<?php echo $this->pickupForm->getAttrib('action');?>"
+              enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
+            <?php echo $this->pickupForm->firstname;?>
+            <?php echo $this->pickupForm->lastname;?>
+            <?php echo $this->pickupForm->phone;?>
+            <p>
+                <label for="<?php echo $this->pickupForm->mobile->getAttrib('id');?>"><?php echo $this->translate('Mobile');?></label>
+                <span class="block wrap">
+                    <?php echo $this->pickupForm->mobilecountrycode;?>
+                    <?php echo $this->pickupForm->mobile;?>
+                </span>
+            </p>
+            <?php echo $this->pickupForm->email;?>
+            <?php echo $this->pickupForm->step;?>
+            <?php echo $this->pickupForm->submitpickup;?>
+        </form>
 	</div>
 	<div>
 	    <h3 class="checkout-forms-header"><?php echo $this->translate('Pickup location'); ?></h3>
@@ -64,13 +82,35 @@
             <h3 class="checkout-forms-header">
                 <?php echo $this->pickupForm->getLegend(); ?>
             </h3>
-            <?php echo $this->pickupForm; ?>
+            <form id="<?php echo $this->pickupForm->getAttrib('id');?>"
+                  class="<?php echo $this->pickupForm->getAttrib('class');?>"
+                  method="<?php echo $this->pickupForm->getAttrib('method');?>"
+                  action="<?php echo $this->pickupForm->getAttrib('action');?>"
+                  enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
+                <?php echo $this->pickupForm->firstname;?>
+                <?php echo $this->pickupForm->lastname;?>
+                <?php echo $this->pickupForm->phone;?>
+                <p>
+                    <label for="<?php echo $this->pickupForm->mobile->getAttrib('id');?>"><?php echo $this->translate('Mobile');?></label>
+                    <span class="block wrap">
+                        <?php echo $this->pickupForm->mobilecountrycode;?>
+                        <?php echo $this->pickupForm->mobile;?>
+                    </span>
+                </p>
+                <?php echo $this->pickupForm->email;?>
+                <?php echo $this->pickupForm->step;?>
+                <?php echo $this->pickupForm->submitpickup;?>
+            </form>
         </div>
 
         <?php if ($this->shippingForm):?>
              <div id="pickup-address-result" class="hide">
             <h3 class="checkout-forms-header"><?php echo $this->translate('Pickup location');?>
-                <a href="<?php echo $this->websiteUrl . isset($this->checkoutPage) ? $this->checkoutPage->getUrl():'';?>" class="checkout-edit" title="<?php echo $this->translate('Edit location');?>"><?php echo '[&nbsp;'.$this->translate('edit').'&nbsp;]';?></a>
+                <?php $websiteUrlCheckout = $this->websiteUrl;?>
+                <?php if(isset($this->checkoutPage)):?>
+                 <?php $websiteUrlCheckout = $this->websiteUrl.$this->checkoutPage->getUrl();?>
+                <?php endif;?>
+                <a href="<?php echo $websiteUrlCheckout;?>" class="checkout-edit" title="<?php echo $this->translate('Edit location');?>"><?php echo '[&nbsp;'.$this->translate('edit').'&nbsp;]';?></a>
             </h3>
         <?php endif;?>
         <div id="pickup-result"></div>
@@ -130,7 +170,40 @@
             <?php endif;?>
         </div>
     <?php endif;?>
-    <?php echo $this->shippingForm; ?>
+            <form id="<?php echo $this->shippingForm->getAttrib('id');?>"
+                  class="<?php echo $this->shippingForm->getAttrib('class');?>"
+                  method="<?php echo $this->shippingForm->getAttrib('method');?>"
+                  action="<?php echo $this->shippingForm->getAttrib('action');?>"
+                  enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
+                <fieldset id="fieldset-<?php echo $this->shippingForm->getDisplayGroup('lcol')->getId();?>"
+                          class="<?php echo $this->shippingForm->getDisplayGroup('lcol')->getAttrib('class');?>">
+                    <?php echo $this->shippingForm->firstname;?>
+                    <?php echo $this->shippingForm->lastname;?>
+                    <?php echo $this->shippingForm->company;?>
+                    <?php echo $this->shippingForm->email;?>
+                    <?php echo $this->shippingForm->phone;?>
+                    <p>
+                        <label for="<?php echo $this->pickupForm->mobile->getAttrib('id');?>"><?php echo $this->translate('Mobile');?></label>
+                        <span class="block wrap">
+                            <?php echo $this->shippingForm->mobilecountrycode;?>
+                            <?php echo $this->shippingForm->mobile;?>
+                        </span>
+                    </p>
+                    <?php echo $this->shippingForm->notes;?>
+                </fieldset>
+                <fieldset id="fieldset-<?php echo $this->shippingForm->getDisplayGroup('rcol')->getId();?>"
+                          class="<?php echo $this->shippingForm->getDisplayGroup('rcol')->getAttrib('class');?>">
+                    <?php echo $this->shippingForm->address1;?>
+                    <?php echo $this->shippingForm->address2;?>
+                    <?php echo $this->shippingForm->city;?>
+                    <?php echo $this->shippingForm->zip;?>
+                    <?php echo $this->shippingForm->country;?>
+                    <?php echo $this->shippingForm->state;?>
+                    <?php echo (isset($this->shippingForm->shippingToc)) ? $this->shippingForm->shippingToc : '';?>
+                </fieldset>
+                <?php echo $this->shippingForm->step;?>
+                <?php echo $this->shippingForm->checkout;?>
+            </form>
 </div>
 <?php endif; ?>
     <style>
