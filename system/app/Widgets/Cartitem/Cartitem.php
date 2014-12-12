@@ -95,7 +95,7 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
             $this->_view->price       = $price * $this->_cartContent[$sid]['qty'];
             $this->_view->priceOption = 'price';
         }
-
+		$this->_view->quantity = $this->_cartContent[$sid]['qty'];
 		return $this->_view->render('commonprice.phtml');
 	}
 
