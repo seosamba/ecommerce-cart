@@ -13,7 +13,7 @@
             <?php if($discountData['name'] === 'promo') : ?>
                 <?php $message =  $this->translate('On sale'). ': ' . $this->translate('buy now to save') . ' ' . $discount . ' ' . $this->translate('per unit') ?>
             <?php elseif($discountData['name'] === 'q-ty discount') : ?>
-                    <?php $message =  $this->translate('Act now'). ': ' . $this->translate('Buying') . ' ' . $this->quantity . ' ' . $this->translate('save you') .' ' . $discount . ' ' . $this->translate('per unit') ?>
+                    <?php $message =  $this->translate('Act now'). ': ' . $this->translate('Buying') . ' ' . $this->quantity . ' ' . $this->translate('saves you') .' ' . $discount . ' ' . $this->translate('per unit') ?>
             <?php else: ?>
                 <?php $message = ucfirst($discountData['name']) . ': ' . $this->translate('you save') . ' ' .  $discount . ' ' . $this->translate('per unit')?>
             <?php endif ?>
