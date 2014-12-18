@@ -656,7 +656,8 @@ class Cart extends Tools_Cart_Cart {
 			$addressType = Models_Model_Customer::ADDRESS_TYPE_SHIPPING;
 			$shoppingCart = Tools_ShoppingCart::getInstance();
 			$customer = $shoppingCart->getCustomer();
-			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $form->getValues(), $addressType);
+            $addressValues = $this->_normalizeMobilePhoneNumber($form->getValues());
+			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $addressValues, $addressType);
 			$shoppingCart->setShippingAddressKey($addressId)
 					->setNotes($form->getValue('notes'));
 			$shoppingCart->calculate(true);
@@ -724,6 +725,7 @@ class Cart extends Tools_Cart_Cart {
 	private function _checkoutStepPickup() {
         $pickup = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
         $pickupForm = new Forms_Checkout_Pickup();
+        $pickupForm->setMobilecountrycode(Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('country'));
         $defaultPickup = true;
         $price = 0;
         if ($pickup && (bool)$pickup['enabled']) {
@@ -736,9 +738,10 @@ class Cart extends Tools_Cart_Cart {
 			if ($pickupForm->isValid($this->_request->getPost())) {
                 $cart = Tools_ShoppingCart::getInstance();
 				$customer = Tools_ShoppingCart::getInstance()->getCustomer();
+                $address = $this->_normalizeMobilePhoneNumber($pickupForm->getValues());
                 if ($defaultPickup) {
                     $address = array_merge(
-                        $pickupForm->getValues(),
+                        $address,
                         array(
                             'country' => isset($this->_shoppingConfig['country']) ? $this->_shoppingConfig['country'] : null,
                             'state' => isset($this->_shoppingConfig['state']) ? $this->_shoppingConfig['state'] : null,
@@ -746,7 +749,6 @@ class Cart extends Tools_Cart_Cart {
                         )
                     );
                 } else {
-                    $address = $pickupForm->getValues();
                     $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
                     if (!isset($address['pickupLocationId']) || $address['pickupLocationId'] === '') {
                         $this->_redirector->gotoUrl($this->_websiteUrl);
@@ -813,14 +815,16 @@ class Cart extends Tools_Cart_Cart {
 			self::STEP_LANDING
 		);
 		$form = new Forms_Signup();
-
+        $form->setMobilecountrycode(Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('country'));
 		$cart = Tools_ShoppingCart::getInstance();
 		if ($this->_request->isPost()) {
 			if ($form->isValid($this->_request->getPost())) {
-				$customerData = $form->getValues();
+				$customerData = $this->_normalizeMobilePhoneNumber($form->getValues());
 				$this->_checkoutSession->initialCustomerInfo = $customerData;
 				$customer = Shopping::processCustomer($customerData);
 				if ($customer->getId()) {
+                    $customer->setAttribute('mobilecountrycode', $customerData['mobilecountrycode']);
+                    Application_Model_Mappers_UserMapper::getInstance()->saveUserAttributes($customer);
 					$cart->setCustomerId($customer->getId())->calculate(true);
 					$cart->save()->saveCartSession($customer);
 				}
@@ -975,6 +979,7 @@ class Cart extends Tools_Cart_Cart {
                     $this->_view->locationList = self::getPickupLocationCities();
                     $formPickup = new Forms_Checkout_PickupWithPrice();
                 }
+                $formPickup->setMobilecountrycode(Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('country'));
                 $this->_view->defaultPickup = $defaultPickup;
                 $checkoutPage = Tools_Misc::getCheckoutPage();
                 if ($checkoutPage instanceof Application_Model_Models_Page) {
@@ -983,7 +988,15 @@ class Cart extends Tools_Cart_Cart {
                 $formPickup->setLegend($this->_translator->translate('Enter pick up information'));
                 $this->_view->pickupForm = $formPickup;
 				if (is_array($customerAddress) && !empty($customerAddress)) {
+                    // take from $customerAddress
 					$this->_view->pickupForm->populate($customerAddress);
+                    if(empty($customerAddress['mobilecountrycode'])) {
+                        $this->_view->pickupForm->setMobilecountrycode($customerAddress['attributes']['mobilecountrycode']);
+                        $this->_view->pickupForm->setMobile($customerAddress['mobilePhone']);
+                    }else {
+                        $this->_view->pickupForm->setMobilecountrycode($customerAddress['mobilecountrycode']);
+                        $this->_view->pickupForm->setMobile($customerAddress['mobile']);
+                    }
 				}
 			}
 			$this->_view->pickupForm->setAction($this->_view->actionUrl);
@@ -998,6 +1011,13 @@ class Cart extends Tools_Cart_Cart {
                 $this->_view->shippingForm = $shippingForm;
 				if (is_array($customerAddress) && !empty($customerAddress)) {
 					$this->_view->shippingForm->populate($customerAddress);
+                    if(empty($customerAddress['mobilecountrycode'])) {
+                        $this->_view->shippingForm->setMobilecountrycode($customerAddress['attributes']['mobilecountrycode']);
+                        $this->_view->shippingForm->setMobile($customerAddress['mobilePhone']);
+                    }else {
+                        $this->_view->shippingForm->setMobilecountrycode($customerAddress['mobilecountrycode']);
+                        $this->_view->shippingForm->setMobile($customerAddress['mobile']);
+                    }
 				}
 			}
 			// looking for mandatory fields
@@ -1327,6 +1347,15 @@ class Cart extends Tools_Cart_Cart {
                 }
             }
         }
+    }
+
+    private function _normalizeMobilePhoneNumber($form) {
+        if(isset($form['mobile']) && !empty($form['mobile'])) {
+            $countryPhoneCode = Zend_Locale::getTranslation($form['mobilecountrycode'], 'phoneToTerritory');
+            $form['mobile'] = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['mobile'], $countryPhoneCode);
+            //unset($form['mobilecountryphonecode']);
+        }
+        return $form;
     }
 
 
