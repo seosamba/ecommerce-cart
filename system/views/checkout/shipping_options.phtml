@@ -133,7 +133,7 @@
 	    <?php endif; ?>
     </h3>
     <?php if($this->pickAddress):?>
-        <div id="shipping-address-list" class="clearfix">
+        <div id="shipping-address-list" class="shipping-address-list clearfix">
             <?php $addressList = $this->customer->getAddresses(); ?>
             <?php $countryList = Tools_Geo::getCountries(true);?>
             <?php if (!empty($addressList)): ?>
