@@ -991,8 +991,10 @@ class Cart extends Tools_Cart_Cart {
                     // take from $customerAddress
 					$this->_view->pickupForm->populate($customerAddress);
                     if(empty($customerAddress['mobilecountrycode'])) {
-                        $this->_view->pickupForm->setMobilecountrycode($customerAddress['attributes']['mobilecountrycode']);
-                        $this->_view->pickupForm->setMobile($customerAddress['mobilePhone']);
+                        if(!empty($customerAddress['attributes']['mobilecountrycode'])) {
+                            $this->_view->pickupForm->setMobilecountrycode($customerAddress['attributes']['mobilecountrycode']);
+                            $this->_view->pickupForm->setMobile($customerAddress['mobilePhone']);
+                        }
                     }else {
                         $this->_view->pickupForm->setMobilecountrycode($customerAddress['mobilecountrycode']);
                         $this->_view->pickupForm->setMobile($customerAddress['mobile']);
@@ -1012,8 +1014,10 @@ class Cart extends Tools_Cart_Cart {
 				if (is_array($customerAddress) && !empty($customerAddress)) {
 					$this->_view->shippingForm->populate($customerAddress);
                     if(empty($customerAddress['mobilecountrycode'])) {
-                        $this->_view->shippingForm->setMobilecountrycode($customerAddress['attributes']['mobilecountrycode']);
-                        $this->_view->shippingForm->setMobile($customerAddress['mobilePhone']);
+                        if(!empty($customerAddress['attributes']['mobilecountrycode'])) {
+                            $this->_view->shippingForm->setMobilecountrycode($customerAddress['attributes']['mobilecountrycode']);
+                            $this->_view->shippingForm->setMobile($customerAddress['mobilePhone']);
+                        }
                     }else {
                         $this->_view->shippingForm->setMobilecountrycode($customerAddress['mobilecountrycode']);
                         $this->_view->shippingForm->setMobile($customerAddress['mobile']);
