@@ -55,7 +55,7 @@
 			<br />
 		</div>
 	</div>
-    <img src="<?php echo Tools_Geo::generateStaticGmaps($this->shoppingConfig, 640, 320); ?>" alt="<?php echo $this->translate('Pickup location'); ?>">
+    <img class="pickup-location-map" src="<?php echo Tools_Geo::generateStaticGmaps($this->shoppingConfig, 640, 320); ?>" alt="<?php echo $this->translate('Pickup location'); ?>">
 </div>
 <?php elseif($this->pickupForm && !$this->defaultPickup):?>
     <div id="checkout-pickup-form" style="<?php if ($this->shippingForm && !$this->pickupForm->isErrors()): ?>display: none;<?php endif; ?>">
