@@ -118,9 +118,11 @@ define([ 'backbone',
             }
         },
         backAction: function(e) {
-            e.preventDefault();
-            this.$el.find('p.checkout-button').show();
-            this.$el.children().not('p.checkout-button').hide();
+            if (!$(e.currentTarget).data('shippers-back')) {
+                e.preventDefault();
+                this.$el.find('p.checkout-button').show();
+                this.$el.children().not('p.checkout-button').hide();
+            }
         },
         editAction: function(e) {
             e.preventDefault();
