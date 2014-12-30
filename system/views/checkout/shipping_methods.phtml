@@ -1,7 +1,7 @@
 <div>
 	<?php if ($this->shippers) :?>
     <h3 class="checkout-forms-header"><?php echo $this->translate('Select shipping method');?>
-        <a href="<?php echo $this->websiteUrl . $this->checkoutPage->getUrl().'?step='.Cart::STEP_SHIPPING_OPTIONS;?>" class="checkout-edit" title="<?php echo $this->translate('Back');?>">
+        <a href="<?php echo $this->websiteUrl . $this->checkoutPage->getUrl().'?step='.Cart::STEP_SHIPPING_OPTIONS;?>" data-shippers-back="true" class="back-button" title="<?php echo $this->translate('Back');?>">
             &laquo;&nbsp<?php echo $this->translate('Back');?>
         </a></h3>
     <form id="shipper-select" method="post" class="toaster-checkout" enctype="application/x-www-form-urlencoded" action="<?php echo $this->actionUrl; ?>">
