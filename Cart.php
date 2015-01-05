@@ -404,6 +404,7 @@ class Cart extends Tools_Cart_Cart {
 		if (isset($this->_options[2]) && $this->_options[2] == 'checkbox') {
 			return $this->_view->render('addtocartcheckbox.phtml');
 		}
+		$this->_view->gotocart = array_search('gotocart', $this->_options) ? true : false;
 		return $this->_view->render('addtocart.phtml');
 	}
 
