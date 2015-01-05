@@ -4,13 +4,15 @@
 $(function() {
     $(document).on('click', 'a.tcart-add[data-pid]', function(e) {
         e.preventDefault();
-        var pid  = $(this).data('pid');
-        var qty = 1;
+        var gotocart = $(this).data('gotocart') === "no" ? true : false,
+            pid  = $(this).data('pid'),
+            qty = 1,
+            checkoutUrl =  $('#website_url').val() + 'plugin/cart/run/checkout';
         if($('input[name="productquantity-' + pid + '"]').length > 0){
             qty = parseInt($('input[name="productquantity-' + pid + '"]').val());
             if(isNaN(qty)){
                 qty = 1;
-            } 
+            }
         }
         $.ajax({
             url: $('#website_url').val()+'plugin/cart/run/cart/',
@@ -23,7 +25,15 @@ $(function() {
             },
             success: function(response){
                 if (!response.error){
-                    window.location.href = $('#website_url').val()+'plugin/cart/run/checkout';
+                    if (gotocart) {
+                        showConfirm("Go to the cart?", function () {
+                            window.location.href = checkoutUrl;
+                        }, function () {
+                            window.location.reload();
+                        })
+                    } else {
+                        window.location.href = checkoutUrl;
+                    }
                 } else {
                     showMessage(response.responseText.msg, 1);
                 }
