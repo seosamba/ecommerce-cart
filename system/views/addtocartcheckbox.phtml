@@ -34,7 +34,7 @@
                                     success : function(response) {
                                         if(response.error == 0){
 
-                                                var quantityProducts = $('.toaster-cart .cart-items-count').text();
+                                                var quantityProducts = $('.toaster-cart .cart-items-count').first().text();
                                                 var newProductQuantity = parseInt(quantityProducts) + parseInt(qty);
                                                 $('.toaster-cart .cart-items-count').text(newProductQuantity);
                                                 $('.toaster-cart .cart-total-tax').text(response.responseText.totalTax);
@@ -79,7 +79,7 @@
                                 success : function(response) {
                                     if(response.error == 0){
 
-                                            var quantityProducts = $('.toaster-cart .cart-items-count').text();
+                                            var quantityProducts = $('.toaster-cart .cart-items-count').first().text();
                                             var newProductQuantity = parseInt(quantityProducts) - parseInt(qty);
                                             $('.toaster-cart .cart-items-count').text(newProductQuantity);
                                             $('.toaster-cart .cart-total-tax').text(response.responseText.totalTax);
