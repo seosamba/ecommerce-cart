@@ -406,6 +406,7 @@ class Cart extends Tools_Cart_Cart {
 		if (isset($this->_options[2]) && $this->_options[2] == 'checkbox') {
 			return $this->_view->render('addtocartcheckbox.phtml');
 		}
+		$this->_view->gotocart = array_search('gotocart', $this->_options) ? true : false;
 		return $this->_view->render('addtocart.phtml');
 	}
 
@@ -894,7 +895,7 @@ class Cart extends Tools_Cart_Cart {
 		$flashMessenger = Zend_Controller_Action_HelperBroker::getStaticHelper('flashMessenger');
 		if ($flashMessenger) {
 			$msg = $flashMessenger->getMessages();
-			if (!empty($msg) && (in_array('There is no user with such login and password.', $msg) || in_array('Login should be a valid email address', $msg) || in_array('Value is required and can\'t be empty', $msg) || preg_match('~sent an email to~',$msg[0]))) {
+			if (!empty($msg) && (in_array('There is no user with such login and password.', $msg[0]) || in_array('Login should be a valid email address', $msg[0]) || in_array('Value is required and can\'t be empty', $msg[0]))) {
 				$this->_view->isError = true;
 			}
 		}
