@@ -16,7 +16,7 @@
             <?php echo $this->signupForm->lastname;?>
             <?php echo $this->signupForm->email;?>
             <p>
-                <label for="<?php echo $this->signupForm->mobile->getAttrib('id');?>"><?php echo $this->translate('Mobile');?></label>
+                <label for="<?php echo $this->signupForm->mobile->getName() ;?>"><?php echo $this->translate('Mobile');?></label>
                 <span class="block wrap">
                     <?php echo $this->signupForm->mobilecountrycode;?>
                     <?php echo $this->signupForm->mobile;?>
