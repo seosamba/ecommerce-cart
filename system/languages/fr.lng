@@ -9,5 +9,6 @@
     'Great news! Your purchase is eligible for free shipping'=>'Bonnes nouvelles! Votre achat est éligible pour la livraison gratuite.',
     'Select shipping method' => 'Sélectionnez le service de livraison',
     'Apply' => 'Valider',
-    'Enter your shipping address' => 'Votre adresse de livraison'
+    'Enter your shipping address' => 'Votre adresse de livraison',
+     'You will receive important order information via email and SMS' => 'Vous recevrez des informations de commande importantes par email et SMS'
 ); ?>
