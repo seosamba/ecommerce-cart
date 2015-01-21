@@ -15,7 +15,7 @@
             <?php echo $this->signupForm->firstname;?>
             <?php echo $this->signupForm->lastname;?>
             <?php echo $this->signupForm->email;?>
-            <p>
+            <p  class="checkTooltip" title="<?php echo $this->translate("You will receive important order information via email and SMS"); ?>">
                 <label for="<?php echo $this->signupForm->mobile->getName() ;?>"><?php echo $this->translate('Mobile');?></label>
                 <span class="block wrap">
                     <?php echo $this->signupForm->mobilecountrycode;?>
@@ -33,3 +33,8 @@
     </div>
     <?php endif; ?>
 </div>
+<script type="text/javascript">
+    $(function(){
+       showTooltip('.checkTooltip', 'info', 'top');
+    });
+</script>
