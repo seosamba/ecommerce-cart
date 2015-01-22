@@ -26,11 +26,13 @@ $(function() {
             success: function(response){
                 if (!response.error){
                     if (gotocart) {
-                        showConfirm("Go to the cart?", function () {
-                            window.location.href = checkoutUrl;
-                        }, function () {
-                            window.location.reload();
-                        })
+                        smoke.confirm("<span>Succces! Item(s) added to cart</span> You have added your selected item(s) to your cart. What do you want to do next?", function(e){
+                            if(e){
+                                window.location.href = checkoutUrl;
+                            }else{
+                                window.location.reload();
+                            }
+                        }, {classname : 'cart-info', ok : 'View Cart / Checkout', cancel : 'Continue Shopping'});
                     } else {
                         window.location.href = checkoutUrl;
                     }
