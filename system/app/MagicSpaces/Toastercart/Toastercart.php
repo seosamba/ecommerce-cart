@@ -1,4 +1,12 @@
 <?php
+/**
+ * MAGICSPACE: toastercart
+ *
+ * {toastercart}{/toastercart} - used to specify a place where single cart items will be displayed
+ * Inside this magic space you can put cartitem widgets
+ *
+ * Class MagicSpaces_Toastercart_Toastercart
+ */
 
 class MagicSpaces_Toastercart_Toastercart extends Tools_MagicSpaces_Abstract {
 
