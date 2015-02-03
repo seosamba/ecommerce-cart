@@ -1,6 +1,8 @@
 <?php
 /**
- * PaymentGateways
+ * MAGICSPACE: paymentgateways
+ * {paymentgateways}{/paymentgateways} - used to specify a place where payment gateways will be displayed at the checkout
+ * It provides a mechanism to display payment gateways at the latest stage when taxes and shipping was applied to final amount of the purchase
  * @author Pavel Kovalyov <pavlo.kovalyov@gmail.com>
  */
 class MagicSpaces_Paymentgateways_Paymentgateways extends Tools_MagicSpaces_Abstract {
