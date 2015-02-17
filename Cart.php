@@ -436,6 +436,15 @@ class Cart extends Tools_Cart_Cart {
 			return $this->_view->render('checkout/keepshopping.phtml');
 		}
 
+        $cartId = Tools_ShoppingCart::getInstance()->getCartId();
+        $orderInfo = Models_Mapper_OrdersMapper::getInstance()->find($cartId);
+        if ($orderInfo instanceof Models_Model_CartSession) {
+            $orderStatus = $orderInfo->getStatus();
+            if ($orderStatus === Models_Model_CartSession::CART_STATUS_COMPLETED) {
+                $this->_redirector->gotoUrlAndExit($this->_websiteUrl . 'plugin/shopping/run/thankyou/');
+            }
+        }
+
 		$this->_view->actionUrl = $this->_websiteUrl . $this->_seotoasterData['url'];
 
 		if ($this->_request->has('step')) {
