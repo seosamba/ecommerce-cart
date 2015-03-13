@@ -13,7 +13,7 @@
 
 <?php if ($this->pickupForm && $this->defaultPickup) : ?>
 <div id="checkout-pickup-form" style="<?php if ($this->shippingForm && !$this->pickupForm->isErrors()): ?>display: none;<?php endif; ?>">
-	<div>
+	<div class="checkout-pickup-default">
 	    <h3 class="checkout-forms-header">
 		    <?php echo $this->pickupForm->getLegend(); ?>
 		    <?php if ($this->shippingForm):?>
@@ -40,7 +40,7 @@
             <?php echo $this->pickupForm->submitpickup;?>
         </form>
 	</div>
-	<div>
+	<div class="checkout-pickup-default">
 	    <h3 class="checkout-forms-header"><?php echo $this->translate('Pickup location'); ?></h3>
 		<div>
 		    <span class="company"><?php echo $this->shoppingConfig['company'];?></span><br />
