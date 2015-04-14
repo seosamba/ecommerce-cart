@@ -274,6 +274,7 @@ class Cart extends Tools_Cart_Cart {
 
     private function _prepareFreebies($productFreebiesSettings){
         $freebiesQuantity = array();
+        $freebiesProducts = array();
         foreach($productFreebiesSettings as $freebies){
             $freebiesProduct = $this->_productMapper->find($freebies['freebies_id']);
             if($freebiesProduct instanceof Models_Model_Product){

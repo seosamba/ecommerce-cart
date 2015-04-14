@@ -67,18 +67,22 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
             'taxClass'  => $this->_cartContent[$sid]['taxClass']
 		));
 
+        $taxEnabled = false;
         if(isset($this->_cartContent[$sid]['freebies']) && $this->_cartContent[$sid]['freebies'] == 1){
             $price = 0;
             $this->_view->freebies = true;
         }else{
             if(isset($this->_shoppingConfig['showPriceIncTax']) && $this->_shoppingConfig['showPriceIncTax'] === '1'){
+                $taxEnabled = true;
+                $taxRate = Tools_Tax_Tax::calculateProductTax($product, isset($destinationAddress) ? $destinationAddress : null, true);
                 $cartItem['tax'] = Tools_Tax_Tax::calculateProductTax($product, isset($destinationAddress) ? $destinationAddress : null);
                 $price = $this->_cartContent[$sid]['price'] + $cartItem['tax'];
+                $this->_view->taxRate = $taxRate;
             }else{
                 $price = $this->_cartContent[$sid]['price'];
             }
         }
-		    //$price = (bool)$this->_shoppingConfig['showPriceIncTax'] ? $this->_cartContent[$sid]['taxPrice'] : $this->_cartContent[$sid]['price'] ;
+
         if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
             $this->_view->price       = $price;
             $this->_view->priceOption = 'unitprice';
@@ -96,6 +100,7 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
             $this->_view->priceOption = 'price';
         }
 		$this->_view->quantity = $this->_cartContent[$sid]['qty'];
+        $this->_view->taxEnabled = $taxEnabled;
 		return $this->_view->render('commonprice.phtml');
 	}
 
