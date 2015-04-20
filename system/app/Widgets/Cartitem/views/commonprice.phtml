@@ -15,15 +15,15 @@
             <?php else:?>
                 <?php $discount = $this->currency($discountData['discount']); ?>
             <?php endif;?>
-            <?php if($discountData['name'] === 'groupprice') continue; ?>
+            <?php if(empty($discountData['display_on_checkout'])) continue; ?>
             <?php if($discountData['name'] === 'promo') : ?>
                 <?php $message =  $this->translate('On sale'). ': ' . $this->translate('buy now to save') . ' ' . $discount . ' ' . $this->translate('per unit') ?>
-            <?php elseif($discountData['name'] === 'q-ty discount') : ?>
+            <?php elseif($discountData['name'] === 'quantity_discount') : ?>
                     <?php $message =  $this->translate('Act now'). ': ' . $this->translate('Buying') . ' ' . $this->quantity . ' ' . $this->translate('saves you') .' ' . $discount . ' ' . $this->translate('per unit') ?>
             <?php else: ?>
-                <?php $message = ucfirst($discountData['name']) . ': ' . $this->translate('you save') . ' ' .  $discount . ' ' . $this->translate('per unit')?>
+                <?php $message = ucfirst($discountData['checkout_label']) . ': ' . $this->translate('you save') . ' ' .  $discount . ' ' . $this->translate('per unit')?>
             <?php endif ?>
-            <span class="item-discount <?php echo $discountData['name'];?>"><?php echo $message; ?></span>
+            <span class="item-discount <?php echo $discountData['checkout_label'];?>"><?php echo $message; ?></span>
         <?php endforeach;?>
         </div>
     <?php else:?>
