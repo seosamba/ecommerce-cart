@@ -155,7 +155,9 @@
                         <span class="region"><?php $state = Tools_Geo::getStateById($shippingAddress['state']); echo $state['state']; ?></span>
                         <span class="postal-code"><?php echo $shippingAddress['zip'];?></span>
                         <br />
-                        <span><?php echo $countryList[$shippingAddress['country']];?></span>
+                        <?php if (isset($countryList[$shippingAddress['country']])) :?>
+                            <span><?php echo $countryList[$shippingAddress['country']];?></span>
+                        <?php endif;?>
                         <span class="email clearfix"> <?php echo $shippingAddress['email'];?></span>
                         <a href="<?php echo $this->websiteUrl .$this->checkOutPageUrl.'?step='.Cart::STEP_SHIPPING_OPTIONS.'&shippingAddress='.$shippingAddress['id'];?>" class="use-shipping-address">
                             <?php echo $this->translate('Ship to this address');?>
