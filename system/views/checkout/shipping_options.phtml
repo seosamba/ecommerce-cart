@@ -13,7 +13,7 @@
 
 <?php if ($this->pickupForm && $this->defaultPickup) : ?>
 <div id="checkout-pickup-form" style="<?php if ($this->shippingForm && !$this->pickupForm->isErrors()): ?>display: none;<?php endif; ?>">
-	<div>
+	<div class="checkout-pickup-default">
 	    <h3 class="checkout-forms-header">
 		    <?php echo $this->pickupForm->getLegend(); ?>
 		    <?php if ($this->shippingForm):?>
@@ -40,7 +40,7 @@
             <?php echo $this->pickupForm->submitpickup;?>
         </form>
 	</div>
-	<div>
+	<div class="checkout-pickup-default">
 	    <h3 class="checkout-forms-header"><?php echo $this->translate('Pickup location'); ?></h3>
 		<div>
 		    <span class="company"><?php echo $this->shoppingConfig['company'];?></span><br />
@@ -155,7 +155,9 @@
                         <span class="region"><?php $state = Tools_Geo::getStateById($shippingAddress['state']); echo $state['state']; ?></span>
                         <span class="postal-code"><?php echo $shippingAddress['zip'];?></span>
                         <br />
-                        <span><?php echo $countryList[$shippingAddress['country']];?></span>
+                        <?php if (isset($countryList[$shippingAddress['country']])) :?>
+                            <span><?php echo $countryList[$shippingAddress['country']];?></span>
+                        <?php endif;?>
                         <span class="email clearfix"> <?php echo $shippingAddress['email'];?></span>
                         <a href="<?php echo $this->websiteUrl .$this->checkOutPageUrl.'?step='.Cart::STEP_SHIPPING_OPTIONS.'&shippingAddress='.$shippingAddress['id'];?>" class="use-shipping-address">
                             <?php echo $this->translate('Ship to this address');?>

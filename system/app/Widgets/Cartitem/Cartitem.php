@@ -109,7 +109,7 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
         if((isset($this->_options[0]) && $this->_options[0] == 'noedit') || (Cart::$_lockCartEdit === true) || $this->_cartContent[$sid]['freebies'] == 1) {
 			$html = '<span class="toastercart-item-qty">' . $this->_cartContent[$sid]['qty'] . '</span>';
 		} else {
-			$html = '<input type="number" class="toastercart-item-qty product-qty" min="0" data-sid="' . $sid . '" data-pid="' . $this->_cartContent[$sid]['id'] . '" value="' . $this->_cartContent[$sid]['qty'] . '" />';
+			$html = '<input type="text" class="toastercart-item-qty product-qty" min="0" data-sid="' . $sid . '" data-pid="' . $this->_cartContent[$sid]['id'] . '" value="' . $this->_cartContent[$sid]['qty'] . '" />';
 		}
 		return $html;
 	}
