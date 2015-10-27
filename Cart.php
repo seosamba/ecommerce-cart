@@ -1414,26 +1414,26 @@ class Cart extends Tools_Cart_Cart {
         }
         $cart = Tools_ShoppingCart::getInstance();
         $shippingAddress = $cart->getAddressById($cart->getShippingAddressKey());
-        $shippingRestricted = false;
+        $shippingRestricted = true;
 
         if (!empty($shippingAddress)) {
             $deliveryType = Forms_Shipping_FreeShipping::DESTINATION_INTERNATIONAL;
             if ($this->_shoppingConfig['country'] == $shippingAddress['country']) {
                 $deliveryType = Forms_Shipping_FreeShipping::DESTINATION_NATIONAL;
             }
-            if ($restrictionSettings['config']['restrictDestination'] === Forms_Shipping_FreeShipping::DESTINATION_BOTH
-                || $restrictionSettings['config']['restrictDestination'] === $deliveryType
-            ) {
-                $shippingRestricted = true;
-            } elseif(!empty($restrictionSettings['config']['restrictZones'])) {
+            if (empty($restrictionSettings['config']['restrictDestination'])) {
+                $shippingRestricted = false;
+            }
+            if (!empty($restrictionSettings['config']['restrictDestination']) && $restrictionSettings['config']['restrictDestination'] === $deliveryType) {
+                $shippingRestricted = false;
+            }
+
+            if(!empty($restrictionSettings['config']['restrictZones'])) {
                 $zoneIds = $restrictionSettings['config']['restrictZones'];
                 if (!empty($zoneIds)) {
                     $currentZoneId = Tools_Tax_Tax::getZone($shippingAddress, false);
-                    foreach ($zoneIds as $zoneId) {
-                        if ($zoneId == $currentZoneId) {
-                            $shippingRestricted = true;
-                            break;
-                        }
+                    if (in_array($currentZoneId, $zoneIds)) {
+                        $shippingRestricted = false;
                     }
                 }
             }
