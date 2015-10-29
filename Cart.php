@@ -1100,10 +1100,14 @@ class Cart extends Tools_Cart_Cart {
 			return $freeShipping;
 		}
 
+        if (false !== ($shippingRestriction = $this->_qualifyShippingRestriction())) {
+            return $shippingRestriction;
+        }
+
 		$shippingServices = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
 		if (!empty($shippingServices)) {
 			$shippingServices = array_map(function ($shipper) {
-				return !in_array($shipper['name'], array(Shopping::SHIPPING_MARKUP, Shopping::SHIPPING_PICKUP, Shopping::SHIPPING_FREESHIPPING, Shopping::ORDER_CONFIG)) ? array(
+				return !in_array($shipper['name'], array(Shopping::SHIPPING_MARKUP, Shopping::SHIPPING_PICKUP, Shopping::SHIPPING_FREESHIPPING, Shopping::ORDER_CONFIG, Shopping::SHIPPING_RESTRICTION_ZONES)) ? array(
 					'name'  => $shipper['name'],
 					'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
 				) : null;
@@ -1408,6 +1412,55 @@ class Cart extends Tools_Cart_Cart {
         }
 
     }
+
+    /**
+     * Analyze if shipping accepted for user destination
+     *
+     * @return bool
+     */
+    private function _qualifyShippingRestriction()
+    {
+        $restrictionSettings = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_RESTRICTION_ZONES);
+        if (empty($restrictionSettings['config']) || empty($restrictionSettings['enabled'])) {
+            return false;
+        }
+        $cart = Tools_ShoppingCart::getInstance();
+        $shippingAddress = $cart->getAddressById($cart->getShippingAddressKey());
+        $shippingRestricted = true;
+
+        if (!empty($shippingAddress)) {
+            $deliveryType = Forms_Shipping_FreeShipping::DESTINATION_INTERNATIONAL;
+            if ($this->_shoppingConfig['country'] == $shippingAddress['country']) {
+                $deliveryType = Forms_Shipping_FreeShipping::DESTINATION_NATIONAL;
+            }
+            if (empty($restrictionSettings['config']['restrictDestination'])) {
+                $shippingRestricted = false;
+            }
+            if (!empty($restrictionSettings['config']['restrictDestination']) && $restrictionSettings['config']['restrictDestination'] === $deliveryType) {
+                $shippingRestricted = false;
+            }
+
+            if(!empty($restrictionSettings['config']['restrictZones'])) {
+                $zoneIds = $restrictionSettings['config']['restrictZones'];
+                if (!empty($zoneIds)) {
+                    $currentZoneId = Tools_Tax_Tax::getZone($shippingAddress, false);
+                    if (in_array($currentZoneId, $zoneIds)) {
+                        $shippingRestricted = false;
+                    }
+                }
+            }
+
+        }
+        if ($shippingRestricted) {
+            if (!empty($restrictionSettings['config']['restrictionMessage'])) {
+                return $restrictionSettings['config']['restrictionMessage'];
+            } else {
+                return $this->_translator->translate('Sorry, we can\'t ship to your location at this time');
+            }
+        }
+        return $shippingRestricted;
+    }
+
 
 //	@TODO implement widget maker
 //	public static function getWidgetMakerContent(){

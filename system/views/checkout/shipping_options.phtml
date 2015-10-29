@@ -186,7 +186,7 @@
                     <?php echo $this->shippingForm->email;?>
                     <?php echo $this->shippingForm->phone;?>
                     <p>
-                        <label for="<?php echo $this->shippingForm->mobile->getAttrib('id');?>"><?php echo $this->translate('Mobile');?></label>
+                        <label for="mobile" class="<?php echo $this->shippingForm->mobile->getAttrib('class');?>"><?php echo $this->translate('Mobile');?></label>
                         <span class="block wrap">
                             <?php echo $this->shippingForm->mobilecountrycode;?>
                             <?php echo $this->shippingForm->mobile;?>
