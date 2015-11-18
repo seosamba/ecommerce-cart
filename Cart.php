@@ -1361,8 +1361,10 @@ class Cart extends Tools_Cart_Cart {
     private function _normalizeMobilePhoneNumber($form) {
         if(isset($form['mobile']) && !empty($form['mobile'])) {
             $countryPhoneCode = Zend_Locale::getTranslation($form['mobilecountrycode'], 'phoneToTerritory');
-            $form['mobile'] = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['mobile'], $countryPhoneCode);
-            //unset($form['mobilecountryphonecode']);
+            $mobileNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['mobile'], $countryPhoneCode);
+            if ($mobileNumber !== false) {
+                $form['mobile'] = $mobileNumber;
+            }
         }
         return $form;
     }
