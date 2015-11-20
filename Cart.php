@@ -213,7 +213,7 @@ class Cart extends Tools_Cart_Cart {
 		}
 		$productId = $this->_requestedParams['pid'];
 		$options = $this->_requestedParams['options'];
-		$addCount = isset($this->_requestedParams['qty']) ? intval($this->_requestedParams['qty']) : 1;
+		$addCount = isset($this->_requestedParams['qty']) ? abs(intval($this->_requestedParams['qty'])) : 1;
 		if (!$productId) {
 			throw new Exceptions_SeotoasterPluginException('Can\'t add to cart: product not defined');
 		}
