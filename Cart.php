@@ -225,6 +225,23 @@ class Cart extends Tools_Cart_Cart {
             );
         }
 
+        $options = ($options) ? $this->_parseProductOptions($productId, $options) : $this->_getDefaultProductOptions($product);
+        $sid = $this->_generateStorageKey($product, $options);
+
+        if (null !== ($cartItem = $this->_cartStorage->findBySid($sid))) {
+            $inCartCount = $cartItem['qty'];
+        } else {
+            $inCartCount = 0;
+        }
+
+        $customInventory = Tools_Misc::applyInventory($productId, $options, $addCount + $inCartCount, Tools_InventoryObserver::INVENTORY_IN_STOCK_METHOD);
+        if ($customInventory['error'] === true) {
+            if (!empty($customInventory['stock'])) {
+                return $this->_responseHelper->response(array('stock' => $customInventory['stock'], 'msg' => $this->_translator->translate('The requested quantity is not available')), 1);
+            }
+            return $this->_responseHelper->response(array('stock' => $customInventory['stock'], 'msg' => $this->_translator->translate('The requested product is out of stock')), 1);
+        }
+
 		if (!is_null($inStockCount)) {
 			$inStockCount = intval($inStockCount);
 			if (null !== ($cartItem = $this->_cartStorage->find($productId))) {
@@ -265,7 +282,7 @@ class Cart extends Tools_Cart_Cart {
                 }
             }
         }
-		$options = ($options) ? $this->_parseProductOptions($productId, $options) : $this->_getDefaultProductOptions($product);
+
 		$storageKey = $this->_cartStorage->add($product, $options, $addCount);
 		return $this->_responseHelper->success($storageKey);
 	}
@@ -323,7 +340,21 @@ class Cart extends Tools_Cart_Cart {
 		$newQty = filter_var($this->_requestedParams['qty'], FILTER_SANITIZE_NUMBER_INT);
 		$cartItem = $this->_cartStorage->findBySid($storageId);
 		if (null !== ($prod = Models_Mapper_ProductMapper::getInstance()->find($cartItem['id']))) {
-			if (!is_null($prod->getInventory())) {
+            if (!empty($cartItem['options'])) {
+                $options = array();
+                foreach ($cartItem['options'] as  $optionData) {
+                    $options[$optionData['option_id']] = $optionData['id'];
+                }
+                $customInventory = Tools_Misc::applyInventory($cartItem['id'], $options, $newQty, Tools_InventoryObserver::INVENTORY_IN_STOCK_METHOD);
+                if ($customInventory['error'] === true) {
+                    if (!empty($customInventory['stock'])) {
+                        return $this->_responseHelper->fail($this->_view->translate('The requested quantity is not available'));
+                    }
+                    return $this->_responseHelper->fail($this->_view->translate('The requested product is out of stock'));
+                }
+            }
+
+            if (!is_null($prod->getInventory())) {
 				$inStock = intval($prod->getInventory());
 				if ($inStock === 0) {
 					$this->_cartStorage->remove($storageId);
