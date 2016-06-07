@@ -29,6 +29,12 @@ class Cart extends Tools_Cart_Cart {
 	const STEP_SHIPPING_ADDRESS = 'address';
 
     const DEFAULT_RELATED_QUANTITY = '20';
+
+    /**
+     * Add password fields in the registration form at the checkout
+     */
+    const REGISTRATION_WITH_PASSWORD = 'with-password';
+
 	/**
 	 * Shopping cart main storage.
 	 *
@@ -848,7 +854,15 @@ class Cart extends Tools_Cart_Cart {
 		);
 		$form = new Forms_Signup();
         $form->setMobilecountrycode(Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('country'));
-		$cart = Tools_ShoppingCart::getInstance();
+		$withPassword = array_search(self::REGISTRATION_WITH_PASSWORD, $this->_options);
+        if ($withPassword === false) {
+            $form->removeElement('customerPassword');
+            $form->removeElement('customerPassConfirmation');
+            $this->_view->registrationWithPassword = false;
+        } else {
+            $this->_view->registrationWithPassword = true;
+        }
+        $cart = Tools_ShoppingCart::getInstance();
 		if ($this->_request->isPost()) {
 			if ($form->isValid($this->_request->getPost())) {
 				$customerData = $this->_normalizeMobilePhoneNumber($form->getValues());
