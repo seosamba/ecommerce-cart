@@ -28,6 +28,16 @@ class Cart extends Tools_Cart_Cart {
 
 	const STEP_SHIPPING_ADDRESS = 'address';
 
+    /**
+     * Checkout step merchandising
+     */
+    const STEP_MERCHANDISING = 'merchandising';
+
+    /**
+     * Checkout step payment
+     */
+    const STEP_PAYMENT = 'payment';
+
     const DEFAULT_RELATED_QUANTITY = '20';
 	/**
 	 * Shopping cart main storage.
@@ -502,6 +512,9 @@ class Cart extends Tools_Cart_Cart {
 				case self::STEP_SHIPPING_OPTIONS:
 					$content = $this->_checkoutStepShipping();
 					break;
+                case self::STEP_MERCHANDISING:
+                    $content = $this->_renderStepMerchandising();
+                    break;
 				default:
 					$content = $this->_checkoutStepSignup();
 					break;
@@ -560,6 +573,22 @@ class Cart extends Tools_Cart_Cart {
 			return $this->_view->render('buyersummary.phtml');
 		}
 	}
+
+    protected function _makeOptionMerchandisingsummary()
+    {
+        $cart = Tools_ShoppingCart::getInstance();
+        if (sizeof($cart->getContent()) !== 0) {
+            $shippingData = $cart->getShippingData();
+            $this->_getCheckoutPage();
+            if (!empty($shippingData)) {
+                $this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
+
+                return $this->_view->render('merchandising-summary.phtml');
+            }
+        }
+
+        return '';
+    }
 
 	protected function _parseProductOptions($productId, $options) {
 		parse_str($options, $options);
@@ -751,7 +780,12 @@ class Cart extends Tools_Cart_Cart {
 						self::STEP_SHIPPING_OPTIONS,
 						self::STEP_SHIPPING_METHOD
 					);
-					return $this->_renderPaymentZone();
+
+                    if (isset($this->_sessionHelper->merchandisingZoneTmpl)) {
+                        return $this->_renderMerchandisingZone();
+                    } else {
+					    return $this->_renderPaymentZone();
+                    }
 				}
 			}
 		} else {
@@ -848,7 +882,12 @@ class Cart extends Tools_Cart_Cart {
 					self::STEP_LANDING,
 					self::STEP_SHIPPING_OPTIONS
 				);
-				return $this->_renderPaymentZone();
+
+                if (isset($this->_sessionHelper->merchandisingZoneTmpl)) {
+                    return $this->_renderMerchandisingZone();
+                } else {
+                    return $this->_renderPaymentZone();
+                }
 			}
 		}
 		return $this->_renderShippingOptions($pickupForm);
@@ -1113,21 +1152,87 @@ class Cart extends Tools_Cart_Cart {
 		return $this->_view->render('checkout/shipping_options.phtml');
 	}
 
-	protected function _renderPaymentZone() {
-		$paymentZoneTmpl = isset($this->_sessionHelper->paymentZoneTmpl) ? $this->_sessionHelper->paymentZoneTmpl : null;
-		if ($paymentZoneTmpl !== null) {
-			$themeData = Zend_Registry::get('theme');
-			$extConfig = Zend_Registry::get('extConfig');
-			$parserOptions = array(
-				'websiteUrl'   => $this->_websiteHelper->getUrl(),
-				'websitePath'  => $this->_websiteHelper->getPath(),
-				'currentTheme' => $extConfig['currentTheme'],
-				'themePath'    => $themeData['path'],
-			);
-			$parser = new Tools_Content_Parser($paymentZoneTmpl, Tools_Misc::getCheckoutPage()->toArray(), $parserOptions);
-			return '<div id="payment-zone">' . $parser->parse() . '</div>';
-		}
-	}
+    /**
+     * Render merchandising step
+     *
+     * @return string
+     */
+    protected function _renderStepMerchandising()
+    {
+        $shippingData = $this->_cartStorage->getShippingData();
+        if (!empty($shippingData) && isset($this->_sessionHelper->merchandisingZoneTmpl) && $this->_request->isGet()) {
+            return $this->_renderMerchandisingZone();
+        } elseif($this->_request->isPost() && !empty($shippingData)) {
+            $this->_checkoutSession->returnAllowed = array(
+                self::STEP_LANDING,
+                self::STEP_SHIPPING_OPTIONS,
+                self::STEP_SHIPPING_METHOD,
+                self::STEP_MERCHANDISING,
+                self::STEP_PAYMENT
+            );
+            return $this->_renderPaymentZone();
+        }
+        return $this->_checkoutStepSignup();
+    }
+
+    /**
+     * Payment step zone
+     *
+     * @return string
+     */
+    protected function _renderPaymentZone()
+    {
+        $paymentZoneTmpl = isset($this->_sessionHelper->paymentZoneTmpl) ? $this->_sessionHelper->paymentZoneTmpl : null;
+        if ($paymentZoneTmpl !== null) {
+            return '<div id="payment-zone">' . $this->_parseCheckoutStepArea($paymentZoneTmpl) . '</div>';
+        }
+    }
+
+    /**
+     * Merchandising step zone
+     *
+     * @return string
+     * @throws Zend_Exception
+     */
+    protected function _renderMerchandisingZone()
+    {
+        if (isset($this->_sessionHelper->merchandisingZoneTmpl)) {
+            $this->_checkoutSession->returnAllowed = array(
+                self::STEP_LANDING,
+                self::STEP_SHIPPING_OPTIONS,
+                self::STEP_SHIPPING_METHOD,
+                self::STEP_MERCHANDISING
+            );
+
+            $this->_view->merchandisingContent = $this->_parseCheckoutStepArea($this->_sessionHelper->merchandisingZoneTmpl);
+
+            return $this->_view->render('checkout/merchandising.phtml');
+        }
+        return '';
+    }
+
+    /**
+     * Parse template area
+     *
+     * @param string $zoneTmpl checkout zone template
+     * @throws Zend_Exception
+     * @return null
+     */
+    protected function _parseCheckoutStepArea($zoneTmpl)
+    {
+        $themeData = Zend_Registry::get('theme');
+        $extConfig = Zend_Registry::get('extConfig');
+        $parserOptions = array(
+            'websiteUrl' => $this->_websiteHelper->getUrl(),
+            'websitePath' => $this->_websiteHelper->getPath(),
+            'currentTheme' => $extConfig['currentTheme'],
+            'themePath' => $themeData['path'],
+        );
+        $parser = new Tools_Content_Parser($zoneTmpl, Tools_Misc::getCheckoutPage()->toArray(),
+            $parserOptions);
+
+        return $parser->parse();
+    }
 
 	protected function _renderShippingMethods() {
 		if (false !== ($freeShipping = $this->_qualifyFreeShipping())) {

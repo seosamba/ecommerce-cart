@@ -1,0 +1,7 @@
+<div id="merchandising-zone">
+    <?php echo $this->merchandisingContent;?>
+    <form id="merchandising-continue" method="POST" class="toaster-checkout" enctype="application/x-www-form-urlencoded" action="<?php echo $this->actionUrl; ?>">
+        <p><input type="hidden" name="step" value="<?php echo Cart::STEP_MERCHANDISING; ?>"></p>
+        <p><input type="submit" value="<?php echo $this->translate('Next');?>" ></p>
+    </form>
+</div>
