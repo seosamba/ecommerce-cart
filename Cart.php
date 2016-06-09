@@ -1335,8 +1335,12 @@ class Cart extends Tools_Cart_Cart {
             }
             $successMessage =  Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('checkoutShippingSuccessMessage');
 			if ($result === true) {
-				return '<h3>' . $successMessage . '</h3>' .
-				$this->_renderPaymentZone();
+                if (isset($this->_sessionHelper->merchandisingZoneTmpl)) {
+                    return $this->_renderMerchandisingZone();
+                } else {
+                    return '<h3>' . $successMessage . '</h3>' .
+                    $this->_renderPaymentZone();
+                }
 			}
 
 		}
