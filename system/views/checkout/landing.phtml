@@ -22,6 +22,10 @@
                     <?php echo $this->signupForm->mobile;?>
                 </span>
             </p>
+            <?php if ($this->registrationWithPassword === true) :?>
+                <?php echo $this->signupForm->customerPassword;?>
+                <?php echo $this->signupForm->customerPassConfirmation;?>
+            <?php endif;?>
             <?php echo $this->signupForm->step;?>
             <?php echo $this->signupForm->signup;?>
         </form>
