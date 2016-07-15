@@ -467,8 +467,12 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionCheckout() {
-		if (count(Tools_ShoppingCart::getInstance()->getContent()) === 0) {
-			return $this->_view->render('checkout/keepshopping.phtml');
+        $shoppingCart = Tools_ShoppingCart::getInstance();
+        if (count($shoppingCart->getContent()) === 0) {
+            $shoppingCart->setShippingData(array());
+            $shoppingCart->calculate(true);
+            $shoppingCart->save();
+            return $this->_view->render('checkout/keepshopping.phtml');
 		}
 
 		$this->_view->actionUrl = $this->_websiteUrl . $this->_seotoasterData['url'];
