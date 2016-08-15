@@ -1164,6 +1164,10 @@ class Cart extends Tools_Cart_Cart {
 			}
 		}
 
+        if(in_array('shipping-sort', $this->_options)){
+            $this->_view->shippingSort = true;
+        }
+
 		$this->_view->shoppingConfig = $this->_shoppingConfig;
 		$this->_view->shippers = $shippingServices;
         $this->_view->checkOutPageUrl = $this->_getCheckoutPage()->getUrl();
