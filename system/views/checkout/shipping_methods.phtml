@@ -34,6 +34,9 @@ $('ul.shipping-methods', '#shipper-select').each(function(){
         url: '<?php echo $this->websiteUrl;?>plugin/'+shipperName+'/run/calculate/',
         dataType: 'json',
         success: function(response){
+            <?php if(!empty($this->shippingSort)):?>
+                response.reverse();
+            <?php endif;?>
             var html ='';
 	        $.each(response, function(index, shipper){
 		        if (shipper.error) {
