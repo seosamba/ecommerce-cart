@@ -899,9 +899,9 @@ class Cart extends Tools_Cart_Cart {
                 $cart->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
                     ->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)
                     ->setCustomerId(null)
-                    ->setShippingData(null)
+                    ->setShippingData(null);
                     //->setNotes(null)
-                    ->setCoupons(null);
+                    //->setCoupons(null);
 
                 $cart->calculate(true);
                 $cart->save();
