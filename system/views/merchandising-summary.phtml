@@ -1,0 +1,8 @@
+<?php if (in_array(Cart::STEP_PAYMENT, $this->returnAllowed)) : ?>
+    <h3 class="checkout-widget-title">
+        <?php echo $this->translate('Merchandising information'); ?>
+        <a href="<?php echo $this->websiteUrl . $this->checkoutPage->getUrl() . '?step=' . Cart::STEP_MERCHANDISING; ?>"
+           class="checkout-edit"
+           title="<?php echo $this->translate('Edit Merchandising'); ?>"><?php echo $this->translate('Edit'); ?></a>
+    </h3>
+<?php endif; ?>
