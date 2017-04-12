@@ -26,7 +26,7 @@ $(function() {
             success: function(response){
                 if (!response.error){
                     if (gotocart) {
-                        smoke.confirm("<span>Succces! Item(s) added to cart</span> You have added your selected item(s) to your cart. What do you want to do next?", function(e){
+                        smoke.confirm("<span>Success! Item(s) added to cart</span> You have added your selected item(s) to your cart. What do you want to do next?", function(e){
                             if(e){
                                 window.location.href = checkoutUrl;
                             }else{
