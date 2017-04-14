@@ -14,6 +14,9 @@
               enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
             <?php echo $this->signupForm->firstname;?>
             <?php echo $this->signupForm->lastname;?>
+            <?php if($this->emailExists){
+                $this->signupForm->getElement('email')->addError('User is already registered');
+            } ?>
             <?php echo $this->signupForm->email;?>
             <p  class="checkTooltip" title="<?php echo $this->translate("You will receive important order information via email and SMS"); ?>">
                 <label for="<?php echo $this->signupForm->mobile->getName() ;?>"><?php echo $this->translate('Mobile');?></label>

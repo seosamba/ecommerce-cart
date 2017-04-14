@@ -868,6 +868,15 @@ class Cart extends Tools_Cart_Cart {
         }
         $cart = Tools_ShoppingCart::getInstance();
 		if ($this->_request->isPost()) {
+            $email = $this->_request->getParam('email');
+		    if($withPassword && !empty($email)){
+                $customerIsRegistered = Models_Mapper_CustomerMapper::getInstance()->findByEmail($email);
+                if($customerIsRegistered instanceof Models_Model_Customer){
+                    $this->_view->emailExists = true;
+                    $form->getElement('email')->setErrors(array(''));
+                }
+            }
+
 			if ($form->isValid($this->_request->getPost())) {
 				$customerData = $this->_normalizeMobilePhoneNumber($form->getValues());
 				$this->_checkoutSession->initialCustomerInfo = $customerData;
