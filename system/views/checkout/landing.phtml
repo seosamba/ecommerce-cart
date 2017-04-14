@@ -14,7 +14,7 @@
               enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
             <?php echo $this->signupForm->firstname;?>
             <?php echo $this->signupForm->lastname;?>
-            <?php if($this->emailExists){
+            <?php if(isset($this->emailExists)){
                 $this->signupForm->getElement('email')->addError($this->translate('This email address is already registered'));
             } ?>
             <?php echo $this->signupForm->email;?>
