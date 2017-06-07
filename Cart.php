@@ -1424,7 +1424,9 @@ class Cart extends Tools_Cart_Cart {
             $countryPhoneCode = Zend_Locale::getTranslation($form['mobilecountrycode'], 'phoneToTerritory');
             $mobileNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['mobile'], $countryPhoneCode);
             if ($mobileNumber !== false) {
+                $form['originalMobile'] = $form['mobile'];
                 $form['mobile'] = $mobileNumber;
+                $form['mobileCountryCodeValue'] = '+'.$countryPhoneCode;
             }
         }
         return $form;
