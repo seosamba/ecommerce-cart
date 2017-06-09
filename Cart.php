@@ -1421,12 +1421,15 @@ class Cart extends Tools_Cart_Cart {
 
     private function _normalizeMobilePhoneNumber($form) {
         if(isset($form['mobile']) && !empty($form['mobile'])) {
-            $countryPhoneCode = Zend_Locale::getTranslation($form['mobilecountrycode'], 'phoneToTerritory');
-            $mobileNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['mobile'], $countryPhoneCode);
+            $countryMobileCode = Zend_Locale::getTranslation($form['mobilecountrycode'], 'phoneToTerritory');
+            $countryPhoneCode = Zend_Locale::getTranslation($form['phonecountrycode'], 'phoneToTerritory');
+            $mobileNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['mobile'], $countryMobileCode);
             if ($mobileNumber !== false) {
-                $form['originalMobile'] = $form['mobile'];
-                $form['mobile'] = $mobileNumber;
-                $form['mobileCountryCodeValue'] = '+'.$countryPhoneCode;
+                $form['mobile_country_code_value'] = '+'.$countryMobileCode;
+            }
+            $phoneNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['phone'], $countryPhoneCode);
+            if ($phoneNumber !== false) {
+                $form['phone_country_code_value'] = '+'.$countryPhoneCode;
             }
         }
         return $form;

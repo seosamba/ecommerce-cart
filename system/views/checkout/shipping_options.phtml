@@ -27,7 +27,13 @@
               enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
             <?php echo $this->pickupForm->firstname;?>
             <?php echo $this->pickupForm->lastname;?>
-            <?php echo $this->pickupForm->phone;?>
+            <p>
+                <label for="<?php echo $this->pickupForm->mobile->getAttrib('id');?>"><?php echo $this->translate('Phone');?></label>
+                <span class="block wrap">
+                    <?php echo $this->pickupForm->phonecountrycode;?>
+                    <?php echo $this->pickupForm->phone;?>
+                </span>
+            </p>
             <p>
                 <label for="<?php echo $this->pickupForm->mobile->getAttrib('id');?>"><?php echo $this->translate('Mobile');?></label>
                 <span class="block wrap">
@@ -89,7 +95,13 @@
                   enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
                 <?php echo $this->pickupForm->firstname;?>
                 <?php echo $this->pickupForm->lastname;?>
-                <?php echo $this->pickupForm->phone;?>
+                <p>
+                    <label for="phone" class="<?php echo $this->pickupForm->mobile->getAttrib('class');?>"><?php echo $this->translate('Phone');?></label>
+                    <span class="block wrap">
+                        <?php echo $this->pickupForm->phonecountrycode;?>
+                        <?php echo $this->pickupForm->phone;?>
+                    </span>
+                </p>
                 <?php echo $this->pickupForm->pickupLocationId;?>
                 <p>
                     <label for="mobile"><?php echo $this->translate('Mobile');?></label>
@@ -184,7 +196,13 @@
                     <?php echo $this->shippingForm->lastname;?>
                     <?php echo $this->shippingForm->company;?>
                     <?php echo $this->shippingForm->email;?>
-                    <?php echo $this->shippingForm->phone;?>
+                    <p>
+                        <label for="phone" class="<?php echo $this->shippingForm->mobile->getAttrib('class');?>"><?php echo $this->translate('Phone');?></label>
+                        <span class="block wrap">
+                            <?php echo $this->shippingForm->phonecountrycode;?>
+                            <?php echo $this->shippingForm->phone;?>
+                        </span>
+                    </p>
                     <p>
                         <label for="mobile" class="<?php echo $this->shippingForm->mobile->getAttrib('class');?>"><?php echo $this->translate('Mobile');?></label>
                         <span class="block wrap">
