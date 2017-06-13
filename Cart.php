@@ -959,6 +959,9 @@ class Cart extends Tools_Cart_Cart {
 			}
 		}
 
+        $listMasksMapper = Application_Model_Mappers_MasksListMapper::getInstance();
+        $this->_view->mobileMasks = $listMasksMapper->getListOfMasksByType(Application_Model_Models_MaskList::MASK_TYPE_MOBILE);
+
 		return $this->_view->render('checkout/landing.phtml');
 	}
 
@@ -1124,6 +1127,9 @@ class Cart extends Tools_Cart_Cart {
 			));
 		}
 
+        $listMasksMapper = Application_Model_Mappers_MasksListMapper::getInstance();
+        $this->_view->mobileMasks = $listMasksMapper->getListOfMasksByType(Application_Model_Models_MaskList::MASK_TYPE_MOBILE);
+        $this->_view->desktopMasks = $listMasksMapper->getListOfMasksByType(Application_Model_Models_MaskList::MASK_TYPE_DESKTOP);
 		$this->_view->shoppingConfig = $this->_shoppingConfig;
 		return $this->_view->render('checkout/shipping_options.phtml');
 	}
@@ -1423,9 +1429,16 @@ class Cart extends Tools_Cart_Cart {
         if(isset($form['mobile']) && !empty($form['mobile'])) {
             $countryMobileCode = Zend_Locale::getTranslation($form['mobilecountrycode'], 'phoneToTerritory');
             $countryPhoneCode = Zend_Locale::getTranslation($form['phonecountrycode'], 'phoneToTerritory');
+            $form['mobile'] = preg_replace('~\D~ui', '', $form['mobile']);
             $mobileNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['mobile'], $countryMobileCode);
             if ($mobileNumber !== false) {
                 $form['mobile_country_code_value'] = '+'.$countryMobileCode;
+            }
+
+            if (empty($form['phone'])) {
+                $form['phone'] = '';
+            } else {
+                $form['phone'] = preg_replace('~\D~ui', '', $form['phone']);
             }
             $phoneNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['phone'], $countryPhoneCode);
             if ($phoneNumber !== false) {
