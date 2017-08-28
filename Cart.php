@@ -480,8 +480,12 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionCheckout() {
-		if (count(Tools_ShoppingCart::getInstance()->getContent()) === 0) {
-			return $this->_view->render('checkout/keepshopping.phtml');
+        $shoppingCart = Tools_ShoppingCart::getInstance();
+        if (count($shoppingCart->getContent()) === 0) {
+            $shoppingCart->setShippingData(array());
+            $shoppingCart->calculate(true);
+            $shoppingCart->save();
+            return $this->_view->render('checkout/keepshopping.phtml');
 		}
 
         $cartId = Tools_ShoppingCart::getInstance()->getCartId();
@@ -915,6 +919,15 @@ class Cart extends Tools_Cart_Cart {
         }
         $cart = Tools_ShoppingCart::getInstance();
 		if ($this->_request->isPost()) {
+            $email = $this->_request->getParam('email');
+		    if($withPassword && !empty($email)){
+                $customerIsRegistered = Models_Mapper_CustomerMapper::getInstance()->findByEmail($email);
+                if($customerIsRegistered instanceof Models_Model_Customer){
+                    $this->_view->emailExists = true;
+                    $form->getElement('email')->setErrors(array(''));
+                }
+            }
+
 			if ($form->isValid($this->_request->getPost())) {
 				$customerData = $this->_normalizeMobilePhoneNumber($form->getValues());
 				$this->_checkoutSession->initialCustomerInfo = $customerData;
@@ -946,9 +959,9 @@ class Cart extends Tools_Cart_Cart {
                 $cart->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_BILLING, null)
                     ->setAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING, null)
                     ->setCustomerId(null)
-                    ->setShippingData(null)
+                    ->setShippingData(null);
                     //->setNotes(null)
-                    ->setCoupons(null);
+                    //->setCoupons(null);
 
                 $cart->calculate(true);
                 $cart->save();

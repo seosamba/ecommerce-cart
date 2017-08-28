@@ -46,6 +46,9 @@ $(function() {
                     if(response.responseText.minqty === false){
                         window.location.reload();
                     }
+                    if (response.responseText.sidQuantity === 0) {
+                        window.location.reload();
+                    }
                     refreshPrice(sid, sidsQuantity);
                 }
                 refreshCartSummary();
@@ -73,6 +76,10 @@ $(function() {
                     if(response.responseText.minqty === false){
                         window.location.reload();
                     }
+                    if (response.responseText.sidQuantity == 0) {
+                        window.location.reload();
+                    }
+
                     if(response.responseText.sidQuantity != sidsQuantity-1){
                         window.location.reload();
                     }else{
