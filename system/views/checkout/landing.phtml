@@ -43,5 +43,26 @@
 <script type="text/javascript">
     $(function(){
        showTooltip('.checkTooltip', 'info', 'top');
+        var mobileMasks = JSON.parse('<?php echo json_encode($this->mobileMasks);?>'),
+            mobileCountryCode =  $('#checkout-signup select[name="mobilecountrycode"]').val();
+
+        if (typeof mobileMasks[mobileCountryCode] !== 'undefined') {
+            $('#checkout-signup input[name="mobile"]').mask(mobileMasks[mobileCountryCode].mask_value, {autoclear: false});
+        } else {
+            $('#checkout-signup input[name="mobile"]').mask('(999) 999 9999', {autoclear: false});
+        }
+
+        $(document).on('change', '#checkout-signup select[name="mobilecountrycode"]', function(e) {
+            var countryEl = $(e.currentTarget),
+                chosenCountryCode = countryEl.val(),
+                mobileMasks = JSON.parse('<?php echo json_encode($this->mobileMasks);?>');
+
+                if (typeof mobileMasks[chosenCountryCode] !== 'undefined') {
+                    $('#checkout-signup input[name="mobile"]').mask(mobileMasks[chosenCountryCode].mask_value, {autoclear: false});
+                } else {
+                    $('#checkout-signup input[name="mobile"]').mask('(999) 999 9999', {autoclear: false});
+                }
+        });
+
     });
 </script>
