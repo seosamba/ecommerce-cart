@@ -35,6 +35,11 @@ class Cart extends Tools_Cart_Cart {
      */
     const REGISTRATION_WITH_PASSWORD = 'with-password';
 
+    /**
+     * Add subscribe on the checkout registration
+     */
+    const REGISTRATION_WITH_SUBSCRIPTION = 'with-subscription';
+
 	/**
 	 * Shopping cart main storage.
 	 *
@@ -859,6 +864,7 @@ class Cart extends Tools_Cart_Cart {
 		$form = new Forms_Signup();
         $form->setMobilecountrycode(Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('country'));
 		$withPassword = array_search(self::REGISTRATION_WITH_PASSWORD, $this->_options);
+		$withSubscription = array_search(self::REGISTRATION_WITH_SUBSCRIPTION, $this->_options);
         if ($withPassword === false) {
             $form->removeElement('customerPassword');
             $form->removeElement('customerPassConfirmation');
@@ -866,6 +872,14 @@ class Cart extends Tools_Cart_Cart {
         } else {
             $this->_view->registrationWithPassword = true;
         }
+
+        if ($withSubscription === false) {
+            $form->removeElement('subscribed');
+            $this->_view->withSubscribe = false;
+        } else {
+            $this->_view->withSubscribe = true;
+        }
+
         $cart = Tools_ShoppingCart::getInstance();
 		if ($this->_request->isPost()) {
             $email = $this->_request->getParam('email');
