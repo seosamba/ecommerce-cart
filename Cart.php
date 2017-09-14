@@ -1162,7 +1162,7 @@ class Cart extends Tools_Cart_Cart {
 		$shippingServices = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
 		if (!empty($shippingServices)) {
 			$shippingServices = array_map(function ($shipper) {
-				return !in_array($shipper['name'], array(Shopping::SHIPPING_MARKUP, Shopping::SHIPPING_PICKUP, Shopping::SHIPPING_FREESHIPPING, Shopping::ORDER_CONFIG, Shopping::SHIPPING_RESTRICTION_ZONES)) ? array(
+				return !in_array($shipper['name'], array(Shopping::SHIPPING_TRACKING_URL, Shopping::SHIPPING_MARKUP, Shopping::SHIPPING_PICKUP, Shopping::SHIPPING_FREESHIPPING, Shopping::ORDER_CONFIG, Shopping::SHIPPING_RESTRICTION_ZONES)) ? array(
 					'name'  => $shipper['name'],
 					'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
 				) : null;
