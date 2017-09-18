@@ -817,7 +817,7 @@ class Cart extends Tools_Cart_Cart {
                     if (empty($result)) {
                         $this->_redirector->gotoUrl($this->_websiteUrl);
                     }
-                    $countries = Tools_Geo::getCountries(true);
+                    $countries = Tools_Geo::getCountries(true, true);
                     $price = $result['price'];
                     if ($result['limitType'] === Shopping::AMOUNT_TYPE_EACH_OVER) {
                         $price = round(($comparator - $result['amount_limit']) * $result['price'], 2);
