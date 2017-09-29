@@ -11,5 +11,6 @@
     'Apply' => 'Valider',
     'Enter your shipping address' => 'Votre adresse de livraison',
      'You will receive important order information via email and SMS' => 'Vous recevrez des informations de commande importantes par email et SMS',
-     'e.g. city; street and city; zip code...' => 'p.e ville; rue et ville; code postal ...'
+     'e.g. city; street and city; zip code...' => 'p.e ville; rue et ville; code postal ...',
+     'This email address is already registered' => 'Cette adresse de courrier électronique a déjà été inscrite'
 ); ?>
