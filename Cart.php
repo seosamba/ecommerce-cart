@@ -742,6 +742,18 @@ class Cart extends Tools_Cart_Cart {
 								'type'    => $vault[$shipper][$index]['type'],
 								'price'   => $vault[$shipper][$index]['price']
 							);
+
+                            if (!empty($vault[$shipper][$index]['service_id'])) {
+                                $service['service_id'] = $vault[$shipper][$index]['service_id'];
+                            }
+
+                            if (!empty($vault[$shipper][$index]['service_id'])) {
+                                $service['availability_days'] = $vault[$shipper][$index]['availability_days'];
+                            }
+
+                            if (!empty($vault[$shipper][$index]['service_id'])) {
+                                $service['service_info'] = $vault[$shipper][$index]['service_info'];
+                            }
 						}
 					}
 				}
