@@ -1205,6 +1205,12 @@ class Cart extends Tools_Cart_Cart {
 			}
 		}
 
+        if (!empty($this->_shoppingConfig['skipSingleShippingResult'])) {
+            if (false !== ($singleShipmentResult = $this->_qualifySingleShippingServiceResult())) {
+                return $singleShipmentResult;
+            }
+        }
+
 		$this->_view->shoppingConfig = $this->_shoppingConfig;
 		$this->_view->shippers = $shippingServices;
         $this->_view->checkOutPageUrl = $this->_getCheckoutPage()->getUrl();
@@ -1555,6 +1561,80 @@ class Cart extends Tools_Cart_Cart {
         }
         return $shippingRestricted;
     }
+
+
+    /**
+     * Analyze if only one shipment in the service enabled and one result returned
+     *
+     * @return bool
+     */
+    private function _qualifySingleShippingServiceResult()
+    {
+        try {
+            $shippingServices = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
+            if (!empty($shippingServices)) {
+                $shippingServices = array_map(function ($shipper) {
+                    return !in_array($shipper['name'], array(
+                        Shopping::SHIPPING_TRACKING_URL,
+                        Shopping::SHIPPING_MARKUP,
+                        Shopping::SHIPPING_PICKUP,
+                        Shopping::SHIPPING_FREESHIPPING,
+                        Shopping::ORDER_CONFIG,
+                        Shopping::SHIPPING_RESTRICTION_ZONES
+                    )) ? array(
+                        'name' => $shipper['name'],
+                        'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
+                    ) : null;
+                }, $shippingServices);
+            }
+
+            $shippingServices = array_filter($shippingServices);
+            if (empty($shippingServices) || count($shippingServices) > 1) {
+                return false;
+            }
+
+            $shippingService = current($shippingServices);
+            $result = Tools_System_Tools::firePluginMethodByPluginName($shippingService['name'], 'calculateShipping', array(), false);
+
+            if (!empty($result) && count($result) === 1 && empty($result['error'])) {
+                $result = current($result);
+                $cart = Tools_ShoppingCart::getInstance();
+
+                $shippingData = array(
+                    'service' => $shippingService['name'],
+                    'type'    => isset($result['type']) ? $result['type'] : Shopping::SHIPPING_FLATRATE,
+                    'price'   => $result['price']
+
+                );
+                if (!empty($result['service_id'])) {
+                    $shippingData['service_id'] = $result['service_id'];
+                }
+
+                if (!empty($result['service_id'])) {
+                    $shippingData['availability_days'] = $result['availability_days'];
+                }
+
+                if (!empty($result['service_id'])) {
+                    $shippingData['service_info'] = $result['service_info'];
+                }
+                $cart->setShippingData($shippingData);
+                $cart->calculate(true);
+                $cart->save()->saveCartSession(null);
+                $this->_checkoutSession->returnAllowed = array(
+                    self::STEP_LANDING,
+                    self::STEP_SHIPPING_OPTIONS,
+                    self::STEP_SHIPPING_METHOD
+                );
+                return $this->_renderPaymentZone();
+            }
+        } catch (Exception $e) {
+            Tools_System_Tools::debugMode() && error_log($e->getMessage());
+            return false;
+        }
+
+        return false;
+    }
+
 
 
 //	@TODO implement widget maker
