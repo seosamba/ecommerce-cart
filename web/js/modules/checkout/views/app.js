@@ -203,7 +203,7 @@ define([ 'backbone',
         },
         initOptionsMap: function() {
             return {
-               zoom: 8,
+               zoom: 18,
                center: new google.maps.LatLng(48, 2),
                mapTypeControlOptions: {
                     style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
@@ -327,7 +327,11 @@ define([ 'backbone',
                         $('#pickup-map-locations').toggleClass('hidden');
                     }
                     google.maps.event.trigger(self.map, 'resize');
-                    self.map.setCenter(latlngbounds.getCenter(), self.map.fitBounds(latlngbounds));
+                    if (self.mapBounds.length > 1) {
+                        self.map.setCenter(latlngbounds.getCenter(), self.map.fitBounds(latlngbounds));
+                    } else {
+                        self.map.setCenter(latlngbounds.getCenter());
+                    }
                 }else{
                     showMessage('No locations found', true);
                 }

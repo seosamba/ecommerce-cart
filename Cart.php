@@ -1402,10 +1402,12 @@ class Cart extends Tools_Cart_Cart {
                     }
                 }
                 if (!empty($result)) {
+                    $multiplyPickupInfoDays = (isset($this->_shoppingConfig['multiplyPickupInfoDays']) ? $this->_shoppingConfig['multiplyPickupInfoDays'] : '');
                     $result = array_map(
-                        function ($pickupLocation) use ($comparator) {
+                        function ($pickupLocation) use ($comparator, $multiplyPickupInfoDays) {
                             $pickupLocation['working_hours'] = unserialize($pickupLocation['working_hours']);
                             $pickupLocation['comparator'] = $comparator;
+                            $pickupLocation['multiplyPickupInfoDays'] = $multiplyPickupInfoDays;
                             return $pickupLocation;
                         },
                         $result
@@ -1451,6 +1453,8 @@ class Cart extends Tools_Cart_Cart {
                     $result['withTax'] = '';
                     $result['price'] = $price + $shippingTax;
                     $result['currency'] = $currencySymbol;
+                    $multiplyPickupInfoDays = (isset($this->_shoppingConfig['multiplyPickupInfoDays']) ? $this->_shoppingConfig['multiplyPickupInfoDays'] : '');
+                    $result['multiplyPickupInfoDays'] = $multiplyPickupInfoDays;
                     $this->_responseHelper->success($result);
                 }
             }
