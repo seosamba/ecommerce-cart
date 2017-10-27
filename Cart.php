@@ -45,6 +45,11 @@ class Cart extends Tools_Cart_Cart {
      */
     const REGISTRATION_WITH_PASSWORD = 'with-password';
 
+    /**
+     * Add subscribe on the checkout registration
+     */
+    const REGISTRATION_WITH_SUBSCRIPTION = 'with-subscription';
+
 	/**
 	 * Shopping cart main storage.
 	 *
@@ -863,7 +868,7 @@ class Cart extends Tools_Cart_Cart {
                     if (empty($result)) {
                         $this->_redirector->gotoUrl($this->_websiteUrl);
                     }
-                    $countries = Tools_Geo::getCountries(true);
+                    $countries = Tools_Geo::getCountries(true, true);
                     $price = $result['price'];
                     if ($result['limitType'] === Shopping::AMOUNT_TYPE_EACH_OVER) {
                         $price = round(($comparator - $result['amount_limit']) * $result['price'], 2);
@@ -910,6 +915,7 @@ class Cart extends Tools_Cart_Cart {
 		$form = new Forms_Signup();
         $form->setMobilecountrycode(Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('country'));
 		$withPassword = array_search(self::REGISTRATION_WITH_PASSWORD, $this->_options);
+		$withSubscription = array_search(self::REGISTRATION_WITH_SUBSCRIPTION, $this->_options);
         if ($withPassword === false) {
             $form->removeElement('customerPassword');
             $form->removeElement('customerPassConfirmation');
@@ -917,6 +923,14 @@ class Cart extends Tools_Cart_Cart {
         } else {
             $this->_view->registrationWithPassword = true;
         }
+
+        if ($withSubscription === false) {
+            $form->removeElement('subscribed');
+            $this->_view->withSubscribe = false;
+        } else {
+            $this->_view->withSubscribe = true;
+        }
+
         $cart = Tools_ShoppingCart::getInstance();
 		if ($this->_request->isPost()) {
             $email = $this->_request->getParam('email');
@@ -1009,6 +1023,9 @@ class Cart extends Tools_Cart_Cart {
 				$this->_view->isError = true;
 			}
 		}
+
+        $listMasksMapper = Application_Model_Mappers_MasksListMapper::getInstance();
+        $this->_view->mobileMasks = $listMasksMapper->getListOfMasksByType(Application_Model_Models_MaskList::MASK_TYPE_MOBILE);
 
 		return $this->_view->render('checkout/landing.phtml');
 	}
@@ -1175,6 +1192,9 @@ class Cart extends Tools_Cart_Cart {
 			));
 		}
 
+        $listMasksMapper = Application_Model_Mappers_MasksListMapper::getInstance();
+        $this->_view->mobileMasks = $listMasksMapper->getListOfMasksByType(Application_Model_Models_MaskList::MASK_TYPE_MOBILE);
+        $this->_view->desktopMasks = $listMasksMapper->getListOfMasksByType(Application_Model_Models_MaskList::MASK_TYPE_DESKTOP);
 		$this->_view->shoppingConfig = $this->_shoppingConfig;
 		return $this->_view->render('checkout/shipping_options.phtml');
 	}
@@ -1273,7 +1293,7 @@ class Cart extends Tools_Cart_Cart {
 		$shippingServices = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
 		if (!empty($shippingServices)) {
 			$shippingServices = array_map(function ($shipper) {
-				return !in_array($shipper['name'], array(Shopping::SHIPPING_MARKUP, Shopping::SHIPPING_PICKUP, Shopping::SHIPPING_FREESHIPPING, Shopping::ORDER_CONFIG, Shopping::SHIPPING_RESTRICTION_ZONES)) ? array(
+				return !in_array($shipper['name'], array(Shopping::SHIPPING_TRACKING_URL, Shopping::SHIPPING_MARKUP, Shopping::SHIPPING_PICKUP, Shopping::SHIPPING_FREESHIPPING, Shopping::ORDER_CONFIG, Shopping::SHIPPING_RESTRICTION_ZONES)) ? array(
 					'name'  => $shipper['name'],
 					'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
 				) : null;
@@ -1545,10 +1565,22 @@ class Cart extends Tools_Cart_Cart {
 
     private function _normalizeMobilePhoneNumber($form) {
         if(isset($form['mobile']) && !empty($form['mobile'])) {
-            $countryPhoneCode = Zend_Locale::getTranslation($form['mobilecountrycode'], 'phoneToTerritory');
-            $mobileNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['mobile'], $countryPhoneCode);
+            $countryMobileCode = Zend_Locale::getTranslation($form['mobilecountrycode'], 'phoneToTerritory');
+            $countryPhoneCode = Zend_Locale::getTranslation($form['phonecountrycode'], 'phoneToTerritory');
+            $form['mobile'] = preg_replace('~\D~ui', '', $form['mobile']);
+            $mobileNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['mobile'], $countryMobileCode);
             if ($mobileNumber !== false) {
-                $form['mobile'] = $mobileNumber;
+                $form['mobile_country_code_value'] = '+'.$countryMobileCode;
+            }
+
+            if (empty($form['phone'])) {
+                $form['phone'] = '';
+            } else {
+                $form['phone'] = preg_replace('~\D~ui', '', $form['phone']);
+            }
+            $phoneNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['phone'], $countryPhoneCode);
+            if ($phoneNumber !== false) {
+                $form['phone_country_code_value'] = '+'.$countryPhoneCode;
             }
         }
         return $form;

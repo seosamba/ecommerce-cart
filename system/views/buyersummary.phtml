@@ -43,7 +43,7 @@
 				if (!empty($location)){ echo $location.'<br />'; }
 			}
 			if (!empty($this->shippingAddress['phone'])) {
-				echo $this->translate('Phone:') . $this->shippingAddress['phone'].'<br />';
+				echo $this->translate('Phone:') . $this->shippingAddress['phone_country_code_value'].$this->shippingAddress['phone'].'<br />';
 			}
 		}
 		?>

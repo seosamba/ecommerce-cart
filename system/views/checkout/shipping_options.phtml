@@ -27,7 +27,13 @@
               enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
             <?php echo $this->pickupForm->firstname;?>
             <?php echo $this->pickupForm->lastname;?>
-            <?php echo $this->pickupForm->phone;?>
+            <p>
+                <label for="<?php echo $this->pickupForm->mobile->getAttrib('id');?>"><?php echo $this->translate('Phone');?></label>
+                <span class="block wrap">
+                    <?php echo $this->pickupForm->phonecountrycode;?>
+                    <?php echo $this->pickupForm->phone;?>
+                </span>
+            </p>
             <p>
                 <label for="<?php echo $this->pickupForm->mobile->getAttrib('id');?>"><?php echo $this->translate('Mobile');?></label>
                 <span class="block wrap">
@@ -89,7 +95,13 @@
                   enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
                 <?php echo $this->pickupForm->firstname;?>
                 <?php echo $this->pickupForm->lastname;?>
-                <?php echo $this->pickupForm->phone;?>
+                <p>
+                    <label for="phone" class="<?php echo $this->pickupForm->mobile->getAttrib('class');?>"><?php echo $this->translate('Phone');?></label>
+                    <span class="block wrap">
+                        <?php echo $this->pickupForm->phonecountrycode;?>
+                        <?php echo $this->pickupForm->phone;?>
+                    </span>
+                </p>
                 <?php echo $this->pickupForm->pickupLocationId;?>
                 <p>
                     <label for="mobile"><?php echo $this->translate('Mobile');?></label>
@@ -184,7 +196,13 @@
                     <?php echo $this->shippingForm->lastname;?>
                     <?php echo $this->shippingForm->company;?>
                     <?php echo $this->shippingForm->email;?>
-                    <?php echo $this->shippingForm->phone;?>
+                    <p>
+                        <label for="phone" class="<?php echo $this->shippingForm->mobile->getAttrib('class');?>"><?php echo $this->translate('Phone');?></label>
+                        <span class="block wrap">
+                            <?php echo $this->shippingForm->phonecountrycode;?>
+                            <?php echo $this->shippingForm->phone;?>
+                        </span>
+                    </p>
                     <p>
                         <label for="mobile" class="<?php echo $this->shippingForm->mobile->getAttrib('class');?>"><?php echo $this->translate('Mobile');?></label>
                         <span class="block wrap">
@@ -212,3 +230,84 @@
     <style>
         #pickup-locations img{max-width: none;}
     </style>
+    <script type="text/javascript">
+        $(function(){
+            var mobileMasks = JSON.parse('<?php echo json_encode($this->mobileMasks);?>'),
+                mobileCountryCode =  $('#checkout-user-address select[name="mobilecountrycode"]').val(),
+                desktopCountryCode =  $('#checkout-user-address select[name="phonecountrycode"]').val(),
+                desktopMasks = JSON.parse('<?php echo json_encode($this->desktopMasks);?>');
+
+            if (typeof mobileMasks[mobileCountryCode] !== 'undefined') {
+                $('#checkout-user-address input[name="mobile"]').mask(mobileMasks[mobileCountryCode].mask_value, {autoclear: false});
+            } else {
+                $('#checkout-user-address input[name="mobile"]').mask('(999) 999 9999', {autoclear: false});
+            }
+
+            if (typeof desktopMasks[desktopCountryCode] !== 'undefined') {
+                $('#checkout-user-address input[name="phone"]').mask(desktopMasks[desktopCountryCode].mask_value, {autoclear: false});
+            } else {
+                $('#checkout-user-address input[name="phone"]').mask('(999) 999 9999', {autoclear: false});
+            }
+
+            if (typeof mobileMasks[mobileCountryCode] !== 'undefined') {
+                $('#checkout-pickup input[name="mobile"]').mask(mobileMasks[mobileCountryCode].mask_value, {autoclear: false});
+            } else {
+                $('#checkout-pickup input[name="mobile"]').mask('(999) 999 9999', {autoclear: false});
+            }
+
+            if (typeof desktopMasks[desktopCountryCode] !== 'undefined') {
+                $('#checkout-pickup input[name="phone"]').mask(desktopMasks[desktopCountryCode].mask_value, {autoclear: false});
+            } else {
+                $('#checkout-pickup input[name="phone"]').mask('(999) 999 9999', {autoclear: false});
+            }
+
+            $(document).on('change', '#checkout-user-address select[name="mobilecountrycode"]', function(e) {
+                var countryEl = $(e.currentTarget),
+                    chosenCountryCode = countryEl.val(),
+                    mobileMasks = JSON.parse('<?php echo json_encode($this->mobileMasks);?>');
+
+                if (typeof mobileMasks[chosenCountryCode] !== 'undefined') {
+                    $('#checkout-user-address input[name="mobile"]').mask(mobileMasks[chosenCountryCode].mask_value, {autoclear: false});
+                } else {
+                    $('#checkout-user-address input[name="mobile"]').mask('(999) 999 9999', {autoclear: false});
+                }
+            });
+
+            $(document).on('change', '#checkout-user-address select[name="phonecountrycode"]', function(e) {
+                var countryEl = $(e.currentTarget),
+                    chosenCountryCode = countryEl.val(),
+                    desktopMasks = JSON.parse('<?php echo json_encode($this->desktopMasks);?>');
+
+                if (typeof desktopMasks[chosenCountryCode] !== 'undefined') {
+                    $('#checkout-user-address input[name="phone"]').mask(desktopMasks[chosenCountryCode].mask_value, {autoclear: false});
+                } else {
+                    $('#checkout-user-address input[name="phone"]').mask('(999) 999 9999', {autoclear: false});
+                }
+            });
+
+            $(document).on('change', '#checkout-pickup select[name="mobilecountrycode"]', function(e) {
+                var countryEl = $(e.currentTarget),
+                    chosenCountryCode = countryEl.val(),
+                    mobileMasks = JSON.parse('<?php echo json_encode($this->mobileMasks);?>');
+
+                if (typeof mobileMasks[chosenCountryCode] !== 'undefined') {
+                    $('#checkout-pickup input[name="mobile"]').mask(mobileMasks[chosenCountryCode].mask_value, {autoclear: false});
+                } else {
+                    $('#checkout-pickup input[name="mobile"]').mask('(999) 999 9999', {autoclear: false});
+                }
+            });
+
+            $(document).on('change', '#checkout-pickup select[name="phonecountrycode"]', function(e) {
+                var countryEl = $(e.currentTarget),
+                    chosenCountryCode = countryEl.val(),
+                    desktopMasks = JSON.parse('<?php echo json_encode($this->desktopMasks);?>');
+
+                if (typeof desktopMasks[chosenCountryCode] !== 'undefined') {
+                    $('#checkout-pickup input[name="phone"]').mask(desktopMasks[chosenCountryCode].mask_value, {autoclear: false});
+                } else {
+                    $('#checkout-pickup input[name="phone"]').mask('(999) 999 9999', {autoclear: false});
+                }
+            });
+
+        });
+    </script>
