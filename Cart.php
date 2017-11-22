@@ -1157,6 +1157,14 @@ class Cart extends Tools_Cart_Cart {
         $this->_view->mobileMasks = $listMasksMapper->getListOfMasksByType(Application_Model_Models_MaskList::MASK_TYPE_MOBILE);
         $this->_view->desktopMasks = $listMasksMapper->getListOfMasksByType(Application_Model_Models_MaskList::MASK_TYPE_DESKTOP);
 		$this->_view->shoppingConfig = $this->_shoppingConfig;
+
+        $configMapper = Application_Model_Mappers_ConfigMapper::getInstance();
+        $configData = $configMapper->getConfig();
+
+        if(!empty($configData['googleApiKey'])){
+            $this->_view->googleApiKey = $configData['googleApiKey'];
+        }
+
 		return $this->_view->render('checkout/shipping_options.phtml');
 	}
 
