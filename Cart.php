@@ -205,6 +205,7 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _addToCart() {
+
 		if (!$this->_request->isPost()) {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
@@ -246,11 +247,15 @@ class Cart extends Tools_Cart_Cart {
         }
 
         $customInventory = Tools_Misc::applyInventory($productId, $options, $addCount + $inCartCount, Tools_InventoryObserver::INVENTORY_IN_STOCK_METHOD);
+
+        $errMessageOutOfStock = (!empty($this->_shoppingConfig['outOfStock'])) ? $this->_shoppingConfig['outOfStock'] : $this->_translator->translate('The requested product is out of stock');
+        $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+
         if ($customInventory['error'] === true) {
             if (!empty($customInventory['stock'])) {
-                return $this->_responseHelper->response(array('stock' => $customInventory['stock'], 'msg' => $this->_translator->translate('The requested quantity is not available')), 1);
+                return $this->_responseHelper->response(array('stock' => $customInventory['stock'], 'msg' => $errMessageLimitQty), 1);
             }
-            return $this->_responseHelper->response(array('stock' => $customInventory['stock'], 'msg' => $this->_translator->translate('The requested product is out of stock')), 1);
+            return $this->_responseHelper->response(array('stock' => $customInventory['stock'], 'msg' => $errMessageOutOfStock), 1);
         }
 
 		if (!is_null($inStockCount)) {
@@ -261,10 +266,10 @@ class Cart extends Tools_Cart_Cart {
 				$inCartCount = 0;
 			}
 			if ($inStockCount <= 0) {
-				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $this->_translator->translate('The requested product is out of stock')), 1);
+				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $errMessageOutOfStock), 1);
 			}
 			if ($inStockCount - ($addCount + $inCartCount) < 0) {
-				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $this->_translator->translate('The requested quantity is not available')), 1);
+				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $errMessageLimitQty), 1);
 			}
 		}
 
@@ -299,6 +304,7 @@ class Cart extends Tools_Cart_Cart {
 	}
 
     private function _prepareFreebies($productFreebiesSettings){
+
         $freebiesQuantity = array();
         foreach($productFreebiesSettings as $freebies){
             $freebiesProduct = $this->_productMapper->find($freebies['freebies_id']);
@@ -307,7 +313,8 @@ class Cart extends Tools_Cart_Cart {
                 if(!is_null($inStockCount)) {
                     $inStockCount = intval($inStockCount);
                     if ($inStockCount <= 0 || $inStockCount < $freebies['freebies_quantity']) {
-                        return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $this->_translator->translate('The requested product is out of stock')), 1);
+                        $errMessageOutOfStock = (!empty($this->_shoppingConfig['outOfStock'])) ? $this->_shoppingConfig['outOfStock'] : $this->_translator->translate('The requested product is out of stock');
+                        return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $errMessageOutOfStock), 1);
                     }
                 }
                 $freebiesProducts[$freebiesProduct->getId()] = $freebiesProduct;
@@ -344,6 +351,7 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _updateCart() {
+
 		if (!$this->_request->isPut()) {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
@@ -357,11 +365,15 @@ class Cart extends Tools_Cart_Cart {
                     $options[$optionData['option_id']] = $optionData['id'];
                 }
                 $customInventory = Tools_Misc::applyInventory($cartItem['id'], $options, $newQty, Tools_InventoryObserver::INVENTORY_IN_STOCK_METHOD);
+
+                $errMessageOutOfStock = (!empty($this->_shoppingConfig['outOfStock'])) ? $this->_shoppingConfig['outOfStock'] : $this->_translator->translate('The requested product is out of stock');
+                $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+
                 if ($customInventory['error'] === true) {
                     if (!empty($customInventory['stock'])) {
-                        return $this->_responseHelper->fail($this->_view->translate('The requested quantity is not available'));
+                        return $this->_responseHelper->fail($errMessageLimitQty);
                     }
-                    return $this->_responseHelper->fail($this->_view->translate('The requested product is out of stock'));
+                    return $this->_responseHelper->fail($errMessageOutOfStock);
                 }
             }
 
