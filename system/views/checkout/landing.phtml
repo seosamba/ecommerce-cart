@@ -12,6 +12,7 @@
               method="<?php echo $this->signupForm->getAttrib('method');?>"
               action="<?php echo $this->signupForm->getAttrib('action');?>"
               enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
+            <?php echo $this->signupForm->prefix;?>
             <?php echo $this->signupForm->firstname;?>
             <?php echo $this->signupForm->lastname;?>
             <?php if(isset($this->emailExists)){
