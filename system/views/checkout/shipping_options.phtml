@@ -25,6 +25,7 @@
               method="<?php echo $this->pickupForm->getAttrib('method');?>"
               action="<?php echo $this->pickupForm->getAttrib('action');?>"
               enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
+            <?php echo $this->pickupForm->prefix;?>
             <?php echo $this->pickupForm->firstname;?>
             <?php echo $this->pickupForm->lastname;?>
             <p>
@@ -93,6 +94,7 @@
                   method="<?php echo $this->pickupForm->getAttrib('method');?>"
                   action="<?php echo $this->pickupForm->getAttrib('action');?>"
                   enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
+                <?php echo $this->pickupForm->prefix;?>
                 <?php echo $this->pickupForm->firstname;?>
                 <?php echo $this->pickupForm->lastname;?>
                 <p>
@@ -192,12 +194,13 @@
                   enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
                 <fieldset id="fieldset-<?php echo $this->shippingForm->getDisplayGroup('lcol')->getId();?>"
                           class="<?php echo $this->shippingForm->getDisplayGroup('lcol')->getAttrib('class');?>">
+                    <?php echo $this->pickupForm->prefix;?>
                     <?php echo $this->shippingForm->firstname;?>
                     <?php echo $this->shippingForm->lastname;?>
                     <?php echo $this->shippingForm->company;?>
                     <?php echo $this->shippingForm->email;?>
                     <p>
-                        <label for="phone" class="<?php echo $this->shippingForm->mobile->getAttrib('class');?>"><?php echo $this->translate('Phone');?></label>
+                        <label for="phone" class="<?php echo $this->shippingForm->phone->getAttrib('class');?>"><?php echo $this->translate('Phone');?></label>
                         <span class="block wrap">
                             <?php echo $this->shippingForm->phonecountrycode;?>
                             <?php echo $this->shippingForm->phone;?>
