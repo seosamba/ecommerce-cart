@@ -39,10 +39,8 @@ MAGICSPACE: cartsummary
 
 {cartsummary}
     {$cartsummary:subtotal}
-
     {$cartsummary:discount}
-
     {$cartsummary:shipping}
-
     {$cartsummary:totaltax}
+    {$cartsummary:total}
 {/cartsummary}
