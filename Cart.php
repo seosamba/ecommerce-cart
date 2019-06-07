@@ -192,13 +192,12 @@ class Cart extends Tools_Cart_Cart {
 		if (!$this->_request->isPost()) {
 			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
 		}
-		//$sid = $this->_request->getParam('sid');
+		$nocurrency = filter_var($this->_request->getParam('nocurrency'), FILTER_SANITIZE_STRING);
         $cartContent = $this->_cartStorage->getContent();
        	foreach($cartContent as $sid => $item){
             $data[$sid] = array(
-			    'price'  => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'price'))->render(),
+			    'price'  => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'price', $nocurrency))->render(),
 			    'weight' => Tools_Factory_WidgetFactory::createWidget('Cartitem', array($sid, 'weight'))->render(),
-
             );
         }
         $this->_responseHelper->success($data);
@@ -543,11 +542,27 @@ class Cart extends Tools_Cart_Cart {
 			}
 			return $this->_cartStorage->calculate();
 		}
-		$this->_view->summary = $this->_cartStorage->calculate();
-		$this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
-		$this->_getCheckoutPage();
-		$this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
-		return $this->_view->render('cartsummary.phtml');
+
+		if(isset($type) && $type == 'ms') {
+            $checkoutPage = $this->_getCheckoutPage();
+
+            if($checkoutPage instanceof Application_Model_Models_Page) {
+                $content = $checkoutPage->getContent();
+
+                preg_match('~{cartsummary}(.*){/cartsummary}~suiU', $content, $found);
+
+                $foundContent = (is_array($found) && !empty($found) && isset($found[1])) ? $found[1] : '';
+                $parser          = new Tools_Content_Parser($foundContent, array());
+                $foundedParserContent = $parser->parseSimple();
+
+                return '<div id="cart-summary-magic-space">' . $foundedParserContent . '</div>';
+            }
+        } else {
+            $this->_view->summary = $this->_cartStorage->calculate();
+            $this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
+            $this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
+            return $this->_view->render('cartsummary.phtml');
+        }
 	}
 
 	protected function _makeOptionBuyersummary() {

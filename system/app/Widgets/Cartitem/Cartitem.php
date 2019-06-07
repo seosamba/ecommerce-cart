@@ -80,12 +80,24 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
         }
 		    //$price = (bool)$this->_shoppingConfig['showPriceIncTax'] ? $this->_cartContent[$sid]['taxPrice'] : $this->_cartContent[$sid]['price'] ;
         if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
-            $this->_view->price       = $price;
+            $priceToShow              = $price;
             $this->_view->priceOption = 'unitprice';
         } else {
-            $this->_view->price       = $price * $this->_cartContent[$sid]['qty'];
+            $priceToShow              = $price * $this->_cartContent[$sid]['qty'];
             $this->_view->priceOption = 'price';
         }
+
+        $currency = Zend_Registry::isRegistered('Zend_Currency') ? Zend_Registry::get('Zend_Currency') : new Zend_Currency();
+
+        $nocurrency = '';
+        if(in_array('nocurrency', $this->_options)) {
+            $nocurrency = 'nocurrency';
+            $this->_view->price = number_format(round($priceToShow, 2), 2, '.', '');
+        } else {
+            $this->_view->price = $currency->toCurrency($priceToShow);
+        }
+
+        $this->_view->nocurrency = $nocurrency;
 
 		return $this->_view->render('commonprice.phtml');
 	}
