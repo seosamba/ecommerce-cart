@@ -533,36 +533,37 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _makeOptionCartsummary() {
 		$type = $this->_request->getParam('type');
-		if (isset($type) && $type == 'json') {
-			$summary = $this->_cartStorage->calculate();
-			if (Zend_Registry::isRegistered('Zend_Currency')) {
-				$currency = Zend_Registry::get('Zend_Currency');
-				return array('subTotal' => $currency->toCurrency($summary['subTotal']), 'totalTax' => $currency->toCurrency($summary['totalTax']),
-				             'shipping' => $summary['shipping'], 'total' => $currency->toCurrency($summary['total']));
-			}
-			return $this->_cartStorage->calculate();
-		}
 
-		if(isset($type) && $type == 'ms') {
-            $checkoutPage = $this->_getCheckoutPage();
+        if (isset($type)) {
+            if($type == 'json') {
+                $summary = $this->_cartStorage->calculate();
+                if (Zend_Registry::isRegistered('Zend_Currency')) {
+                    $currency = Zend_Registry::get('Zend_Currency');
+                    return array('subTotal' => $currency->toCurrency($summary['subTotal']), 'totalTax' => $currency->toCurrency($summary['totalTax']),
+                        'shipping' => $summary['shipping'], 'total' => $currency->toCurrency($summary['total']));
+                }
+                return $this->_cartStorage->calculate();
+            } elseif ($type == 'ms') {
+                $checkoutPage = $this->_getCheckoutPage();
 
-            if($checkoutPage instanceof Application_Model_Models_Page) {
-                $content = $checkoutPage->getContent();
+                if($checkoutPage instanceof Application_Model_Models_Page) {
+                    $content = $checkoutPage->getContent();
 
-                preg_match('~{cartsummary}(.*){/cartsummary}~suiU', $content, $found);
+                    preg_match('~{cartsummary}(.*){/cartsummary}~suiU', $content, $found);
 
-                $foundContent = (is_array($found) && !empty($found) && isset($found[1])) ? $found[1] : '';
-                $parser          = new Tools_Content_Parser($foundContent, array());
-                $foundedParserContent = $parser->parseSimple();
+                    $foundContent = (is_array($found) && !empty($found) && isset($found[1])) ? $found[1] : '';
+                    $parser          = new Tools_Content_Parser($foundContent, array());
+                    $foundedParserContent = $parser->parseSimple();
 
-                return '<div id="cart-summary-magic-space">' . $foundedParserContent . '</div>';
+                    return '<div id="cart-summary-magic-space">' . $foundedParserContent . '</div>';
+                }
             }
-        } else {
-            $this->_view->summary = $this->_cartStorage->calculate();
-            $this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
-            $this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
-            return $this->_view->render('cartsummary.phtml');
         }
+
+        $this->_view->summary = $this->_cartStorage->calculate();
+        $this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
+        $this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
+        return $this->_view->render('cartsummary.phtml');
 	}
 
 	protected function _makeOptionBuyersummary() {
