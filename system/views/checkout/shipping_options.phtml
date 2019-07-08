@@ -240,6 +240,14 @@
                 desktopCountryCode =  $('#checkout-user-address select[name="phonecountrycode"]').val(),
                 desktopMasks = JSON.parse('<?php echo json_encode($this->desktopMasks);?>');
 
+            if(typeof mobileCountryCode === 'undefined') {
+                mobileCountryCode =  $('#checkout-pickup select[name="mobilecountrycode"]').val();
+            }
+
+            if(typeof desktopCountryCode === 'undefined') {
+                desktopCountryCode =  $('#checkout-pickup select[name="phonecountrycode"]').val();
+            }
+
             if (typeof mobileMasks[mobileCountryCode] !== 'undefined') {
                 $('#checkout-user-address input[name="mobile"]').mask(mobileMasks[mobileCountryCode].mask_value, {autoclear: false});
             } else {
