@@ -113,6 +113,11 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 	}
 
 	protected function _renderPhoto($sid) {
+        $websiteHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('website');
+        $websiteUrl = (Zend_Controller_Action_HelperBroker::getStaticHelper('config')->getConfig(
+            'mediaServers'
+        ) ? Tools_Content_Tools::applyMediaServers($websiteHelper->getUrl()) : $websiteHelper->getUrl());
+
 		if(isset($this->_options[0])) {
 			$folder = $this->_options[0];
 		} else {
@@ -120,26 +125,29 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 		}
 		$photoSrc = $this->_cartContent[$sid]['photo'];
 
-		if (preg_match('~^https?://.*~', $photoSrc)){
-			$tmp = parse_url($photoSrc);
-			$path = explode('/', trim($tmp['path'], '/'));
-			if (is_array($path)){
-				$imgName = array_pop($path);
-				$guessSize = array_pop($path);
-				if (in_array($guessSize, array('small', 'medium', 'large', 'original')) && $guessSize !== $folder ){
-					$guessSize = $folder;
-				}
-				$photoSrc = $tmp['scheme'] .'://'. implode('/', array(
-					$tmp['host'],
-					implode('/', $path),
-					$guessSize,
-					$imgName
-				));
-			}
-		} else {
-			$photoSrc = $this->_view->websiteUrl.'media/' .  str_replace('/', '/'.$folder.'/', $photoSrc);
-		}
-		return '<img class="cart-product-image" src="'.$photoSrc.'" alt="' . $this->_cartContent[$sid]['name'] . '">';
+        if (preg_match('~^https?://.*~', $photoSrc)) {
+            $tmp = parse_url($photoSrc);
+            $path = explode('/', trim($tmp['path'], '/'));
+            if (is_array($path)) {
+                $imgName = array_pop($path);
+                $guessSize = array_pop($path);
+                if (in_array($guessSize, array('small', 'medium', 'large', 'original')) && $guessSize !== $folder) {
+                    $guessSize = $folder;
+                }
+                $photoSrc = $tmp['scheme'] . '://' . implode(
+                        '/',
+                        array(
+                            $tmp['host'],
+                            implode('/', $path),
+                            $guessSize,
+                            $imgName
+                        )
+                    );
+            }
+        } else {
+            $photoSrc = $websiteUrl . $websiteHelper->getMedia() . str_replace('/', '/' . $folder . '/', $photoSrc);
+        }
+        return '<img class="cart-product-image" src="'.$photoSrc.'" alt="' . $this->_cartContent[$sid]['name'] . '">';
 	}
 
 	protected function _renderDescription($sid) {
