@@ -84,7 +84,7 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
         }
 
         if(isset($this->_options[0]) && $this->_options[0] == 'unit') {
-            $this->_view->price       = $price;
+            $priceToShow              = $price;
             $this->_view->priceOption = 'unitprice';
             $discounts = array_filter(
                 $this->_cartContent[$sid]['productDiscounts'],
@@ -96,11 +96,27 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
             );
             $this->_view->discountList = $discounts;
         } else {
-            $this->_view->price       = $price * $this->_cartContent[$sid]['qty'];
+            $priceToShow              = $price * $this->_cartContent[$sid]['qty'];
             $this->_view->priceOption = 'price';
         }
+
 		$this->_view->quantity = $this->_cartContent[$sid]['qty'];
         $this->_view->taxEnabled = $taxEnabled;
+
+
+        $currency = Zend_Registry::isRegistered('Zend_Currency') ? Zend_Registry::get('Zend_Currency') : new Zend_Currency();
+
+        $nocurrency = '';
+        if(in_array('nocurrency', $this->_options)) {
+            $nocurrency = 'nocurrency';
+            $this->_view->price = number_format(round($priceToShow, 2), 2, '.', '');
+        } else {
+            $this->_view->price = $currency->toCurrency($priceToShow);
+        }
+
+        $this->_view->nocurrency = $nocurrency;
+
+
 		return $this->_view->render('commonprice.phtml');
 	}
 
@@ -115,6 +131,11 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 	}
 
 	protected function _renderPhoto($sid) {
+        $websiteHelper = Zend_Controller_Action_HelperBroker::getStaticHelper('website');
+        $websiteUrl = (Zend_Controller_Action_HelperBroker::getStaticHelper('config')->getConfig(
+            'mediaServers'
+        ) ? Tools_Content_Tools::applyMediaServers($websiteHelper->getUrl()) : $websiteHelper->getUrl());
+
 		if(isset($this->_options[0])) {
 			$folder = $this->_options[0];
 		} else {
@@ -122,26 +143,29 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 		}
 		$photoSrc = $this->_cartContent[$sid]['photo'];
 
-		if (preg_match('~^https?://.*~', $photoSrc)){
-			$tmp = parse_url($photoSrc);
-			$path = explode('/', trim($tmp['path'], '/'));
-			if (is_array($path)){
-				$imgName = array_pop($path);
-				$guessSize = array_pop($path);
-				if (in_array($guessSize, array('small', 'medium', 'large', 'original')) && $guessSize !== $folder ){
-					$guessSize = $folder;
-				}
-				$photoSrc = $tmp['scheme'] .'://'. implode('/', array(
-					$tmp['host'],
-					implode('/', $path),
-					$guessSize,
-					$imgName
-				));
-			}
-		} else {
-			$photoSrc = $this->_view->websiteUrl.'media/' .  str_replace('/', '/'.$folder.'/', $photoSrc);
-		}
-		return '<img class="cart-product-image" src="'.$photoSrc.'" alt="' . $this->_cartContent[$sid]['name'] . '">';
+        if (preg_match('~^https?://.*~', $photoSrc)) {
+            $tmp = parse_url($photoSrc);
+            $path = explode('/', trim($tmp['path'], '/'));
+            if (is_array($path)) {
+                $imgName = array_pop($path);
+                $guessSize = array_pop($path);
+                if (in_array($guessSize, array('small', 'medium', 'large', 'original')) && $guessSize !== $folder) {
+                    $guessSize = $folder;
+                }
+                $photoSrc = $tmp['scheme'] . '://' . implode(
+                        '/',
+                        array(
+                            $tmp['host'],
+                            implode('/', $path),
+                            $guessSize,
+                            $imgName
+                        )
+                    );
+            }
+        } else {
+            $photoSrc = $websiteUrl . $websiteHelper->getMedia() . str_replace('/', '/' . $folder . '/', $photoSrc);
+        }
+        return '<img class="cart-product-image" src="'.$photoSrc.'" alt="' . $this->_cartContent[$sid]['name'] . '">';
 	}
 
 	protected function _renderDescription($sid) {
