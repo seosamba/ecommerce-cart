@@ -200,4 +200,9 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 		return $description;
 	}
 
+	protected function _renderBrand($sid)
+    {
+        return $this->_cartContent[$sid]['brand'];
+    }
+
 }
