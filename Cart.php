@@ -735,6 +735,8 @@ class Cart extends Tools_Cart_Cart {
 			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $addressValues, $addressType);
 			$shoppingCart->setShippingAddressKey($addressId)
 					->setNotes($form->getValue('notes'));
+            $shoppingCart->setIsGift((int)$form->getValue('isGift'));
+            $shoppingCart->setGiftEmail($form->getValue('giftEmail'));
 			$shoppingCart->calculate(true);
 			$shoppingCart->save()->saveCartSession($customer);
 
