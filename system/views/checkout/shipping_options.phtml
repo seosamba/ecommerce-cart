@@ -25,6 +25,7 @@
               method="<?php echo $this->pickupForm->getAttrib('method');?>"
               action="<?php echo $this->pickupForm->getAttrib('action');?>"
               enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
+            <?php echo $this->pickupForm->prefix;?>
             <?php echo $this->pickupForm->firstname;?>
             <?php echo $this->pickupForm->lastname;?>
             <p>
@@ -93,6 +94,7 @@
                   method="<?php echo $this->pickupForm->getAttrib('method');?>"
                   action="<?php echo $this->pickupForm->getAttrib('action');?>"
                   enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
+                <?php echo $this->pickupForm->prefix;?>
                 <?php echo $this->pickupForm->firstname;?>
                 <?php echo $this->pickupForm->lastname;?>
                 <p>
@@ -196,6 +198,7 @@
                   enctype="<?php echo Zend_Form::ENCTYPE_URLENCODED;?>">
                 <fieldset id="fieldset-<?php echo $this->shippingForm->getDisplayGroup('lcol')->getId();?>"
                           class="<?php echo $this->shippingForm->getDisplayGroup('lcol')->getAttrib('class');?>">
+                    <?php echo $this->pickupForm->prefix;?>
                     <?php echo $this->shippingForm->firstname;?>
                     <?php echo $this->shippingForm->lastname;?>
                     <?php echo $this->shippingForm->company;?>
@@ -225,6 +228,8 @@
                     <?php echo $this->shippingForm->country;?>
                     <?php echo $this->shippingForm->state;?>
                     <?php echo (isset($this->shippingForm->shippingToc)) ? $this->shippingForm->shippingToc : '';?>
+                    <?php echo (isset($this->shippingForm->isGift)) ? $this->shippingForm->isGift : '';?>
+                    <?php echo (isset($this->shippingForm->isGift)) ? $this->shippingForm->giftEmail : '';?>
                 </fieldset>
                 <?php echo $this->shippingForm->step;?>
                 <?php echo $this->shippingForm->checkout;?>
@@ -240,6 +245,14 @@
                 mobileCountryCode =  $('#checkout-user-address select[name="mobilecountrycode"]').val(),
                 desktopCountryCode =  $('#checkout-user-address select[name="phonecountrycode"]').val(),
                 desktopMasks = JSON.parse('<?php echo json_encode($this->desktopMasks);?>');
+
+            if(typeof mobileCountryCode === 'undefined') {
+                mobileCountryCode =  $('#checkout-pickup select[name="mobilecountrycode"]').val();
+            }
+
+            if(typeof desktopCountryCode === 'undefined') {
+                desktopCountryCode =  $('#checkout-pickup select[name="phonecountrycode"]').val();
+            }
 
             if (typeof mobileMasks[mobileCountryCode] !== 'undefined') {
                 $('#checkout-user-address input[name="mobile"]').mask(mobileMasks[mobileCountryCode].mask_value, {autoclear: false});
@@ -311,6 +324,15 @@
                 } else {
                     $('#checkout-pickup input[name="phone"]').mask('(999) 999 9999', {autoclear: false});
                 }
+            });
+
+            $(document).on('change', '#isGift', function(e) {
+                if ($(this).is(':checked')) {
+                    $('#checkout-user-address input[name="giftEmail"]').removeClass('hidden');
+                } else {
+                    $('#checkout-user-address input[name="giftEmail"]').addClass('hidden');
+                }
+
             });
 
         });

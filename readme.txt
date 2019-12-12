@@ -1,7 +1,8 @@
 E-commerce shopping cart plugin for the SEOTOASTER 2.0
 
-{$cartitem:price[:price_type]} - Displays the price of one product or several products in the cart.
+{$cartitem:price[:price_type:nocurrency]} - Displays the price of one product or several products in the cart.
 price_type - total price| price for the unit of the product (total|unit).
+nocurrency - displayed price without currency
 {$cartitem:photo[:img_size]} - Displays a preview image of the product.
  img-size - output size of the pre-loaded product image (product|small|medium|large|original).
 {$cartitem:name} - Displays the name of the product in the cart.
@@ -14,6 +15,7 @@ desc_size -  the type of product description output (short|full|maximum number o
 {$cartitem:weight[:weight_type]} - Displays the weight of the product for one unit or for a package in the cart.
 weight_type - output type for package | product unit respectively (total|unit).
 {$cartitem:qty} - Displays product number field in the cart.
+{$cartitem:brand} - Displays product brand.
 {$cartitem:remove} - Displays a button that allows you to remove a product from the cart.
 
 
@@ -32,3 +34,14 @@ Inside this magic space you can put cartitem widgets
 Ex: {toastercart}
         {$cartitem:name} {$cartitem:sku} {$cartitem:price}
     {/toastercart}
+
+MAGICSPACE: cartsummary
+{cartsummary}{/cartsummary} - used to specify a place where single cartsummary widgets items will be displayed
+
+{cartsummary}
+    {$cartsummary:subtotal}
+    {$cartsummary:discount}
+    {$cartsummary:shipping}
+    {$cartsummary:totaltax}
+    {$cartsummary:total}
+{/cartsummary}

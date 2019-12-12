@@ -1,5 +1,5 @@
 <?php if(isset($this->freebies)):?>
     <span class="toastercart-item-<?php echo $this->priceOption; ?>" data-sid<?php echo $this->priceOption; ?>="<?php echo $this->sid; ?>"><?php echo $this->translate('free'); ?></span>
 <?php else:?>
-    <span class="toastercart-item-<?php echo $this->priceOption; ?>" data-sid<?php echo $this->priceOption; ?>="<?php echo $this->sid; ?>"><?php echo $this->currency($this->price); ?></span>
+    <span class="toastercart-item-<?php echo $this->priceOption; ?>" data-nocurrency="<?php echo $this->nocurrency; ?>" data-sid<?php echo $this->priceOption; ?>="<?php echo $this->sid; ?>"><?php echo $this->price; ?></span>
 <?php endif;?>

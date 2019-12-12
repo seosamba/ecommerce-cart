@@ -16,6 +16,7 @@ $(function() {
     $(document).on('change', 'input.product-qty', function() {
         var self = this;
 		var sid = $(this).data('sid');
+		var nocurrency = $('.toastercart-item-price').data('nocurrency');
         var sidsQuantity = $('.toastercart-item-qty').length;
         var qty = parseInt($(this).val());
         if (isNaN(qty)){
@@ -49,7 +50,7 @@ $(function() {
                     if (response.responseText.sidQuantity === 0) {
                         window.location.reload();
                     }
-                    refreshPrice(sid, sidsQuantity);
+                    refreshPrice(sid, sidsQuantity, nocurrency);
                 }
                 refreshCartSummary();
             },
@@ -105,15 +106,23 @@ $(function() {
 
 function refreshCartSummary() {
 	var cartSummary = $('#cart-summary');
+    var cartSummaryMS = $('#cart-summary-magic-space');
     if(cartSummary.length) {
-        return $.post($('#website_url').val()+'plugin/cart/run/summary/', function(response) {
+        $.post($('#website_url').val()+'plugin/cart/run/summary/', function(response) {
 			cartSummary.replaceWith(response.responseText);
         }, 'json');
     }
+    if(cartSummaryMS.length) {
+        $.post($('#website_url').val()+'plugin/cart/run/summary/type/ms', function(response) {
+            cartSummaryMS.replaceWith(response.responseText);
+        }, 'json');
+    }
+
+    return true;
 }
 
-function refreshPrice(sid, sidsQuantity) {
-    return $.post($('#website_url').val()+'plugin/cart/run/cartcontent/', {sid: sid}, function(response) {
+function refreshPrice(sid, sidsQuantity, nocurrency) {
+    return $.post($('#website_url').val()+'plugin/cart/run/cartcontent/', {sid: sid, nocurrency: nocurrency}, function(response) {
         var rowsQuantity = 0;
         $.each(response.responseText, function(sid){
             rowsQuantity++
