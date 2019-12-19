@@ -947,6 +947,14 @@ class Cart extends Tools_Cart_Cart {
         $form->setMobilecountrycode(Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('country'));
 		$withPassword = array_search(self::REGISTRATION_WITH_PASSWORD, $this->_options);
 		$withSubscription = array_search(self::REGISTRATION_WITH_SUBSCRIPTION, $this->_options);
+        $customFields = current(preg_grep('/custom-fields=*/', $this->_options));
+        $elementOptions = array();
+        if (!empty($customFields)) {
+            $elementOptions = $this->_parseCustomFieldsData($customFields);
+            $form = $this->_addAdditionalFormFields($elementOptions, $form);
+            $this->_view->additionalFieldsInfo = $elementOptions;
+        }
+
         if ($withPassword === false) {
             $form->removeElement('customerPassword');
             $form->removeElement('customerPassConfirmation');
@@ -976,9 +984,12 @@ class Cart extends Tools_Cart_Cart {
 			if ($form->isValid($this->_request->getPost())) {
 				$customerData = $this->_normalizeMobilePhoneNumber($form->getValues());
 				$this->_checkoutSession->initialCustomerInfo = $customerData;
-				$customer = Shopping::processCustomer($customerData);
+				$customer = Shopping::processCustomer($customerData, $elementOptions);
 				if ($customer->getId()) {
                     $customer->setAttribute('mobilecountrycode', $customerData['mobilecountrycode']);
+                    foreach ($elementOptions as $paramName => $paramLabel) {
+                        $customer->setAttribute($paramName, $customerData[$paramName]);
+                    }
                     Application_Model_Mappers_UserMapper::getInstance()->saveUserAttributes($customer);
 					$cart->setCustomerId($customer->getId())->calculate(true);
 					$cart->save()->saveCartSession($customer);
@@ -1697,6 +1708,44 @@ class Cart extends Tools_Cart_Cart {
             }
         }
         return $shippingRestricted;
+    }
+
+    /**
+     * Parse custom fields
+     *
+     * @param string $customFields fields in format custom-fields=social|First label,your_id|Second label
+     * @return array
+     */
+    private function _parseCustomFieldsData($customFields)
+    {
+        $fieldsData = array();
+        $customFields = explode(',', str_replace('custom-fields=', '', $customFields));
+        if (!empty($customFields)) {
+            foreach ($customFields as $fieldData) {
+                $fieldInfo = explode('|', $fieldData);
+                $fieldName = strtolower(preg_replace('~[^ \w]~', '',
+                    filter_var($fieldInfo[0], FILTER_SANITIZE_STRING)));
+                $fieldsData[$fieldName] = $fieldInfo[1];
+            }
+        }
+
+        return $fieldsData;
+    }
+
+    /**
+     * Add additional fields for form
+     *
+     * @param array $fieldsInfo
+     * @param $form
+     * @return mixed
+     */
+    private function _addAdditionalFormFields(array $fieldsInfo, $form)
+    {
+        foreach ($fieldsInfo as $fieldName => $fieldLabel) {
+            $form->addElement('text', filter_var($fieldName, FILTER_SANITIZE_STRING));
+        }
+
+        return $form;
     }
 
 
