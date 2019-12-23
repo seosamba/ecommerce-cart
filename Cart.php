@@ -772,6 +772,18 @@ class Cart extends Tools_Cart_Cart {
 								'type'    => $vault[$shipper][$index]['type'],
 								'price'   => $vault[$shipper][$index]['price']
 							);
+
+                            if (!empty($vault[$shipper][$index]['service_id'])) {
+                                $service['service_id'] = $vault[$shipper][$index]['service_id'];
+                            }
+
+                            if (!empty($vault[$shipper][$index]['service_id'])) {
+                                $service['availability_days'] = $vault[$shipper][$index]['availability_days'];
+                            }
+
+                            if (!empty($vault[$shipper][$index]['service_id'])) {
+                                $service['service_info'] = $vault[$shipper][$index]['service_info'];
+                            }
 						}
 					}
 				}
@@ -1186,6 +1198,14 @@ class Cart extends Tools_Cart_Cart {
         $this->_view->mobileMasks = $listMasksMapper->getListOfMasksByType(Application_Model_Models_MaskList::MASK_TYPE_MOBILE);
         $this->_view->desktopMasks = $listMasksMapper->getListOfMasksByType(Application_Model_Models_MaskList::MASK_TYPE_DESKTOP);
 		$this->_view->shoppingConfig = $this->_shoppingConfig;
+
+        $configMapper = Application_Model_Mappers_ConfigMapper::getInstance();
+        $configData = $configMapper->getConfig();
+
+        if(!empty($configData['googleApiKey'])){
+            $this->_view->googleApiKey = $configData['googleApiKey'];
+        }
+
 		return $this->_view->render('checkout/shipping_options.phtml');
 	}
 
@@ -1233,6 +1253,12 @@ class Cart extends Tools_Cart_Cart {
 				}
 			}
 		}
+
+        if (!empty($this->_shoppingConfig['skipSingleShippingResult'])) {
+            if (false !== ($singleShipmentResult = $this->_qualifySingleShippingServiceResult())) {
+                return $singleShipmentResult;
+            }
+        }
 
 		$this->_view->shoppingConfig = $this->_shoppingConfig;
 		$this->_view->shippers = $shippingServices;
@@ -1425,10 +1451,12 @@ class Cart extends Tools_Cart_Cart {
                     }
                 }
                 if (!empty($result)) {
+                    $multiplyPickupInfoDays = (isset($this->_shoppingConfig['multiplyPickupInfoDays']) ? $this->_shoppingConfig['multiplyPickupInfoDays'] : '');
                     $result = array_map(
-                        function ($pickupLocation) use ($comparator) {
+                        function ($pickupLocation) use ($comparator, $multiplyPickupInfoDays) {
                             $pickupLocation['working_hours'] = unserialize($pickupLocation['working_hours']);
                             $pickupLocation['comparator'] = $comparator;
+                            $pickupLocation['multiplyPickupInfoDays'] = $multiplyPickupInfoDays;
                             return $pickupLocation;
                         },
                         $result
@@ -1474,6 +1502,8 @@ class Cart extends Tools_Cart_Cart {
                     $result['withTax'] = '';
                     $result['price'] = $price + $shippingTax;
                     $result['currency'] = $currencySymbol;
+                    $multiplyPickupInfoDays = (isset($this->_shoppingConfig['multiplyPickupInfoDays']) ? $this->_shoppingConfig['multiplyPickupInfoDays'] : '');
+                    $result['multiplyPickupInfoDays'] = $multiplyPickupInfoDays;
                     $this->_responseHelper->success($result);
                 }
             }
@@ -1622,6 +1652,80 @@ class Cart extends Tools_Cart_Cart {
 
         return $form;
     }
+
+
+    /**
+     * Analyze if only one shipment in the service enabled and one result returned
+     *
+     * @return bool
+     */
+    private function _qualifySingleShippingServiceResult()
+    {
+        try {
+            $shippingServices = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
+            if (!empty($shippingServices)) {
+                $shippingServices = array_map(function ($shipper) {
+                    return !in_array($shipper['name'], array(
+                        Shopping::SHIPPING_TRACKING_URL,
+                        Shopping::SHIPPING_MARKUP,
+                        Shopping::SHIPPING_PICKUP,
+                        Shopping::SHIPPING_FREESHIPPING,
+                        Shopping::ORDER_CONFIG,
+                        Shopping::SHIPPING_RESTRICTION_ZONES
+                    )) ? array(
+                        'name' => $shipper['name'],
+                        'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
+                    ) : null;
+                }, $shippingServices);
+            }
+
+            $shippingServices = array_filter($shippingServices);
+            if (empty($shippingServices) || count($shippingServices) > 1) {
+                return false;
+            }
+
+            $shippingService = current($shippingServices);
+            $result = Tools_System_Tools::firePluginMethodByPluginName($shippingService['name'], 'calculateShipping', array(), false);
+
+            if (!empty($result) && count($result) === 1 && empty($result['error'])) {
+                $result = current($result);
+                $cart = Tools_ShoppingCart::getInstance();
+
+                $shippingData = array(
+                    'service' => $shippingService['name'],
+                    'type'    => isset($result['type']) ? $result['type'] : Shopping::SHIPPING_FLATRATE,
+                    'price'   => $result['price']
+
+                );
+                if (!empty($result['service_id'])) {
+                    $shippingData['service_id'] = $result['service_id'];
+                }
+
+                if (!empty($result['service_id'])) {
+                    $shippingData['availability_days'] = $result['availability_days'];
+                }
+
+                if (!empty($result['service_id'])) {
+                    $shippingData['service_info'] = $result['service_info'];
+                }
+                $cart->setShippingData($shippingData);
+                $cart->calculate(true);
+                $cart->save()->saveCartSession(null);
+                $this->_checkoutSession->returnAllowed = array(
+                    self::STEP_LANDING,
+                    self::STEP_SHIPPING_OPTIONS,
+                    self::STEP_SHIPPING_METHOD
+                );
+                return $this->_renderPaymentZone();
+            }
+        } catch (Exception $e) {
+            Tools_System_Tools::debugMode() && error_log($e->getMessage());
+            return false;
+        }
+
+        return false;
+    }
+
 
 
 //	@TODO implement widget maker
