@@ -30,6 +30,15 @@
                 <?php echo $this->signupForm->customerPassword;?>
                 <?php echo $this->signupForm->customerPassConfirmation;?>
             <?php endif;?>
+            <?php if (!empty($this->additionalFieldsInfo)) : ?>
+                <?php foreach ($this->additionalFieldsInfo as $fieldName => $fieldLabel): ?>
+                    <p>
+                        <label for="<?php echo $fieldName; ?>"> <?php echo $fieldLabel; ?>:</label>
+                        <?php echo $this->signupForm->getElement($fieldName)->renderViewHelper(); ?>
+                        <?php echo $this->signupForm->getElement($fieldName)->renderErrors(); ?>
+                    </p>
+                <?php endforeach; ?>
+            <?php endif; ?>
             <?php if ($this->withSubscribe === true) :?>
                 <?php echo $this->signupForm->subscribed;?>
             <?php endif;?>
