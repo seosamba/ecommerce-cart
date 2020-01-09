@@ -30,10 +30,12 @@
     <i class="ticon-time icon24"></i>
     <div class="wrap">
         <table class="table-striped">
-            <tr>
-                <td><%= _.isUndefined(i18n['Sunday'])?'Sunday':i18n['Sunday'] %>: </td>
-                <td><%= working_hours.sunday %></td>
-            </tr>
+            <% if (multiplyPickupInfoDays !== 'startFromMonday') { %>
+                <tr>
+                    <td><%= _.isUndefined(i18n['Sunday'])?'Sunday':i18n['Sunday'] %>: </td>
+                    <td><%= working_hours.sunday %></td>
+                </tr>
+            <% } %>
             <tr>
                 <td><%= _.isUndefined(i18n['Monday'])?'Monday':i18n['Monday'] %>:</td>
                 <td><%= working_hours.monday %></td>
@@ -58,6 +60,12 @@
                 <td><%= _.isUndefined(i18n['Saturday'])?'Saturday':i18n['Saturday'] %>:</td>
                 <td><%= working_hours.saturday %></td>
             </tr>
+            <% if (multiplyPickupInfoDays === 'startFromMonday') { %>
+                <tr>
+                    <td><%= _.isUndefined(i18n['Sunday'])?'Sunday':i18n['Sunday'] %>: </td>
+                    <td><%= working_hours.sunday %></td>
+                </tr>
+            <% } %>
         </table>
     </div>
     <% if(!_.isNull(notes)){ %>
