@@ -71,7 +71,7 @@
             <?php if(!empty($this->pickupLocationConfig['searchEnabled'])):?>
                 <p><label><?php echo $this->translate('Enter location');?></label>
                 <input type="text" name="user-location" id="user-info-location" placeholder="<?php echo $this->translate('e.g. city; street and city; zip code...');?>"/></p>
-                <input id="user-info-pickup" type="button" value="Search" />
+                <input id="user-info-pickup" type="button" value="<?php echo $this->translate('Search');?>" />
             <?php else:?>
                 <?php if(!empty($this->locationList)):?>
                     <select name="location-list-pickup" id="location-list-pickup">
