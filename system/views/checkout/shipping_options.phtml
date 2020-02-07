@@ -70,7 +70,16 @@
             <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
             <?php if(!empty($this->pickupLocationConfig['searchEnabled'])):?>
                 <p><label><?php echo $this->translate('Enter location');?></label>
-                <input type="text" name="user-location" id="user-info-location" placeholder="<?php echo $this->translate('e.g. city; street and city; zip code...');?>"/></p>
+                <input type="text" name="user-location" id="user-info-location" placeholder="<?php echo $this->translate('e.g. city; street and city; zip code...');?>"/>
+                    <select id="search-pickup-country">
+                        <?php if (!empty($this->uniqueSearchCountries)) : ?>
+                            <?php foreach ($this->uniqueSearchCountries as $countryUniqueCode => $uniqueSearchCountry): ?>
+                                <option data-original-country-name="<?php echo $this->originalCountryNames[$countryUniqueCode];?>" <?php echo($this->shoppingConfig['country'] == $countryUniqueCode ? 'selected' : ''); ?>
+                                        value="<?php echo $countryUniqueCode; ?>"><?php echo $uniqueSearchCountry; ?></option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </p>
                 <input id="user-info-pickup" type="button" value="Search" />
             <?php else:?>
                 <?php if(!empty($this->locationList)):?>
