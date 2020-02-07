@@ -70,8 +70,7 @@
             <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
             <?php if(!empty($this->pickupLocationConfig['searchEnabled'])):?>
                 <p><label><?php echo $this->translate('Enter location');?></label>
-                <input type="text" name="user-location" id="user-info-location" placeholder="<?php echo $this->translate('e.g. city; street and city; zip code...');?>"/></p>
-                <p>
+                <input type="text" name="user-location" id="user-info-location" placeholder="<?php echo $this->translate('e.g. city; street and city; zip code...');?>"/>
                     <select id="search-pickup-country">
                         <?php if (!empty($this->uniqueSearchCountries)) : ?>
                             <?php foreach ($this->uniqueSearchCountries as $countryUniqueCode => $uniqueSearchCountry): ?>
