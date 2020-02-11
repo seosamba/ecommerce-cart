@@ -41,7 +41,7 @@
      'Pickup location' => 'L\'endroit du poste de distribution',
      'Enter location' => 'Indiquez un endroit',
      'e.g. city; street and city; zip code...' => 'par ex. ville; rue et ville; code postal...',
-     'Search' => 'Recherche',
+     'Search ' => 'Rechercher',
      'Select pickup location' => 'Sélectionnez l\'endroit du poste de distribution',
      'There are no pickup locations' => 'Aucun endroit du poste de distribution',
      'Edit location' => 'Modifier l\'endroit',
