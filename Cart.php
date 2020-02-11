@@ -1106,9 +1106,24 @@ class Cart extends Tools_Cart_Cart {
                     $defaultPickup = true;
                     $formPickup = new Forms_Checkout_Pickup();
                 }else{
+                    $pickupLocationMapper = Store_Mapper_PickupLocationMapper::getInstance();
+                    $uniqueSearchCountries = $pickupLocationMapper->getUniqueCountries();
                     $defaultPickup = false;
+                    $countries = Tools_Geo::getCountries(true, true);
+                    $countriesWithLocalization = Tools_Geo::getCountries(true);
+                    $this->_view->originalCountryNames = $countries;
+                    $countries = array_flip($countries);
+                    $searchCountries = array();
+                    if (!empty($uniqueSearchCountries)) {
+                        foreach ($uniqueSearchCountries as $uniqueSearchCountry) {
+                            if (!empty($countries[$uniqueSearchCountry])) {
+                                $searchCountries[$countries[$uniqueSearchCountry]] = $countriesWithLocalization[$countries[$uniqueSearchCountry]];
+                            }
+                        }
+                    }
                     $this->_view->pickupLocationConfig = $pickup['config'];
                     $this->_view->locationList = self::getPickupLocationCities();
+                    $this->_view->uniqueSearchCountries = $searchCountries;
                     $formPickup = new Forms_Checkout_PickupWithPrice();
                 }
                 $formPickup->setMobilecountrycode(Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('country'));
@@ -1411,6 +1426,10 @@ class Cart extends Tools_Cart_Cart {
                 $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
                 if (!$searchByLocationId) {
                     $locationsRadius = self::$_pickupLocationRadius;
+                    if (!empty($this->_shoppingConfig['additionalPickupRadius'])) {
+                        array_unshift($locationsRadius, $this->_shoppingConfig['additionalPickupRadius']);
+                    }
+
                     foreach ($locationsRadius as $key => $radius) {
                         $radiusDiffValue = $radius / 111;
                         $radiusDiffValue = number_format($radiusDiffValue, 7, '.', '');

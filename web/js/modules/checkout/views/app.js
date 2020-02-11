@@ -190,6 +190,9 @@ define([ 'backbone',
                     showMessage(_.isUndefined(i18n['Please enter location'])?'Please enter location':i18n['Please enter location'], true);
                     return false;
                 }
+
+                locationAddress = $('#search-pickup-country').find(':selected').data('original-country-name') + ' ' +locationAddress;
+
                 this.mapBounds = [];
                 var currentMarkers = this.mapMarkers;
                 if(!_.isEmpty(currentMarkers)){
