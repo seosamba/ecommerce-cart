@@ -333,7 +333,7 @@ define([ 'backbone',
                         self.map.setCenter(latlngbounds.getCenter());
                     }
                 }else{
-                    showMessage('No locations found', true);
+                    showMessage(_.isUndefined(i18n['No locations found'])?'No locations found':i18n['No locations found'], true);
                 }
             },'json');
         },

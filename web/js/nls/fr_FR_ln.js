@@ -9,7 +9,8 @@ define({
         'Friday' : 'Vendredi',
         'Saturday' : 'Samedi',
         'Missing required fields' : 'Les champs obligatoires ne sont pas remplis',
-        'Please enter location' : 'Veuillez indiquer l\'endroit'
+        'Please enter location' : 'Veuillez indiquer l\'endroit',
+        'No locations found' : 'Aucun endroit n\'est trouvé'
 
     }
 });
