@@ -163,7 +163,7 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 		if($this->_cartContent[$sid]['freebies'] == 1){
             return '';
         }
-        return Cart::$_lockCartEdit === true ? '' : '<a href="javascript:;" class="remove-item error ticon-close icon16" data-sid="' . $sid . '" title="' . $this->_translator->translate('remove ') . $this->_cartContent[$sid]['name'] . $this->_translator->translate(' from the cart') . '">' . $this->_translator->translate('Remove') . '</a>';
+        return Cart::$_lockCartEdit === true ? '' : '<a href="javascript:;" class="remove-item error ticon-close icon16" data-sid="' . $sid . '" title="' . $this->_translator->translate('remove') . ' ' . $this->_cartContent[$sid]['name'] . ' ' . $this->_translator->translate('from the cart') . '">' . $this->_translator->translate('Remove') . '</a>';
 	}
 
 	protected function _renderOptions($sid) {

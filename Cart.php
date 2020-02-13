@@ -129,9 +129,9 @@ class Cart extends Tools_Cart_Cart {
 			$checkoutPage = Tools_Misc::getCheckoutPage();
 			if (!$checkoutPage instanceof Application_Model_Models_Page) {
 				if (Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_ADMINPANEL)) {
-					throw new Exceptions_SeotoasterPluginException('Error rendering cart. Please select a checkout page');
+					throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Error rendering cart. Please select a checkout page'));
 				}
-				throw new Exceptions_SeotoasterPluginException('<!-- Error rendering cart. Please select a checkout page -->');
+				throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Error rendering cart. Please select a checkout page'));
 			}
 			$cacheHelper->save(Shopping::CHECKOUT_PAGE_CACHE_ID, $checkoutPage, 'store_', array(), Helpers_Action_Cache::CACHE_SHORT);
 		}
@@ -175,14 +175,14 @@ class Cart extends Tools_Cart_Cart {
 
 	public function summaryAction() {
 		if (!$this->_request->isPost()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		$this->_responseHelper->success($this->_makeOptionCartsummary());
 	}
 
 	public function buyersummaryAction() {
 		if (!$this->_request->isPost()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		self::$_allowBuyerSummarRendering = true;
 		$this->_responseHelper->success($this->_makeOptionBuyersummary());
@@ -190,7 +190,7 @@ class Cart extends Tools_Cart_Cart {
 
 	public function cartcontentAction() {
 		if (!$this->_request->isPost()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		$nocurrency = filter_var($this->_request->getParam('nocurrency'), FILTER_SANITIZE_STRING);
         $cartContent = $this->_cartStorage->getContent();
@@ -206,7 +206,7 @@ class Cart extends Tools_Cart_Cart {
 	protected function _addToCart() {
 
 		if (!$this->_request->isPost()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 
 		if (isset($this->_requestedParams['all']) && $this->_requestedParams['all'] == 'all') {
@@ -224,7 +224,7 @@ class Cart extends Tools_Cart_Cart {
 		$options = $this->_requestedParams['options'];
 		$addCount = isset($this->_requestedParams['qty']) ? abs(intval($this->_requestedParams['qty'])) : 1;
 		if (!$productId) {
-			throw new Exceptions_SeotoasterPluginException('Can\'t add to cart: product not defined');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Can\'t add to cart: product not defined'));
 		}
 		$product = $this->_productMapper->find($productId);
 		$inStockCount = $product->getInventory();
@@ -352,7 +352,7 @@ class Cart extends Tools_Cart_Cart {
 	protected function _updateCart() {
 
 		if (!$this->_request->isPut()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		$storageId = filter_var($this->_requestedParams['sid'], FILTER_SANITIZE_STRING);
 		$newQty = filter_var($this->_requestedParams['qty'], FILTER_SANITIZE_NUMBER_INT);
@@ -401,7 +401,7 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _removeFromCart() {
 		if (!$this->_request->isDelete()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		if (isset($this->_requestedParams['all']) && $this->_requestedParams['all'] == 'all') {
 			foreach ($this->_requestedParams['sids'] as $sid) {
@@ -450,7 +450,7 @@ class Cart extends Tools_Cart_Cart {
 			return $this->_view->render('addalltocart.phtml');
 		}
 		if (!isset($this->_options[1]) || !intval($this->_options[1])) {
-			throw new Exceptions_SeotoasterPluginException('Product id is missing!');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Product id is missing!'));
 		}
 		$this->_view->checkOutPageUrl = $this->_getCheckoutPage()->getUrl();
 		$this->_view->productId = $this->_options[1];
@@ -845,10 +845,10 @@ class Cart extends Tools_Cart_Cart {
                     $locationId = filter_var($address['pickupLocationId'], FILTER_SANITIZE_NUMBER_INT);
 
                     if (empty($cart)) {
-                        throw new Exceptions_SeotoasterPluginException('empty cart content');
+                        throw new Exceptions_SeotoasterPluginException($this->_translator->translate('empty cart content'));
                     }
                     if (!$pickup || !isset($pickup['config'])) {
-                        throw new Exceptions_SeotoasterPluginException('pickup not configured');
+                        throw new Exceptions_SeotoasterPluginException($this->_translator->translate('pickup not configured'));
                     }
                     $comparator = 0;
                     switch ($pickup['config']['units']) {
@@ -1411,7 +1411,7 @@ class Cart extends Tools_Cart_Cart {
             if (!empty($cartContent)) {
                 $pickupSettings = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
                 if (!$pickupSettings || !isset($pickupSettings['config'])) {
-                    throw new Exceptions_SeotoasterPluginException('pickup not configured');
+                    throw new Exceptions_SeotoasterPluginException($this->_translator->translate('pickup not configured'));
                 }
                 switch ($pickupSettings['config']['units']) {
                     case Shopping::COMPARE_BY_AMOUNT:
