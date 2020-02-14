@@ -18,7 +18,8 @@ define([ 'backbone',
             'click a.apply-pickup':'applyPickupPrice',
             'click #user-info-pickup': 'searchPickupLocations',
             'keypress #user-info-location':'searchPickup',
-            'change #location-list-pickup ': 'searchByPickupLocation'
+            'change #location-list-pickup ': 'searchByPickupLocation',
+            'click .open-marker-popup': 'openMarkerPopup'
         },
         initialize: function(){
             this.websiteUrl = $('#website_url').val();
@@ -309,6 +310,22 @@ define([ 'backbone',
 
             this.mapBounds.push(latLng);
             this.mapMarkers.push(newMarker);
+            window.location.Markers = this.mapMarkers;
+        },
+        openMarkerPopup: function(e) {
+            e.preventDefault();
+
+            var locationlink = $(e.currentTarget),
+                locationlinkMarkerId = locationlink.data('pickup-id');
+
+            if(locationlinkMarkerId != '') {
+                var markers = window.location.Markers;
+                $.each(markers, function (key, marker) {
+                    if(locationlinkMarkerId == marker.get('id')) {
+                        google.maps.event.trigger(marker, 'click');
+                    }
+                });
+            }
         },
         getPickupLocations: function(locationAddress, withoutSearch){
             var self = this,
@@ -334,6 +351,17 @@ define([ 'backbone',
                         self.map.setCenter(latlngbounds.getCenter(), self.map.fitBounds(latlngbounds));
                     } else {
                         self.map.setCenter(latlngbounds.getCenter());
+                    }
+
+                    $('#pickup-locations-links').empty();
+
+                    var links = '';
+                    if(typeof response.responseText.locationsLinks !== 'undefined' && response.responseText.locationsLinks.length) {
+                        _.each(response.responseText.locationsLinks, function(location){
+                            links += '<li><a href="javascript:;" class="open-marker-popup large" data-pickup-id="'+ location.id +'">' + location.name + '</a></li>';
+                        });
+
+                        $('#pickup-locations-links').html(links);
                     }
                 }else{
                     showMessage(_.isUndefined(i18n['No locations found'])?'No locations found':i18n['No locations found'], true);
@@ -365,11 +393,8 @@ define([ 'backbone',
                     $('#pickup-with-price-result').show();
                     $('#pickupLocationId').val(locationData.id);
                 }, 'json');
-
             }
         }
-
-
 
     });
 

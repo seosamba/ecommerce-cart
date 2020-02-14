@@ -102,5 +102,8 @@
      'Enter your shipping address' => 'Introduisez l\'adresse d\'expédition',
      'Select a shipping address or create new' => 'Sélectionnez l\'adresse d\'expédition ou créez une autre',
      'pickup not configured' => 'l\'information sur le poste de distribution n\'est pas configurée',
-     'Sorry, we can\'t ship to your location at this time' => 'Désolé, impossible d\'expédier à votre endroit pour le moment'
+     'Sorry, we can\'t ship to your location at this time' => 'Désolé, impossible d\'expédier à votre endroit pour le moment',
+     'The closest points to your location' => 'Les points les plus proches de vous'
+
+
 ); ?>

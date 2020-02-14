@@ -1424,6 +1424,12 @@ class Cart extends Tools_Cart_Cart {
                 $cartFullWeight = $cartContent->calculateCartWeight();
                 $result = array();
                 $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
+                $pickupLocationLinks = false;
+
+                if (!empty($this->_shoppingConfig['pickupLocationLinks'])) {
+                    $pickupLocationLinks = true;
+                }
+
                 if (!$searchByLocationId) {
                     $locationsRadius = self::$_pickupLocationRadius;
                     if (!empty($this->_shoppingConfig['additionalPickupRadius'])) {
@@ -1445,7 +1451,12 @@ class Cart extends Tools_Cart_Cart {
                             $comparator,
                             false,
                             $coordinates,
-                            $cartFullWeight
+                            $cartFullWeight,
+                            false,
+                            array(),
+                            $userLatitude,
+                            $userLongitude,
+                            $pickupLocationLinks
                         );
                         if (!empty($result)) {
                             break;
@@ -1484,11 +1495,30 @@ class Cart extends Tools_Cart_Cart {
                         $userLatitude = '';
                         $userLongitude = '';
                     }
+
+                    $locationsLinks = array();
+
+                    if(!empty($pickupLocationLinks) && !empty($this->_shoppingConfig['pickupLocationLinksLimit'])) {
+                        $pickupLocationLinksLimit = (int) $this->_shoppingConfig['pickupLocationLinksLimit'];
+
+                        if($pickupLocationLinksLimit) {
+                            foreach ($result as $key => $location) {
+                                if($key <= $pickupLocationLinksLimit) {
+                                    $locationsLinks[] = array(
+                                      'id' => $location['id'],
+                                      'name' => htmlspecialchars($location['name'], ENT_QUOTES, 'UTF-8')
+                                    );
+                                }
+                            }
+                        }
+                    }
+
                     $result[] = array('userLocation' => true, 'lat' => $userLatitude, 'lng' => $userLongitude);
                     $this->_responseHelper->success(
                         array(
                             'result' => $result,
-                            'userLocation' => array('lat' => $userLatitude, 'lng' => $userLongitude)
+                            'userLocation' => array('lat' => $userLatitude, 'lng' => $userLongitude),
+                            'locationsLinks' => $locationsLinks
                         )
                     );
                 }
