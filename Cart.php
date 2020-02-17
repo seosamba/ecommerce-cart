@@ -1503,7 +1503,7 @@ class Cart extends Tools_Cart_Cart {
 
                         if($pickupLocationLinksLimit) {
                             foreach ($result as $key => $location) {
-                                if($key <= $pickupLocationLinksLimit) {
+                                if($key < $pickupLocationLinksLimit) {
                                     $locationsLinks[] = array(
                                       'id' => $location['id'],
                                       'name' => htmlspecialchars($location['name'], ENT_QUOTES, 'UTF-8')
