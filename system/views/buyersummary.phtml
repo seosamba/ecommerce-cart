@@ -75,7 +75,7 @@
                 }
                 echo $pickupLabel . '<br />';
             } else {
-                echo $this->shippingData['service'] . ': ' . $this->shippingData['type'];
+                echo $this->translate($this->shippingData['service']) . ': ' . $this->shippingData['type'];
             }
             ?>
 		</div>
