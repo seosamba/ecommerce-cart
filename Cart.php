@@ -1231,6 +1231,11 @@ class Cart extends Tools_Cart_Cart {
             $this->_view->googleApiKey = $configData['googleApiKey'];
         }
 
+        $session = Zend_Registry::get('session');
+
+        $locale = (isset($session->locale)) ? $session->locale : Zend_Registry::get('Zend_Locale');
+        $this->_view->locale = $locale->getLanguage();
+
 		return $this->_view->render('checkout/shipping_options.phtml');
 	}
 
