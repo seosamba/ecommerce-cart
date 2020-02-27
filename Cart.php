@@ -40,6 +40,11 @@ class Cart extends Tools_Cart_Cart {
      */
     const REGISTRATION_WITH_SUBSCRIPTION = 'with-subscription';
 
+    /**
+     * Show price without price
+     */
+    const WITHOUT_TAX = 'withouttax';
+
 	/**
 	 * Shopping cart main storage.
 	 *
@@ -559,7 +564,12 @@ class Cart extends Tools_Cart_Cart {
                 }
             }
         }
+        $subtotalWithoutTax = false;
+        if(in_array(self::WITHOUT_TAX, $this->_options) || $this->_request->getParam('subtotalWithoutTax')) {
+            $subtotalWithoutTax = true;
+        }
 
+        $this->_view->subtotalWithoutTax = $subtotalWithoutTax;
         $this->_view->summary = $this->_cartStorage->calculate();
         $this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
         $this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;

@@ -17,6 +17,8 @@ weight_type - output type for package | product unit respectively (total|unit).
 {$cartitem:qty} - Displays product number field in the cart.
 {$cartitem:brand} - Displays product brand.
 {$cartitem:remove} - Displays a button that allows you to remove a product from the cart.
+{$store:cartsummary[:withouttax]} - Display information about checkout summary
+  withouttax - dispaly addtional sub total without tax
 
 
 Magic spaces:
