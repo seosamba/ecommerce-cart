@@ -12,6 +12,14 @@
         <?php endif; ?>  
         </span>
 	</div>
+    <?php if($this->subtotalWithoutTax) :?>
+        <div class="cart-summary-row cart-subtotal-without-tax">
+            <span><?php echo $this->translate('Subtotal without tax'); ?>:</span>
+            <span id="subtotal-without-tax-val">
+                <?php echo $this->currency($this->summary['subTotal']); ?>
+            </span>
+        </div>
+    <?php endif;?>
     <?php if (isset($this->summary['discount']) && !empty($this->summary['discount'])) : ?>
         <div class="cart-summary-row cart-discount">
             <span><?php echo $this->translate('Discount'); ?></span>
