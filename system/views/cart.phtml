@@ -47,7 +47,7 @@
 						<?php endif; ?>
 						<td><?php echo $this->currency($cartItem['price'] * $cartItem['qty']); ?></td>
 						<td align="center">
-							<a href="javascript:;" class="remove-item error ticon-close icon16" data-sid="<?php echo $sid; ?>" title="<?php echo $this->translate('remove ') ?> <?php echo $cartItem['name']; ?> <?php echo $this->translate(' from the cart') ?>"><?php echo $this->translate('Remove'); ?></a>
+							<a href="javascript:;" class="remove-item error ticon-close icon16" data-sid="<?php echo $sid; ?>" title="<?php echo $this->translate('remove') ?> <?php echo $cartItem['name']; ?> <?php echo $this->translate('from the cart') ?>"><?php echo $this->translate('Remove'); ?></a>
 						</td>
 					</tr>
 			    <?php endforeach; ?>

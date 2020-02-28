@@ -50,6 +50,11 @@ class Cart extends Tools_Cart_Cart {
      */
     const REGISTRATION_WITH_SUBSCRIPTION = 'with-subscription';
 
+    /**
+     * Show price without price
+     */
+    const WITHOUT_TAX = 'withouttax';
+
 	/**
 	 * Shopping cart main storage.
 	 *
@@ -139,9 +144,9 @@ class Cart extends Tools_Cart_Cart {
 			$checkoutPage = Tools_Misc::getCheckoutPage();
 			if (!$checkoutPage instanceof Application_Model_Models_Page) {
 				if (Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_ADMINPANEL)) {
-					throw new Exceptions_SeotoasterPluginException('Error rendering cart. Please select a checkout page');
+					throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Error rendering cart. Please select a checkout page'));
 				}
-				throw new Exceptions_SeotoasterPluginException('<!-- Error rendering cart. Please select a checkout page -->');
+				throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Error rendering cart. Please select a checkout page'));
 			}
 			$cacheHelper->save(Shopping::CHECKOUT_PAGE_CACHE_ID, $checkoutPage, 'store_', array(), Helpers_Action_Cache::CACHE_SHORT);
 		}
@@ -185,14 +190,14 @@ class Cart extends Tools_Cart_Cart {
 
 	public function summaryAction() {
 		if (!$this->_request->isPost()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		$this->_responseHelper->success($this->_makeOptionCartsummary());
 	}
 
 	public function buyersummaryAction() {
 		if (!$this->_request->isPost()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		self::$_allowBuyerSummarRendering = true;
 		$this->_responseHelper->success($this->_makeOptionBuyersummary());
@@ -200,7 +205,7 @@ class Cart extends Tools_Cart_Cart {
 
 	public function cartcontentAction() {
 		if (!$this->_request->isPost()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		$nocurrency = filter_var($this->_request->getParam('nocurrency'), FILTER_SANITIZE_STRING);
         $cartContent = $this->_cartStorage->getContent();
@@ -219,7 +224,7 @@ class Cart extends Tools_Cart_Cart {
 	protected function _addToCart() {
 
 		if (!$this->_request->isPost()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 
 		if (isset($this->_requestedParams['all']) && $this->_requestedParams['all'] == 'all') {
@@ -237,7 +242,7 @@ class Cart extends Tools_Cart_Cart {
 		$options = $this->_requestedParams['options'];
 		$addCount = isset($this->_requestedParams['qty']) ? abs(intval($this->_requestedParams['qty'])) : 1;
 		if (!$productId) {
-			throw new Exceptions_SeotoasterPluginException('Can\'t add to cart: product not defined');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Can\'t add to cart: product not defined'));
 		}
 		$product = $this->_productMapper->find($productId);
 		$inStockCount = $product->getInventory();
@@ -366,7 +371,7 @@ class Cart extends Tools_Cart_Cart {
 	protected function _updateCart() {
 
 		if (!$this->_request->isPut()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		$storageId = filter_var($this->_requestedParams['sid'], FILTER_SANITIZE_STRING);
 		$newQty = filter_var($this->_requestedParams['qty'], FILTER_SANITIZE_NUMBER_INT);
@@ -415,7 +420,7 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _removeFromCart() {
 		if (!$this->_request->isDelete()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		if (isset($this->_requestedParams['all']) && $this->_requestedParams['all'] == 'all') {
 			foreach ($this->_requestedParams['sids'] as $sid) {
@@ -464,7 +469,7 @@ class Cart extends Tools_Cart_Cart {
 			return $this->_view->render('addalltocart.phtml');
 		}
 		if (!isset($this->_options[1]) || !intval($this->_options[1])) {
-			throw new Exceptions_SeotoasterPluginException('Product id is missing!');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Product id is missing!'));
 		}
 		$this->_view->checkOutPageUrl = $this->_getCheckoutPage()->getUrl();
 		$this->_view->productId = $this->_options[1];
@@ -585,7 +590,12 @@ class Cart extends Tools_Cart_Cart {
                 }
             }
         }
+        $subtotalWithoutTax = false;
+        if(in_array(self::WITHOUT_TAX, $this->_options) || $this->_request->getParam('subtotalWithoutTax')) {
+            $subtotalWithoutTax = true;
+        }
 
+        $this->_view->subtotalWithoutTax = $subtotalWithoutTax;
         $this->_view->summary = $this->_cartStorage->calculate();
         $this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
         $this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
@@ -892,10 +902,10 @@ class Cart extends Tools_Cart_Cart {
                     $locationId = filter_var($address['pickupLocationId'], FILTER_SANITIZE_NUMBER_INT);
 
                     if (empty($cart)) {
-                        throw new Exceptions_SeotoasterPluginException('empty cart content');
+                        throw new Exceptions_SeotoasterPluginException($this->_translator->translate('empty cart content'));
                     }
                     if (!$pickup || !isset($pickup['config'])) {
-                        throw new Exceptions_SeotoasterPluginException('pickup not configured');
+                        throw new Exceptions_SeotoasterPluginException($this->_translator->translate('pickup not configured'));
                     }
                     $comparator = 0;
                     switch ($pickup['config']['units']) {
@@ -1158,9 +1168,24 @@ class Cart extends Tools_Cart_Cart {
                     $defaultPickup = true;
                     $formPickup = new Forms_Checkout_Pickup();
                 }else{
+                    $pickupLocationMapper = Store_Mapper_PickupLocationMapper::getInstance();
+                    $uniqueSearchCountries = $pickupLocationMapper->getUniqueCountries();
                     $defaultPickup = false;
+                    $countries = Tools_Geo::getCountries(true, true);
+                    $countriesWithLocalization = Tools_Geo::getCountries(true);
+                    $this->_view->originalCountryNames = $countries;
+                    $countries = array_flip($countries);
+                    $searchCountries = array();
+                    if (!empty($uniqueSearchCountries)) {
+                        foreach ($uniqueSearchCountries as $uniqueSearchCountry) {
+                            if (!empty($countries[$uniqueSearchCountry])) {
+                                $searchCountries[$countries[$uniqueSearchCountry]] = $countriesWithLocalization[$countries[$uniqueSearchCountry]];
+                            }
+                        }
+                    }
                     $this->_view->pickupLocationConfig = $pickup['config'];
                     $this->_view->locationList = self::getPickupLocationCities();
+                    $this->_view->uniqueSearchCountries = $searchCountries;
                     $formPickup = new Forms_Checkout_PickupWithPrice();
                 }
                 $formPickup->setMobilecountrycode(Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('country'));
@@ -1257,6 +1282,11 @@ class Cart extends Tools_Cart_Cart {
         if(!empty($configData['googleApiKey'])){
             $this->_view->googleApiKey = $configData['googleApiKey'];
         }
+
+        $session = Zend_Registry::get('session');
+
+        $locale = (isset($session->locale)) ? $session->locale : Zend_Registry::get('Zend_Locale');
+        $this->_view->locale = $locale->getLanguage();
 
 		return $this->_view->render('checkout/shipping_options.phtml');
 	}
@@ -1521,7 +1551,7 @@ class Cart extends Tools_Cart_Cart {
             if (!empty($cartContent)) {
                 $pickupSettings = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
                 if (!$pickupSettings || !isset($pickupSettings['config'])) {
-                    throw new Exceptions_SeotoasterPluginException('pickup not configured');
+                    throw new Exceptions_SeotoasterPluginException($this->_translator->translate('pickup not configured'));
                 }
                 switch ($pickupSettings['config']['units']) {
                     case Shopping::COMPARE_BY_AMOUNT:
@@ -1534,8 +1564,18 @@ class Cart extends Tools_Cart_Cart {
                 $cartFullWeight = $cartContent->calculateCartWeight();
                 $result = array();
                 $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
+                $pickupLocationLinks = false;
+
+                if (!empty($this->_shoppingConfig['pickupLocationLinks'])) {
+                    $pickupLocationLinks = true;
+                }
+
                 if (!$searchByLocationId) {
                     $locationsRadius = self::$_pickupLocationRadius;
+                    if (!empty($this->_shoppingConfig['additionalPickupRadius'])) {
+                        array_unshift($locationsRadius, $this->_shoppingConfig['additionalPickupRadius']);
+                    }
+
                     foreach ($locationsRadius as $key => $radius) {
                         $radiusDiffValue = $radius / 111;
                         $radiusDiffValue = number_format($radiusDiffValue, 7, '.', '');
@@ -1551,7 +1591,12 @@ class Cart extends Tools_Cart_Cart {
                             $comparator,
                             false,
                             $coordinates,
-                            $cartFullWeight
+                            $cartFullWeight,
+                            false,
+                            array(),
+                            $userLatitude,
+                            $userLongitude,
+                            $pickupLocationLinks
                         );
                         if (!empty($result)) {
                             break;
@@ -1590,11 +1635,30 @@ class Cart extends Tools_Cart_Cart {
                         $userLatitude = '';
                         $userLongitude = '';
                     }
+
+                    $locationsLinks = array();
+
+                    if(!empty($pickupLocationLinks) && !empty($this->_shoppingConfig['pickupLocationLinksLimit'])) {
+                        $pickupLocationLinksLimit = (int) $this->_shoppingConfig['pickupLocationLinksLimit'];
+
+                        if($pickupLocationLinksLimit) {
+                            foreach ($result as $key => $location) {
+                                if($key < $pickupLocationLinksLimit) {
+                                    $locationsLinks[] = array(
+                                      'id' => $location['id'],
+                                      'name' => htmlspecialchars($location['name'], ENT_QUOTES, 'UTF-8')
+                                    );
+                                }
+                            }
+                        }
+                    }
+
                     $result[] = array('userLocation' => true, 'lat' => $userLatitude, 'lng' => $userLongitude);
                     $this->_responseHelper->success(
                         array(
                             'result' => $result,
-                            'userLocation' => array('lat' => $userLatitude, 'lng' => $userLongitude)
+                            'userLocation' => array('lat' => $userLatitude, 'lng' => $userLongitude),
+                            'locationsLinks' => $locationsLinks
                         )
                     );
                 }
