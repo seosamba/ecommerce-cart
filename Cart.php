@@ -598,6 +598,14 @@ class Cart extends Tools_Cart_Cart {
 			$this->_view->yourInformation = $this->_checkoutSession->initialCustomerInfo;
 			$this->_view->shippingData = $cart->getShippingData();
 			$this->_view->shippingAddress = $cart->getAddressById($cart->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING));
+            if (isset($cart->getShippingData()['service'])) {
+                $serviceLabelMapper = Models_Mapper_ShoppingShippingServiceLabelMapper::getInstance();
+                $shippingServiceLabel = $serviceLabelMapper->findByName($cart->getShippingData()['service']);
+                if (!empty($shippingServiceLabel)) {
+                    $this->_view->shippingServiceLabel = $shippingServiceLabel;
+                }
+            }
+
 			return $this->_view->render('buyersummary.phtml');
 		}
 	}
