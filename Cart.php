@@ -1710,13 +1710,15 @@ class Cart extends Tools_Cart_Cart {
     private function _normalizeMobilePhoneNumber($form) {
         if(isset($form['mobile']) && !empty($form['mobile'])) {
             $countryMobileCode = Zend_Locale::getTranslation($form['mobilecountrycode'], 'phoneToTerritory');
-            $countryPhoneCode = Zend_Locale::getTranslation($form['phonecountrycode'], 'phoneToTerritory');
             $form['mobile'] = preg_replace('~\D~ui', '', $form['mobile']);
             $mobileNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['mobile'], $countryMobileCode);
             if ($mobileNumber !== false) {
                 $form['mobile_country_code_value'] = '+'.$countryMobileCode;
             }
+        }
 
+        if(isset($form['phone']) && !empty($form['phone'])) {
+            $countryPhoneCode = Zend_Locale::getTranslation($form['phonecountrycode'], 'phoneToTerritory');
             if (empty($form['phone'])) {
                 $form['phone'] = '';
             } else {
@@ -1724,9 +1726,10 @@ class Cart extends Tools_Cart_Cart {
             }
             $phoneNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['phone'], $countryPhoneCode);
             if ($phoneNumber !== false) {
-                $form['phone_country_code_value'] = '+'.$countryPhoneCode;
+                $form['phone_country_code_value'] = '+' . $countryPhoneCode;
             }
         }
+
         return $form;
     }
 
