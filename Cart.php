@@ -253,7 +253,11 @@ class Cart extends Tools_Cart_Cart {
         $customInventory = Tools_Misc::applyInventory($productId, $options, $addCount + $inCartCount, Tools_InventoryObserver::INVENTORY_IN_STOCK_METHOD);
 
         $errMessageOutOfStock = (!empty($this->_shoppingConfig['outOfStock'])) ? $this->_shoppingConfig['outOfStock'] : $this->_translator->translate('The requested product is out of stock');
-        $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+        if (!is_null($inStockCount)) {
+            $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? preg_replace('~{ ?\$product:inventory ?}~i', $inStockCount, $this->_shoppingConfig['limitQty']) : $this->_translator->translate('The requested quantity is not available');
+        } else {
+            $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+        }
 
         if ($customInventory['error'] === true) {
             if (!empty($customInventory['stock'])) {
@@ -371,7 +375,11 @@ class Cart extends Tools_Cart_Cart {
                 $customInventory = Tools_Misc::applyInventory($cartItem['id'], $options, $newQty, Tools_InventoryObserver::INVENTORY_IN_STOCK_METHOD);
 
                 $errMessageOutOfStock = (!empty($this->_shoppingConfig['outOfStock'])) ? $this->_shoppingConfig['outOfStock'] : $this->_translator->translate('The requested product is out of stock');
-                $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+                if (!is_null($prod->getInventory())) {
+                    $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? preg_replace('~{ ?\$product:inventory ?}~i', $prod->getInventory(), $this->_shoppingConfig['limitQty']) : $this->_translator->translate('The requested quantity is not available');
+                } else {
+                    $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+                }
 
                 if ($customInventory['error'] === true) {
                     if (!empty($customInventory['stock'])) {
