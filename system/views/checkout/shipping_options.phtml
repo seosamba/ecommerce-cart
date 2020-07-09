@@ -198,11 +198,11 @@
                                 <span class="company clearfix"> <?php echo $shippingAddress['company'];?></span>
                             <?php endif;?>
 
-                            <?php if (!empty($shippingAddress['phone_country_code_value']) && !empty($shippingAddress['phone'])) :?>
+                            <?php if (!empty($shippingAddress['phone'])) :?>
                                 <span class="phone clearfix"> <?php echo $this->translate('Phone');?>: <?php echo $shippingAddress['phone_country_code_value'] . $shippingAddress['phone'];?></span>
                             <?php endif;?>
 
-                            <?php if (!empty($shippingAddress['mobile_country_code_value']) && !empty($shippingAddress['mobile'])) :?>
+                            <?php if (!empty($shippingAddress['mobile'])) :?>
                                 <span class="mobile clearfix"><?php echo $this->translate('Mobile');?>: <?php echo $shippingAddress['mobile_country_code_value'] . $shippingAddress['mobile'];?></span>
                             <?php endif;?>
 
@@ -223,11 +223,11 @@
                                 <span class="company clearfix"> <?php echo $shippingAddress['company'];?></span>
                             <?php endif;?>
 
-                            <?php if (!empty($shippingAddress['phone_country_code_value']) && !empty($shippingAddress['phone'])) :?>
+                            <?php if (!empty($shippingAddress['phone'])) :?>
                                 <span class="phone clearfix"><?php echo $this->translate('Phone');?>: <?php echo $shippingAddress['phone_country_code_value'] . $shippingAddress['phone'];?></span>
                             <?php endif;?>
 
-                            <?php if (!empty($shippingAddress['mobile_country_code_value']) && !empty($shippingAddress['mobile'])) :?>
+                            <?php if (!empty($shippingAddress['mobile'])) :?>
                                 <span class="mobile clearfix"><?php echo $this->translate('Mobile');?>: <?php echo $shippingAddress['mobile_country_code_value'] . $shippingAddress['mobile'];?></span>
                             <?php endif;?>
                         <?php endif;?>
