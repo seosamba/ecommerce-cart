@@ -1273,7 +1273,7 @@ class Cart extends Tools_Cart_Cart {
 			);
 			$parser = new Tools_Content_Parser($paymentZoneTmpl, Tools_Misc::getCheckoutPage()->toArray(), $parserOptions);
             if (Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactions') === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
-                return '<div id="payment-zone" data-throttle="1"></div>';
+                return '<div id="payment-zone" data-throttle="1">'.$this->_translator->translate('Transactions limit exceeded.').'</div>';
             };
 
 			return '<div id="payment-zone">' . $parser->parse() . '</div>';
