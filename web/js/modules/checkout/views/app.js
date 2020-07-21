@@ -39,6 +39,9 @@ define([ 'backbone',
             }
 
             refreshCartSummary();
+            if ($('#payment-zone').data('throttle') === 1) {
+                showMessage(_.isUndefined(i18n['Transactions limit exceeded.']) ? 'Transactions limit exceeded.' : i18n['Transactions limit exceeded.'], true);
+            }
         },
         initMap: function () {
             var myOptions = this.initOptionsMap();

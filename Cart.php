@@ -280,7 +280,12 @@ class Cart extends Tools_Cart_Cart {
 				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $errMessageLimitQty), 1);
 			}
 		}
-
+        if (Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactions') === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
+            return $this->_responseHelper->response(
+                array('msg' => $this->_translator->translate('Transactions limit exceeded.')),
+                1
+            );
+        };
         $productFreebiesSettings = Models_Mapper_ProductFreebiesSettingsMapper::getInstance()->getFreebies($productId);
         $freebiesProducts = array();
         if(!empty($productFreebiesSettings)){
@@ -1267,6 +1272,10 @@ class Cart extends Tools_Cart_Cart {
 				'themePath'    => $themeData['path'],
 			);
 			$parser = new Tools_Content_Parser($paymentZoneTmpl, Tools_Misc::getCheckoutPage()->toArray(), $parserOptions);
+            if (Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactions') === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
+                return '<div id="payment-zone" data-throttle="1"></div>';
+            };
+
 			return '<div id="payment-zone">' . $parser->parse() . '</div>';
 		}
 	}
