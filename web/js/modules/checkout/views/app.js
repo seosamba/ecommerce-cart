@@ -40,7 +40,12 @@ define([ 'backbone',
 
             refreshCartSummary();
             if ($('#payment-zone').data('throttle') === 1) {
-                showMessage(_.isUndefined(i18n['Our transaction limit for today has exceeded.']) ? 'Our transaction limit for today has exceeded.' : i18n['Our transaction limit for today has exceeded.'], true);
+                let throttleMessage = $('#payment-zone').data('throttle-message');
+                if (_.isEmpty(throttleMessage)) {
+                    showMessage(_.isUndefined(i18n['Our transaction limit for today has exceeded.']) ? 'Our transaction limit for today has exceeded.' : i18n['Our transaction limit for today has exceeded.'], true);
+                } else {
+                    showMessage(throttleMessage, true);
+                }
             }
         },
         initMap: function () {
