@@ -282,7 +282,7 @@ class Cart extends Tools_Cart_Cart {
 		}
         if (Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactions') === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
             return $this->_responseHelper->response(
-                array('msg' => $this->_translator->translate('Transactions limit exceeded.')),
+                array('msg' => $this->_translator->translate('Our transaction limit for today has exceeded.')),
                 1
             );
         };
@@ -1273,7 +1273,7 @@ class Cart extends Tools_Cart_Cart {
 			);
 			$parser = new Tools_Content_Parser($paymentZoneTmpl, Tools_Misc::getCheckoutPage()->toArray(), $parserOptions);
             if (Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactions') === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
-                return '<div id="payment-zone" data-throttle="1">'.$this->_translator->translate('Transactions limit exceeded.').'</div>';
+                return '<div id="payment-zone" data-throttle="1"><p class="payment-zone-message">'.$this->_translator->translate('Our transaction limit for today has exceeded.').'</p></div>';
             };
 
 			return '<div id="payment-zone">' . $parser->parse() . '</div>';
