@@ -105,10 +105,17 @@ $(function() {
 });
 
 function refreshCartSummary() {
-	var cartSummary = $('#cart-summary');
-    var cartSummaryMS = $('#cart-summary-magic-space');
+	var cartSummary = $('#cart-summary'),
+	    subtotalWithoutTax = $('#subtotal-without-tax-val'),
+        subtotalWithoutTaxParam = 0,
+        cartSummaryMS = $('#cart-summary-magic-space');
+
+	if(subtotalWithoutTax.length) {
+        subtotalWithoutTaxParam = 1;
+    }
+
     if(cartSummary.length) {
-        $.post($('#website_url').val()+'plugin/cart/run/summary/', function(response) {
+        $.post($('#website_url').val()+'plugin/cart/run/summary/', {subtotalWithoutTax : subtotalWithoutTaxParam}, function(response) {
 			cartSummary.replaceWith(response.responseText);
         }, 'json');
     }

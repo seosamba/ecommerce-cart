@@ -70,8 +70,18 @@
             <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
             <?php if(!empty($this->pickupLocationConfig['searchEnabled'])):?>
                 <p><label><?php echo $this->translate('Enter location');?></label>
-                <input type="text" name="user-location" id="user-info-location" placeholder="<?php echo $this->translate('e.g. city; street and city; zip code...');?>"/></p>
-                <input id="user-info-pickup" type="button" value="Search" />
+                <input type="text" name="user-location" id="user-info-location" placeholder="<?php echo $this->translate('e.g. city; street and city; zip code...');?>"/>
+                    <select id="search-pickup-country">
+                        <?php if (!empty($this->uniqueSearchCountries)) : ?>
+                            <?php foreach ($this->uniqueSearchCountries as $countryUniqueCode => $uniqueSearchCountry): ?>
+                                <option data-original-country-name="<?php echo $this->originalCountryNames[$countryUniqueCode];?>" <?php echo($this->shoppingConfig['country'] == $countryUniqueCode ? 'selected' : ''); ?>
+                                        value="<?php echo $countryUniqueCode; ?>"><?php echo $uniqueSearchCountry; ?></option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </p>
+
+                <input id="user-info-pickup" type="button" value="<?php echo $this->translate('Search ');?>" />
             <?php else:?>
                 <?php if(!empty($this->locationList)):?>
                     <select name="location-list-pickup" id="location-list-pickup">
@@ -131,10 +141,21 @@
         <div id="pickup-result"></div>
         </div>
         <div id="pickup-map-locations" class="hidden" style="width:100%; padding: 0px;">
-
-            <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+            <?php
+            $googleApiKey = '';
+            if(!empty($this->googleApiKey)){
+                $googleApiKey = '&key='. $this->googleApiKey;
+            }?>
+            <script src="https://maps.googleapis.com/maps/api/js?v=3.exp<?php echo $googleApiKey;?>"></script>
             <ul id="pickup-location-grid"></ul>
             <div class="pickup-locations" id="pickup-locations" style="width:100%; height:600px"></div>
+
+            <?php if(!empty($this->shoppingConfig['pickupLocationLinks'])) :?>
+                <div class="grid_12 mt5px">
+                    <h3><?php echo $this->translate('The closest points to your location'); ?></h3>
+                    <ul id="pickup-locations-links"></ul>
+                </div>
+            <?php endif;?>
         </div>
     </div>
 <?php endif; ?>
@@ -161,21 +182,58 @@
                         <?php else : ?>
                             <div class="adr-shipping" style="display:none">
                         <?php endif; ?>
-                        <span class="street-address"><?php echo $shippingAddress['address1'].' '. $shippingAddress['address2'];?></span>
-                        <br/>
-                        <span class="locality">
-                            <?php echo $shippingAddress['city'].($shippingAddress['city']&&($shippingAddress['state'] || $shippingAddress['zip'])?',':'');?>
-                        </span>
-                        <span class="region"><?php $state = Tools_Geo::getStateById($shippingAddress['state']); echo $state['state']; ?></span>
-                        <span class="postal-code"><?php echo $shippingAddress['zip'];?></span>
-                        <br />
-                        <?php if (isset($countryList[$shippingAddress['country']])) :?>
-                            <span><?php echo $countryList[$shippingAddress['country']];?></span>
+                        <?php if($this->locale === 'fr') : ?>
+                            <span class="street-address"><?php echo $shippingAddress['address1'].' '. $shippingAddress['address2'];?></span>
+                            <br/>
+                            <span class="postal-code"><?php echo $shippingAddress['zip'];?></span>
+                            <span class="locality">
+                                <?php echo $shippingAddress['city'].($shippingAddress['city']&&($shippingAddress['state'] || $shippingAddress['zip'])?',':'');?>
+                            </span>
+                            <span class="region"><?php $state = Tools_Geo::getStateById($shippingAddress['state']); echo $state['state']; ?></span>
+                            <?php if (isset($countryList[$shippingAddress['country']])) :?>
+                                <span><?php echo $countryList[$shippingAddress['country']];?></span>
+                            <?php endif;?>
+                            <span class="email clearfix"> <?php echo $shippingAddress['email'];?></span>
+                            <?php if (!empty($shippingAddress['company'])) :?>
+                                <span class="company clearfix"> <?php echo $shippingAddress['company'];?></span>
+                            <?php endif;?>
+
+                            <?php if (!empty($shippingAddress['phone'])) :?>
+                                <span class="phone clearfix"> <?php echo $this->translate('Phone');?>: <?php echo $shippingAddress['phone_country_code_value'] . $shippingAddress['phone'];?></span>
+                            <?php endif;?>
+
+                            <?php if (!empty($shippingAddress['mobile'])) :?>
+                                <span class="mobile clearfix"><?php echo $this->translate('Mobile');?>: <?php echo $shippingAddress['mobile_country_code_value'] . $shippingAddress['mobile'];?></span>
+                            <?php endif;?>
+
+                        <?php else :?>
+                            <span class="street-address"><?php echo $shippingAddress['address1'].' '. $shippingAddress['address2'];?></span>
+                            <br/>
+                            <span class="locality">
+                                <?php echo $shippingAddress['city'].($shippingAddress['city']&&($shippingAddress['state'] || $shippingAddress['zip'])?',':'');?>
+                            </span>
+                            <span class="region"><?php $state = Tools_Geo::getStateById($shippingAddress['state']); echo $state['state']; ?></span>
+                            <span class="postal-code"><?php echo $shippingAddress['zip'];?></span>
+                            <br />
+                            <?php if (isset($countryList[$shippingAddress['country']])) :?>
+                                <span><?php echo $countryList[$shippingAddress['country']];?></span>
+                            <?php endif;?>
+                            <span class="email clearfix"> <?php echo $shippingAddress['email'];?></span>
+                            <?php if (!empty($shippingAddress['company'])) :?>
+                                <span class="company clearfix"> <?php echo $shippingAddress['company'];?></span>
+                            <?php endif;?>
+
+                            <?php if (!empty($shippingAddress['phone'])) :?>
+                                <span class="phone clearfix"><?php echo $this->translate('Phone');?>: <?php echo $shippingAddress['phone_country_code_value'] . $shippingAddress['phone'];?></span>
+                            <?php endif;?>
+
+                            <?php if (!empty($shippingAddress['mobile'])) :?>
+                                <span class="mobile clearfix"><?php echo $this->translate('Mobile');?>: <?php echo $shippingAddress['mobile_country_code_value'] . $shippingAddress['mobile'];?></span>
+                            <?php endif;?>
                         <?php endif;?>
-                        <span class="email clearfix"> <?php echo $shippingAddress['email'];?></span>
-                        <a href="<?php echo $this->websiteUrl .$this->checkOutPageUrl.'?step='.Cart::STEP_SHIPPING_OPTIONS.'&shippingAddress='.$shippingAddress['id'];?>" class="use-shipping-address">
-                            <?php echo $this->translate('Ship to this address');?>
-                        </a>
+                            <a href="<?php echo $this->websiteUrl .$this->checkOutPageUrl.'?step='.Cart::STEP_SHIPPING_OPTIONS.'&shippingAddress='.$shippingAddress['id'];?>" class="use-shipping-address">
+                                <?php echo $this->translate('Ship to this address');?>
+                            </a>
                         </div>
                     <?php endif;?>
                 <?php endforeach; ?>
@@ -224,6 +282,8 @@
                     <?php echo $this->shippingForm->country;?>
                     <?php echo $this->shippingForm->state;?>
                     <?php echo (isset($this->shippingForm->shippingToc)) ? $this->shippingForm->shippingToc : '';?>
+                    <?php echo (isset($this->shippingForm->isGift)) ? $this->shippingForm->isGift : '';?>
+                    <?php echo (isset($this->shippingForm->isGift)) ? $this->shippingForm->giftEmail : '';?>
                 </fieldset>
                 <?php echo $this->shippingForm->step;?>
                 <?php echo $this->shippingForm->checkout;?>
@@ -318,6 +378,15 @@
                 } else {
                     $('#checkout-pickup input[name="phone"]').mask('(999) 999 9999', {autoclear: false});
                 }
+            });
+
+            $(document).on('change', '#isGift', function(e) {
+                if ($(this).is(':checked')) {
+                    $('#checkout-user-address input[name="giftEmail"]').removeClass('hidden');
+                } else {
+                    $('#checkout-user-address input[name="giftEmail"]').addClass('hidden');
+                }
+
             });
 
         });

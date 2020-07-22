@@ -40,6 +40,11 @@ class Cart extends Tools_Cart_Cart {
      */
     const REGISTRATION_WITH_SUBSCRIPTION = 'with-subscription';
 
+    /**
+     * Show price without price
+     */
+    const WITHOUT_TAX = 'withouttax';
+
 	/**
 	 * Shopping cart main storage.
 	 *
@@ -129,9 +134,9 @@ class Cart extends Tools_Cart_Cart {
 			$checkoutPage = Tools_Misc::getCheckoutPage();
 			if (!$checkoutPage instanceof Application_Model_Models_Page) {
 				if (Tools_Security_Acl::isAllowed(Tools_Security_Acl::RESOURCE_ADMINPANEL)) {
-					throw new Exceptions_SeotoasterPluginException('Error rendering cart. Please select a checkout page');
+					throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Error rendering cart. Please select a checkout page'));
 				}
-				throw new Exceptions_SeotoasterPluginException('<!-- Error rendering cart. Please select a checkout page -->');
+				throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Error rendering cart. Please select a checkout page'));
 			}
 			$cacheHelper->save(Shopping::CHECKOUT_PAGE_CACHE_ID, $checkoutPage, 'store_', array(), Helpers_Action_Cache::CACHE_SHORT);
 		}
@@ -175,14 +180,14 @@ class Cart extends Tools_Cart_Cart {
 
 	public function summaryAction() {
 		if (!$this->_request->isPost()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		$this->_responseHelper->success($this->_makeOptionCartsummary());
 	}
 
 	public function buyersummaryAction() {
 		if (!$this->_request->isPost()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		self::$_allowBuyerSummarRendering = true;
 		$this->_responseHelper->success($this->_makeOptionBuyersummary());
@@ -190,7 +195,7 @@ class Cart extends Tools_Cart_Cart {
 
 	public function cartcontentAction() {
 		if (!$this->_request->isPost()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		$nocurrency = filter_var($this->_request->getParam('nocurrency'), FILTER_SANITIZE_STRING);
         $cartContent = $this->_cartStorage->getContent();
@@ -206,7 +211,7 @@ class Cart extends Tools_Cart_Cart {
 	protected function _addToCart() {
 
 		if (!$this->_request->isPost()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 
 		if (isset($this->_requestedParams['all']) && $this->_requestedParams['all'] == 'all') {
@@ -224,7 +229,7 @@ class Cart extends Tools_Cart_Cart {
 		$options = $this->_requestedParams['options'];
 		$addCount = isset($this->_requestedParams['qty']) ? abs(intval($this->_requestedParams['qty'])) : 1;
 		if (!$productId) {
-			throw new Exceptions_SeotoasterPluginException('Can\'t add to cart: product not defined');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Can\'t add to cart: product not defined'));
 		}
 		$product = $this->_productMapper->find($productId);
 		$inStockCount = $product->getInventory();
@@ -248,7 +253,11 @@ class Cart extends Tools_Cart_Cart {
         $customInventory = Tools_Misc::applyInventory($productId, $options, $addCount + $inCartCount, Tools_InventoryObserver::INVENTORY_IN_STOCK_METHOD);
 
         $errMessageOutOfStock = (!empty($this->_shoppingConfig['outOfStock'])) ? $this->_shoppingConfig['outOfStock'] : $this->_translator->translate('The requested product is out of stock');
-        $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+        if (!is_null($inStockCount) && !empty($inStockCount)) {
+            $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? preg_replace('~{ ?\$product:inventory ?}~i', $inStockCount, $this->_shoppingConfig['limitQty']) : $this->_translator->translate('The requested quantity is not available');
+        } else {
+            $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+        }
 
         if ($customInventory['error'] === true) {
             if (!empty($customInventory['stock'])) {
@@ -352,7 +361,7 @@ class Cart extends Tools_Cart_Cart {
 	protected function _updateCart() {
 
 		if (!$this->_request->isPut()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		$storageId = filter_var($this->_requestedParams['sid'], FILTER_SANITIZE_STRING);
 		$newQty = filter_var($this->_requestedParams['qty'], FILTER_SANITIZE_NUMBER_INT);
@@ -366,7 +375,11 @@ class Cart extends Tools_Cart_Cart {
                 $customInventory = Tools_Misc::applyInventory($cartItem['id'], $options, $newQty, Tools_InventoryObserver::INVENTORY_IN_STOCK_METHOD);
 
                 $errMessageOutOfStock = (!empty($this->_shoppingConfig['outOfStock'])) ? $this->_shoppingConfig['outOfStock'] : $this->_translator->translate('The requested product is out of stock');
-                $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+                if (!is_null($prod->getInventory()) && !empty($prod->getInventory())) {
+                    $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? preg_replace('~{ ?\$product:inventory ?}~i', $prod->getInventory(), $this->_shoppingConfig['limitQty']) : $this->_translator->translate('The requested quantity is not available');
+                } else {
+                    $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+                }
 
                 if ($customInventory['error'] === true) {
                     if (!empty($customInventory['stock'])) {
@@ -401,7 +414,7 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _removeFromCart() {
 		if (!$this->_request->isDelete()) {
-			throw new Exceptions_SeotoasterPluginException('Direct access not allowed');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		if (isset($this->_requestedParams['all']) && $this->_requestedParams['all'] == 'all') {
 			foreach ($this->_requestedParams['sids'] as $sid) {
@@ -450,7 +463,7 @@ class Cart extends Tools_Cart_Cart {
 			return $this->_view->render('addalltocart.phtml');
 		}
 		if (!isset($this->_options[1]) || !intval($this->_options[1])) {
-			throw new Exceptions_SeotoasterPluginException('Product id is missing!');
+			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Product id is missing!'));
 		}
 		$this->_view->checkOutPageUrl = $this->_getCheckoutPage()->getUrl();
 		$this->_view->productId = $this->_options[1];
@@ -559,7 +572,12 @@ class Cart extends Tools_Cart_Cart {
                 }
             }
         }
+        $subtotalWithoutTax = false;
+        if(in_array(self::WITHOUT_TAX, $this->_options) || $this->_request->getParam('subtotalWithoutTax')) {
+            $subtotalWithoutTax = true;
+        }
 
+        $this->_view->subtotalWithoutTax = $subtotalWithoutTax;
         $this->_view->summary = $this->_cartStorage->calculate();
         $this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
         $this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
@@ -588,6 +606,14 @@ class Cart extends Tools_Cart_Cart {
 			$this->_view->yourInformation = $this->_checkoutSession->initialCustomerInfo;
 			$this->_view->shippingData = $cart->getShippingData();
 			$this->_view->shippingAddress = $cart->getAddressById($cart->getAddressKey(Models_Model_Customer::ADDRESS_TYPE_SHIPPING));
+            if (isset($cart->getShippingData()['service'])) {
+                $serviceLabelMapper = Models_Mapper_ShoppingShippingServiceLabelMapper::getInstance();
+                $shippingServiceLabel = $serviceLabelMapper->findByName($cart->getShippingData()['service']);
+                if (!empty($shippingServiceLabel)) {
+                    $this->_view->shippingServiceLabel = $shippingServiceLabel;
+                }
+            }
+
 			return $this->_view->render('buyersummary.phtml');
 		}
 	}
@@ -735,6 +761,8 @@ class Cart extends Tools_Cart_Cart {
 			$addressId = Models_Mapper_CustomerMapper::getInstance()->addAddress($customer, $addressValues, $addressType);
 			$shoppingCart->setShippingAddressKey($addressId)
 					->setNotes($form->getValue('notes'));
+            $shoppingCart->setIsGift((int)$form->getValue('isGift'));
+            $shoppingCart->setGiftEmail($form->getValue('giftEmail'));
 			$shoppingCart->calculate(true);
 			$shoppingCart->save()->saveCartSession($customer);
 
@@ -770,6 +798,18 @@ class Cart extends Tools_Cart_Cart {
 								'type'    => $vault[$shipper][$index]['type'],
 								'price'   => $vault[$shipper][$index]['price']
 							);
+
+                            if (!empty($vault[$shipper][$index]['service_id'])) {
+                                $service['service_id'] = $vault[$shipper][$index]['service_id'];
+                            }
+
+                            if (!empty($vault[$shipper][$index]['service_id'])) {
+                                $service['availability_days'] = $vault[$shipper][$index]['availability_days'];
+                            }
+
+                            if (!empty($vault[$shipper][$index]['service_id'])) {
+                                $service['service_info'] = $vault[$shipper][$index]['service_info'];
+                            }
 						}
 					}
 				}
@@ -831,10 +871,10 @@ class Cart extends Tools_Cart_Cart {
                     $locationId = filter_var($address['pickupLocationId'], FILTER_SANITIZE_NUMBER_INT);
 
                     if (empty($cart)) {
-                        throw new Exceptions_SeotoasterPluginException('empty cart content');
+                        throw new Exceptions_SeotoasterPluginException($this->_translator->translate('empty cart content'));
                     }
                     if (!$pickup || !isset($pickup['config'])) {
-                        throw new Exceptions_SeotoasterPluginException('pickup not configured');
+                        throw new Exceptions_SeotoasterPluginException($this->_translator->translate('pickup not configured'));
                     }
                     $comparator = 0;
                     switch ($pickup['config']['units']) {
@@ -893,6 +933,14 @@ class Cart extends Tools_Cart_Cart {
         $form->setMobilecountrycode(Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('country'));
 		$withPassword = array_search(self::REGISTRATION_WITH_PASSWORD, $this->_options);
 		$withSubscription = array_search(self::REGISTRATION_WITH_SUBSCRIPTION, $this->_options);
+        $customFields = current(preg_grep('/custom-fields=*/', $this->_options));
+        $elementOptions = array();
+        if (!empty($customFields)) {
+            $elementOptions = $this->_parseCustomFieldsData($customFields);
+            $form = $this->_addAdditionalFormFields($elementOptions, $form);
+            $this->_view->additionalFieldsInfo = $elementOptions;
+        }
+
         if ($withPassword === false) {
             $form->removeElement('customerPassword');
             $form->removeElement('customerPassConfirmation');
@@ -922,9 +970,12 @@ class Cart extends Tools_Cart_Cart {
 			if ($form->isValid($this->_request->getPost())) {
 				$customerData = $this->_normalizeMobilePhoneNumber($form->getValues());
 				$this->_checkoutSession->initialCustomerInfo = $customerData;
-				$customer = Shopping::processCustomer($customerData);
+				$customer = Shopping::processCustomer($customerData, $elementOptions);
 				if ($customer->getId()) {
                     $customer->setAttribute('mobilecountrycode', $customerData['mobilecountrycode']);
+                    foreach ($elementOptions as $paramName => $paramLabel) {
+                        $customer->setAttribute($paramName, $customerData[$paramName]);
+                    }
                     Application_Model_Mappers_UserMapper::getInstance()->saveUserAttributes($customer);
 					$cart->setCustomerId($customer->getId())->calculate(true);
 					$cart->save()->saveCartSession($customer);
@@ -1081,9 +1132,24 @@ class Cart extends Tools_Cart_Cart {
                     $defaultPickup = true;
                     $formPickup = new Forms_Checkout_Pickup();
                 }else{
+                    $pickupLocationMapper = Store_Mapper_PickupLocationMapper::getInstance();
+                    $uniqueSearchCountries = $pickupLocationMapper->getUniqueCountries();
                     $defaultPickup = false;
+                    $countries = Tools_Geo::getCountries(true, true);
+                    $countriesWithLocalization = Tools_Geo::getCountries(true);
+                    $this->_view->originalCountryNames = $countries;
+                    $countries = array_flip($countries);
+                    $searchCountries = array();
+                    if (!empty($uniqueSearchCountries)) {
+                        foreach ($uniqueSearchCountries as $uniqueSearchCountry) {
+                            if (!empty($countries[$uniqueSearchCountry])) {
+                                $searchCountries[$countries[$uniqueSearchCountry]] = $countriesWithLocalization[$countries[$uniqueSearchCountry]];
+                            }
+                        }
+                    }
                     $this->_view->pickupLocationConfig = $pickup['config'];
                     $this->_view->locationList = self::getPickupLocationCities();
+                    $this->_view->uniqueSearchCountries = $searchCountries;
                     $formPickup = new Forms_Checkout_PickupWithPrice();
                 }
                 $formPickup->setMobilecountrycode(Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('country'));
@@ -1173,6 +1239,19 @@ class Cart extends Tools_Cart_Cart {
         $this->_view->mobileMasks = $listMasksMapper->getListOfMasksByType(Application_Model_Models_MaskList::MASK_TYPE_MOBILE);
         $this->_view->desktopMasks = $listMasksMapper->getListOfMasksByType(Application_Model_Models_MaskList::MASK_TYPE_DESKTOP);
 		$this->_view->shoppingConfig = $this->_shoppingConfig;
+
+        $configMapper = Application_Model_Mappers_ConfigMapper::getInstance();
+        $configData = $configMapper->getConfig();
+
+        if(!empty($configData['googleApiKey'])){
+            $this->_view->googleApiKey = $configData['googleApiKey'];
+        }
+
+        $session = Zend_Registry::get('session');
+
+        $locale = (isset($session->locale)) ? $session->locale : Zend_Registry::get('Zend_Locale');
+        $this->_view->locale = $locale->getLanguage();
+
 		return $this->_view->render('checkout/shipping_options.phtml');
 	}
 
@@ -1221,8 +1300,15 @@ class Cart extends Tools_Cart_Cart {
 			}
 		}
 
-        if(in_array('shipping-sort', $this->_options)){
+
+        if(in_array('shipping-sort', $this->_options)) {
             $this->_view->shippingSort = true;
+        }
+
+        if (!empty($this->_shoppingConfig['skipSingleShippingResult'])) {
+            if (false !== ($singleShipmentResult = $this->_qualifySingleShippingServiceResult())) {
+                return $singleShipmentResult;
+            }
         }
 
 		$this->_view->shoppingConfig = $this->_shoppingConfig;
@@ -1361,7 +1447,7 @@ class Cart extends Tools_Cart_Cart {
             if (!empty($cartContent)) {
                 $pickupSettings = Models_Mapper_ShippingConfigMapper::getInstance()->find(Shopping::SHIPPING_PICKUP);
                 if (!$pickupSettings || !isset($pickupSettings['config'])) {
-                    throw new Exceptions_SeotoasterPluginException('pickup not configured');
+                    throw new Exceptions_SeotoasterPluginException($this->_translator->translate('pickup not configured'));
                 }
                 switch ($pickupSettings['config']['units']) {
                     case Shopping::COMPARE_BY_AMOUNT:
@@ -1374,8 +1460,18 @@ class Cart extends Tools_Cart_Cart {
                 $cartFullWeight = $cartContent->calculateCartWeight();
                 $result = array();
                 $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
+                $pickupLocationLinks = false;
+
+                if (!empty($this->_shoppingConfig['pickupLocationLinks'])) {
+                    $pickupLocationLinks = true;
+                }
+
                 if (!$searchByLocationId) {
                     $locationsRadius = self::$_pickupLocationRadius;
+                    if (!empty($this->_shoppingConfig['additionalPickupRadius'])) {
+                        array_unshift($locationsRadius, $this->_shoppingConfig['additionalPickupRadius']);
+                    }
+
                     foreach ($locationsRadius as $key => $radius) {
                         $radiusDiffValue = $radius / 111;
                         $radiusDiffValue = number_format($radiusDiffValue, 7, '.', '');
@@ -1391,7 +1487,12 @@ class Cart extends Tools_Cart_Cart {
                             $comparator,
                             false,
                             $coordinates,
-                            $cartFullWeight
+                            $cartFullWeight,
+                            false,
+                            array(),
+                            $userLatitude,
+                            $userLongitude,
+                            $pickupLocationLinks
                         );
                         if (!empty($result)) {
                             break;
@@ -1416,10 +1517,12 @@ class Cart extends Tools_Cart_Cart {
                     }
                 }
                 if (!empty($result)) {
+                    $multiplyPickupInfoDays = (isset($this->_shoppingConfig['multiplyPickupInfoDays']) ? $this->_shoppingConfig['multiplyPickupInfoDays'] : '');
                     $result = array_map(
-                        function ($pickupLocation) use ($comparator) {
+                        function ($pickupLocation) use ($comparator, $multiplyPickupInfoDays) {
                             $pickupLocation['working_hours'] = unserialize($pickupLocation['working_hours']);
                             $pickupLocation['comparator'] = $comparator;
+                            $pickupLocation['multiplyPickupInfoDays'] = $multiplyPickupInfoDays;
                             return $pickupLocation;
                         },
                         $result
@@ -1428,11 +1531,30 @@ class Cart extends Tools_Cart_Cart {
                         $userLatitude = '';
                         $userLongitude = '';
                     }
+
+                    $locationsLinks = array();
+
+                    if(!empty($pickupLocationLinks) && !empty($this->_shoppingConfig['pickupLocationLinksLimit'])) {
+                        $pickupLocationLinksLimit = (int) $this->_shoppingConfig['pickupLocationLinksLimit'];
+
+                        if($pickupLocationLinksLimit) {
+                            foreach ($result as $key => $location) {
+                                if($key < $pickupLocationLinksLimit) {
+                                    $locationsLinks[] = array(
+                                      'id' => $location['id'],
+                                      'name' => htmlspecialchars($location['name'], ENT_QUOTES, 'UTF-8')
+                                    );
+                                }
+                            }
+                        }
+                    }
+
                     $result[] = array('userLocation' => true, 'lat' => $userLatitude, 'lng' => $userLongitude);
                     $this->_responseHelper->success(
                         array(
                             'result' => $result,
-                            'userLocation' => array('lat' => $userLatitude, 'lng' => $userLongitude)
+                            'userLocation' => array('lat' => $userLatitude, 'lng' => $userLongitude),
+                            'locationsLinks' => $locationsLinks
                         )
                     );
                 }
@@ -1465,6 +1587,8 @@ class Cart extends Tools_Cart_Cart {
                     $result['withTax'] = '';
                     $result['price'] = $price + $shippingTax;
                     $result['currency'] = $currencySymbol;
+                    $multiplyPickupInfoDays = (isset($this->_shoppingConfig['multiplyPickupInfoDays']) ? $this->_shoppingConfig['multiplyPickupInfoDays'] : '');
+                    $result['multiplyPickupInfoDays'] = $multiplyPickupInfoDays;
                     $this->_responseHelper->success($result);
                 }
             }
@@ -1474,13 +1598,15 @@ class Cart extends Tools_Cart_Cart {
     private function _normalizeMobilePhoneNumber($form) {
         if(isset($form['mobile']) && !empty($form['mobile'])) {
             $countryMobileCode = Zend_Locale::getTranslation($form['mobilecountrycode'], 'phoneToTerritory');
-            $countryPhoneCode = Zend_Locale::getTranslation($form['phonecountrycode'], 'phoneToTerritory');
             $form['mobile'] = preg_replace('~\D~ui', '', $form['mobile']);
             $mobileNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['mobile'], $countryMobileCode);
             if ($mobileNumber !== false) {
                 $form['mobile_country_code_value'] = '+'.$countryMobileCode;
             }
+        }
 
+        if(isset($form['phone']) && !empty($form['phone'])) {
+            $countryPhoneCode = Zend_Locale::getTranslation($form['phonecountrycode'], 'phoneToTerritory');
             if (empty($form['phone'])) {
                 $form['phone'] = '';
             } else {
@@ -1488,9 +1614,10 @@ class Cart extends Tools_Cart_Cart {
             }
             $phoneNumber = Apps_Tools_Twilio::normalizePhoneNumberToE164($form['phone'], $countryPhoneCode);
             if ($phoneNumber !== false) {
-                $form['phone_country_code_value'] = '+'.$countryPhoneCode;
+                $form['phone_country_code_value'] = '+' . $countryPhoneCode;
             }
         }
+
         return $form;
     }
 
@@ -1575,6 +1702,118 @@ class Cart extends Tools_Cart_Cart {
         }
         return $shippingRestricted;
     }
+
+    /**
+     * Parse custom fields
+     *
+     * @param string $customFields fields in format custom-fields=social|First label,your_id|Second label
+     * @return array
+     */
+    private function _parseCustomFieldsData($customFields)
+    {
+        $fieldsData = array();
+        $customFields = explode(',', str_replace('custom-fields=', '', $customFields));
+        if (!empty($customFields)) {
+            foreach ($customFields as $fieldData) {
+                $fieldInfo = explode('|', $fieldData);
+                $fieldName = strtolower(preg_replace('~[^ \w]~', '',
+                    filter_var($fieldInfo[0], FILTER_SANITIZE_STRING)));
+                $fieldsData[$fieldName] = $fieldInfo[1];
+            }
+        }
+
+        return $fieldsData;
+    }
+
+    /**
+     * Add additional fields for form
+     *
+     * @param array $fieldsInfo
+     * @param $form
+     * @return mixed
+     */
+    private function _addAdditionalFormFields(array $fieldsInfo, $form)
+    {
+        foreach ($fieldsInfo as $fieldName => $fieldLabel) {
+            $form->addElement('text', filter_var($fieldName, FILTER_SANITIZE_STRING));
+        }
+
+        return $form;
+    }
+
+
+    /**
+     * Analyze if only one shipment in the service enabled and one result returned
+     *
+     * @return bool
+     */
+    private function _qualifySingleShippingServiceResult()
+    {
+        try {
+            $shippingServices = Models_Mapper_ShippingConfigMapper::getInstance()->fetchByStatus(Models_Mapper_ShippingConfigMapper::STATUS_ENABLED);
+            if (!empty($shippingServices)) {
+                $shippingServices = array_map(function ($shipper) {
+                    return !in_array($shipper['name'], array(
+                        Shopping::SHIPPING_TRACKING_URL,
+                        Shopping::SHIPPING_MARKUP,
+                        Shopping::SHIPPING_PICKUP,
+                        Shopping::SHIPPING_FREESHIPPING,
+                        Shopping::ORDER_CONFIG,
+                        Shopping::SHIPPING_RESTRICTION_ZONES
+                    )) ? array(
+                        'name' => $shipper['name'],
+                        'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
+                    ) : null;
+                }, $shippingServices);
+            }
+
+            $shippingServices = array_filter($shippingServices);
+            if (empty($shippingServices) || count($shippingServices) > 1) {
+                return false;
+            }
+
+            $shippingService = current($shippingServices);
+            $result = Tools_System_Tools::firePluginMethodByPluginName($shippingService['name'], 'calculateShipping', array(), false);
+
+            if (!empty($result) && count($result) === 1 && empty($result['error'])) {
+                $result = current($result);
+                $cart = Tools_ShoppingCart::getInstance();
+
+                $shippingData = array(
+                    'service' => $shippingService['name'],
+                    'type'    => isset($result['type']) ? $result['type'] : Shopping::SHIPPING_FLATRATE,
+                    'price'   => $result['price']
+
+                );
+                if (!empty($result['service_id'])) {
+                    $shippingData['service_id'] = $result['service_id'];
+                }
+
+                if (!empty($result['service_id'])) {
+                    $shippingData['availability_days'] = $result['availability_days'];
+                }
+
+                if (!empty($result['service_id'])) {
+                    $shippingData['service_info'] = $result['service_info'];
+                }
+                $cart->setShippingData($shippingData);
+                $cart->calculate(true);
+                $cart->save()->saveCartSession(null);
+                $this->_checkoutSession->returnAllowed = array(
+                    self::STEP_LANDING,
+                    self::STEP_SHIPPING_OPTIONS,
+                    self::STEP_SHIPPING_METHOD
+                );
+                return $this->_renderPaymentZone();
+            }
+        } catch (Exception $e) {
+            Tools_System_Tools::debugMode() && error_log($e->getMessage());
+            return false;
+        }
+
+        return false;
+    }
+
 
 
 //	@TODO implement widget maker
