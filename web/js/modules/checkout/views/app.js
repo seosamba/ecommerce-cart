@@ -42,7 +42,7 @@ define([ 'backbone',
             if ($('#payment-zone').data('throttle') === 1) {
                 let throttleMessage = $('#payment-zone').data('throttle-message');
                 if (_.isEmpty(throttleMessage)) {
-                    showMessage(_.isUndefined(i18n['Our transaction limit for today has exceeded.']) ? 'Our transaction limit for today has exceeded.' : i18n['Our transaction limit for today has exceeded.'], true);
+                    showMessage(_.isUndefined(i18n['Due to unprecedented orders volume, and in order to maintain quality of service, our online shop is open for a limited amount of time every day. We are no longer accepting orders today, please try to come back earlier tomorrow to place your order. We apologize for the inconvenience.']) ? 'Due to unprecedented orders volume, and in order to maintain quality of service, our online shop is open for a limited amount of time every day. We are no longer accepting orders today, please try to come back earlier tomorrow to place your order. We apologize for the inconvenience.' : i18n['Due to unprecedented orders volume, and in order to maintain quality of service, our online shop is open for a limited amount of time every day. We are no longer accepting orders today, please try to come back earlier tomorrow to place your order. We apologize for the inconvenience.'], true);
                 } else {
                     showMessage(throttleMessage, true);
                 }
