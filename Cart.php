@@ -253,7 +253,11 @@ class Cart extends Tools_Cart_Cart {
         $customInventory = Tools_Misc::applyInventory($productId, $options, $addCount + $inCartCount, Tools_InventoryObserver::INVENTORY_IN_STOCK_METHOD);
 
         $errMessageOutOfStock = (!empty($this->_shoppingConfig['outOfStock'])) ? $this->_shoppingConfig['outOfStock'] : $this->_translator->translate('The requested product is out of stock');
-        $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+        if (!is_null($inStockCount) && !empty($inStockCount)) {
+            $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? preg_replace('~{ ?\$product:inventory ?}~i', $inStockCount, $this->_shoppingConfig['limitQty']) : $this->_translator->translate('The requested quantity is not available');
+        } else {
+            $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+        }
 
         if ($customInventory['error'] === true) {
             if (!empty($customInventory['stock'])) {
@@ -276,7 +280,14 @@ class Cart extends Tools_Cart_Cart {
 				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $errMessageLimitQty), 1);
 			}
 		}
-
+        if (Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactions') === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
+            $throttleTransactionsLimitMessage = Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactionsLimitMessage');
+            $throttleTransactionsLimitMessage = !empty($throttleTransactionsLimitMessage) ? $throttleTransactionsLimitMessage : Tools_Misc::THROTTLE_TRANSACTIONS_DEFAULT_MESSAGE;
+            return $this->_responseHelper->response(
+                array('msg' => $throttleTransactionsLimitMessage),
+                1
+            );
+        };
         $productFreebiesSettings = Models_Mapper_ProductFreebiesSettingsMapper::getInstance()->getFreebies($productId);
         $freebiesProducts = array();
         if(!empty($productFreebiesSettings)){
@@ -371,7 +382,11 @@ class Cart extends Tools_Cart_Cart {
                 $customInventory = Tools_Misc::applyInventory($cartItem['id'], $options, $newQty, Tools_InventoryObserver::INVENTORY_IN_STOCK_METHOD);
 
                 $errMessageOutOfStock = (!empty($this->_shoppingConfig['outOfStock'])) ? $this->_shoppingConfig['outOfStock'] : $this->_translator->translate('The requested product is out of stock');
-                $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+                if (!is_null($prod->getInventory()) && !empty($prod->getInventory())) {
+                    $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? preg_replace('~{ ?\$product:inventory ?}~i', $prod->getInventory(), $this->_shoppingConfig['limitQty']) : $this->_translator->translate('The requested quantity is not available');
+                } else {
+                    $errMessageLimitQty = (!empty($this->_shoppingConfig['limitQty'])) ? $this->_shoppingConfig['limitQty'] : $this->_translator->translate('The requested quantity is not available');
+                }
 
                 if ($customInventory['error'] === true) {
                     if (!empty($customInventory['stock'])) {
@@ -1259,6 +1274,12 @@ class Cart extends Tools_Cart_Cart {
 				'themePath'    => $themeData['path'],
 			);
 			$parser = new Tools_Content_Parser($paymentZoneTmpl, Tools_Misc::getCheckoutPage()->toArray(), $parserOptions);
+            if (Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactions') === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
+                $throttleTransactionsLimitMessage = Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactionsLimitMessage');
+                $throttleTransactionsLimitMessage = !empty($throttleTransactionsLimitMessage) ? $throttleTransactionsLimitMessage : Tools_Misc::THROTTLE_TRANSACTIONS_DEFAULT_MESSAGE;
+                return '<div id="payment-zone" data-throttle="1" data-throttle-message="' . $throttleTransactionsLimitMessage . '"><p class="payment-zone-message">' . $throttleTransactionsLimitMessage . '</p></div>';
+            };
+
 			return '<div id="payment-zone">' . $parser->parse() . '</div>';
 		}
 	}
