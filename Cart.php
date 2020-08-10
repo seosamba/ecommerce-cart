@@ -293,7 +293,14 @@ class Cart extends Tools_Cart_Cart {
 				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $errMessageLimitQty), 1);
 			}
 		}
-
+        if (Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactions') === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
+            $throttleTransactionsLimitMessage = Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactionsLimitMessage');
+            $throttleTransactionsLimitMessage = !empty($throttleTransactionsLimitMessage) ? $throttleTransactionsLimitMessage : Tools_Misc::THROTTLE_TRANSACTIONS_DEFAULT_MESSAGE;
+            return $this->_responseHelper->response(
+                array('msg' => $throttleTransactionsLimitMessage),
+                1
+            );
+        };
         $productFreebiesSettings = Models_Mapper_ProductFreebiesSettingsMapper::getInstance()->getFreebies($productId);
         $freebiesProducts = array();
         if(!empty($productFreebiesSettings)){
@@ -1335,11 +1342,25 @@ class Cart extends Tools_Cart_Cart {
      *
      * @return string
      */
-    protected function _renderPaymentZone()
-    {
+    protected function _renderPaymentZone() {
         $paymentZoneTmpl = isset($this->_sessionHelper->paymentZoneTmpl) ? $this->_sessionHelper->paymentZoneTmpl : null;
         if ($paymentZoneTmpl !== null) {
-            return '<div id="payment-zone">' . $this->_parseCheckoutStepArea($paymentZoneTmpl) . '</div>';
+            $themeData = Zend_Registry::get('theme');
+            $extConfig = Zend_Registry::get('extConfig');
+            $parserOptions = array(
+                'websiteUrl'   => $this->_websiteHelper->getUrl(),
+                'websitePath'  => $this->_websiteHelper->getPath(),
+                'currentTheme' => $extConfig['currentTheme'],
+                'themePath'    => $themeData['path'],
+            );
+            $parser = new Tools_Content_Parser($paymentZoneTmpl, Tools_Misc::getCheckoutPage()->toArray(), $parserOptions);
+            if (Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactions') === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
+                $throttleTransactionsLimitMessage = Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactionsLimitMessage');
+                $throttleTransactionsLimitMessage = !empty($throttleTransactionsLimitMessage) ? $throttleTransactionsLimitMessage : Tools_Misc::THROTTLE_TRANSACTIONS_DEFAULT_MESSAGE;
+                return '<div id="payment-zone" data-throttle="1" data-throttle-message="' . $throttleTransactionsLimitMessage . '"><p class="payment-zone-message">' . $throttleTransactionsLimitMessage . '</p></div>';
+            };
+
+            return '<div id="payment-zone">' . $parser->parse() . '</div>';
         }
     }
 
