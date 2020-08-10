@@ -121,7 +121,7 @@ define([ 'backbone',
         checkoutAction: function(e) {
             e.preventDefault();
             var target = $(e.currentTarget).data('targetid');
-            if (target && $(target).size()){
+            if (target && $(target).length){
                 $(target).show();
                 $(e.currentTarget).closest('p.checkout-button').hide();
             }
