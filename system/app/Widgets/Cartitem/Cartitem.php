@@ -143,6 +143,15 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 		}
 		$photoSrc = $this->_cartContent[$sid]['photo'];
 
+		if(empty($photoSrc)) {
+            $productMapper = Models_Mapper_ProductMapper::getInstance();
+            $productObject = $productMapper->find($this->_cartContent[$sid]['product_id']);
+
+            if($productObject instanceof Models_Model_Product) {
+                $photoSrc = $productObject->getPhoto();
+            }
+        }
+
         if (preg_match('~^https?://.*~', $photoSrc)) {
             $tmp = parse_url($photoSrc);
             $path = explode('/', trim($tmp['path'], '/'));
