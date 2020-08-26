@@ -1046,8 +1046,9 @@ class Cart extends Tools_Cart_Cart {
             if ($currentUser->getId()) {
                 $customerInfo = Models_Mapper_CustomerMapper::getInstance()->find($currentUser->getId());
                 $customerData = $customerInfo->toArray();
-                $customerData['firstname'] = $currentUser->getFullName();
-                $customerData['lastname']  = '';
+                $currentUserName = explode(' ', $currentUser->getFullName());
+                $customerData['firstname'] = isset($currentUserName[0]) ? $currentUserName[0] : '';
+                $customerData['lastname'] = isset($currentUserName[1]) ? $currentUserName[1] : '';
                 $customerData['email']     = $currentUser->getEmail();
                 $this->_checkoutSession->initialCustomerInfo = $customerData;
                 if ($customerData['id']) {
