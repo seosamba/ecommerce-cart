@@ -88,13 +88,28 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
         }
 
         $currency = Zend_Registry::isRegistered('Zend_Currency') ? Zend_Registry::get('Zend_Currency') : new Zend_Currency();
+        $usNumericFormat = $this->_shoppingConfig['usNumericFormat'];
 
         $nocurrency = '';
         if(in_array('nocurrency', $this->_options)) {
             $nocurrency = 'nocurrency';
-            $this->_view->price = number_format(round($priceToShow, 2), 2, '.', '');
+
+            if(!empty($usNumericFormat)) {
+                $price = number_format(round($priceToShow, 2), 2);
+            } else {
+                $price = number_format(round($priceToShow, 2), 2, '.', '');
+            }
+
+            $this->_view->price = $price;
         } else {
-            $this->_view->price = $currency->toCurrency($priceToShow);
+            if(!empty($usNumericFormat)) {
+                $currencySymbol = preg_replace('~[\w]~', '', $currency->getSymbol());
+                $price = number_format($priceToShow, 2) . ' ' . $currencySymbol;
+            } else {
+                $price = $currency->toCurrency($priceToShow);
+            }
+
+            $this->_view->price = $price;
         }
 
         $this->_view->nocurrency = $nocurrency;
