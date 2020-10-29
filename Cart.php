@@ -584,6 +584,9 @@ class Cart extends Tools_Cart_Cart {
             $subtotalWithoutTax = true;
         }
 
+        $usNumericFormat = $this->_shoppingConfig['usNumericFormat'];
+
+        $this->_view->usNumericFormat = $usNumericFormat;
         $this->_view->subtotalWithoutTax = $subtotalWithoutTax;
         $this->_view->summary = $this->_cartStorage->calculate();
         $this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];
