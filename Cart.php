@@ -241,6 +241,18 @@ class Cart extends Tools_Cart_Cart {
             );
         }
 
+        if(!empty($this->_shoppingConfig['minimumOrder'])) {
+            $minimumOrder = $product->getMinimumOrder();
+
+            if($addCount < $minimumOrder) {
+                return $this->_responseHelper->response(array('msg' => $this->_translator->translate('You can add minimum') . ' ' . $minimumOrder . ' ' . $this->_translator->translate('products')), 1);
+            }
+
+            if($addCount > $inStockCount) {
+                return $this->_responseHelper->response(array('msg' => $this->_translator->translate('You can\'t buy this product. Products left less than minimum quantity.')), 1);
+            }
+        }
+
         $options = ($options) ? $this->_parseProductOptions($productId, $options) : $this->_getDefaultProductOptions($product);
         $sid = $this->_generateStorageKey($product, $options);
 
@@ -280,14 +292,16 @@ class Cart extends Tools_Cart_Cart {
 				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $errMessageLimitQty), 1);
 			}
 		}
-        if (Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactions') === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
-            $throttleTransactionsLimitMessage = Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactionsLimitMessage');
+        if ($this->_shoppingConfig['throttleTransactions'] === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
+            $throttleTransactionsLimitMessage = $this->_shoppingConfig['throttleTransactionsLimitMessage'];
             $throttleTransactionsLimitMessage = !empty($throttleTransactionsLimitMessage) ? $throttleTransactionsLimitMessage : Tools_Misc::THROTTLE_TRANSACTIONS_DEFAULT_MESSAGE;
             return $this->_responseHelper->response(
                 array('msg' => $throttleTransactionsLimitMessage),
                 1
             );
         };
+
+
         $productFreebiesSettings = Models_Mapper_ProductFreebiesSettingsMapper::getInstance()->getFreebies($productId);
         $freebiesProducts = array();
         if(!empty($productFreebiesSettings)){
@@ -314,11 +328,13 @@ class Cart extends Tools_Cart_Cart {
             }
         }
 
+
 		$storageKey = $this->_cartStorage->add($product, $options, $addCount);
 		return $this->_responseHelper->success($storageKey);
 	}
 
     private function _prepareFreebies($productFreebiesSettings){
+
 
         $freebiesQuantity = array();
         foreach($productFreebiesSettings as $freebies){
@@ -1278,8 +1294,8 @@ class Cart extends Tools_Cart_Cart {
 				'themePath'    => $themeData['path'],
 			);
 			$parser = new Tools_Content_Parser($paymentZoneTmpl, Tools_Misc::getCheckoutPage()->toArray(), $parserOptions);
-            if (Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactions') === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
-                $throttleTransactionsLimitMessage = Models_Mapper_ShoppingConfig::getInstance()->getConfigParam('throttleTransactionsLimitMessage');
+            if ($this->_shoppingConfig['throttleTransactions'] === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
+                $throttleTransactionsLimitMessage = $this->_shoppingConfig['throttleTransactionsLimitMessage'];
                 $throttleTransactionsLimitMessage = !empty($throttleTransactionsLimitMessage) ? $throttleTransactionsLimitMessage : Tools_Misc::THROTTLE_TRANSACTIONS_DEFAULT_MESSAGE;
                 return '<div id="payment-zone" data-throttle="1" data-throttle-message="' . $throttleTransactionsLimitMessage . '"><p class="payment-zone-message">' . $throttleTransactionsLimitMessage . '</p></div>';
             };
