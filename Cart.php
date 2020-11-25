@@ -248,7 +248,7 @@ class Cart extends Tools_Cart_Cart {
                 return $this->_responseHelper->response(array('msg' => $this->_translator->translate('You can add minimum') . ' ' . $minimumOrder . ' ' . $this->_translator->translate('products')), 1);
             }
 
-            if($addCount > $inStockCount) {
+            if($inStockCount !== null && $addCount > $inStockCount) {
                 return $this->_responseHelper->response(array('msg' => $this->_translator->translate('You can\'t buy this product. Products left less than minimum quantity.')), 1);
             }
         }
@@ -334,8 +334,6 @@ class Cart extends Tools_Cart_Cart {
 	}
 
     private function _prepareFreebies($productFreebiesSettings){
-
-
         $freebiesQuantity = array();
         foreach($productFreebiesSettings as $freebies){
             $freebiesProduct = $this->_productMapper->find($freebies['freebies_id']);
@@ -382,13 +380,27 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _updateCart() {
-
 		if (!$this->_request->isPut()) {
 			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 		$storageId = filter_var($this->_requestedParams['sid'], FILTER_SANITIZE_STRING);
 		$newQty = filter_var($this->_requestedParams['qty'], FILTER_SANITIZE_NUMBER_INT);
 		$cartItem = $this->_cartStorage->findBySid($storageId);
+
+        if(!empty($this->_shoppingConfig['minimumOrder'])) {
+            $minimumOrder = $cartItem['minimumOrder'];
+            $inStockCount = $cartItem['inventory'];
+            $prodQty = $cartItem['qty'];
+
+            if($newQty < $minimumOrder) {
+                return $this->_responseHelper->fail(array('qty' => $prodQty, 'message' => $this->_translator->translate('You can add minimum') . ' ' . $minimumOrder . ' ' . $this->_translator->translate('products')));
+            }
+
+            if($inStockCount !== null && $newQty > $inStockCount) {
+                return $this->_responseHelper->fail(array('qty' => $prodQty, 'message' => $this->_translator->translate('You can\'t buy this product. Products left less than minimum quantity.')));
+            }
+        }
+
 		if (null !== ($prod = Models_Mapper_ProductMapper::getInstance()->find($cartItem['id']))) {
             if (!empty($cartItem['options'])) {
                 $options = array();
@@ -406,9 +418,9 @@ class Cart extends Tools_Cart_Cart {
 
                 if ($customInventory['error'] === true) {
                     if (!empty($customInventory['stock'])) {
-                        return $this->_responseHelper->fail($errMessageLimitQty);
+                        return $this->_responseHelper->fail(array('message' => $errMessageLimitQty));
                     }
-                    return $this->_responseHelper->fail($errMessageOutOfStock);
+                    return $this->_responseHelper->fail(array('message' => $errMessageOutOfStock));
                 }
             }
 
@@ -417,7 +429,7 @@ class Cart extends Tools_Cart_Cart {
 				if ($inStock === 0) {
 					$this->_cartStorage->remove($storageId);
 					return $this->_responseHelper->fail(
-						$this->_view->translate("Sorry, %1\$s is currently out of stock", $prod->getName())
+					    array('message' => $this->_view->translate("Sorry, %1\$s is currently out of stock", $prod->getName()))
 					);
 				} elseif ($newQty > $inStock) {
 					$newQty = $inStock;
