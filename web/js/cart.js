@@ -53,8 +53,7 @@ $(function() {
                     refreshPrice(sid, sidsQuantity, nocurrency);
                 } else {
                     showMessage(response.responseText.message, true);
-                    var qty = response.responseText.qty;
-                    $(self).val(qty);
+                    $(self).val(response.responseText.qty);
                 }
                 refreshCartSummary();
             },
