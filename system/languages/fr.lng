@@ -104,7 +104,7 @@
      'pickup not configured' => 'l\'information sur le poste de distribution n\'est pas configurée',
      'Sorry, we can\'t ship to your location at this time' => 'Désolé, impossible d\'expédier à votre endroit pour le moment',
      'The closest points to your location' => 'Les points les plus proches de vous',
-     'Subtotal without tax' => 'Sous-total (HT)'
-
+     'Subtotal without tax' => 'Sous-total (HT)',
+     'Cart content has been changed' => 'Le contenu du panier a été modifié'
 
 ); ?>
