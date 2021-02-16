@@ -547,7 +547,7 @@ class Cart extends Tools_Cart_Cart {
         $shoppingCart = Tools_ShoppingCart::getInstance();
 
         $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
-        if (!$isAlreadyPayed === true) {
+        if ($isAlreadyPayed === true) {
             $shoppingCart->clean();
         }
 
