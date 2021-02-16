@@ -50,6 +50,10 @@ $(function() {
                     if (response.responseText.sidQuantity === 0) {
                         window.location.reload();
                     }
+                    if (typeof response.responseText.contentChanged !== 'undefined') {
+                        showMessage(response.responseText.message, true);
+                        window.location.reload();
+                    }
                     refreshPrice(sid, sidsQuantity, nocurrency);
                 } else {
                     showMessage(response.responseText.message, true);

@@ -214,6 +214,13 @@ class Cart extends Tools_Cart_Cart {
 			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 
+        $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
+		if ($isAlreadyPayed === true) {
+            $cartStorage = Tools_ShoppingCart::getInstance();
+		    $cartStorage->clean();
+		    return $this->_responseHelper->response(array('redirect' => '', 'msg' => $this->_translator->translate('Cart content has been changed')), 1);
+        }
+
 		if (isset($this->_requestedParams['all']) && $this->_requestedParams['all'] == 'all') {
 			$allProducts = $this->_requestedParams['allProducts'];
 			$sidPid = array();
@@ -387,6 +394,12 @@ class Cart extends Tools_Cart_Cart {
 		$newQty = filter_var($this->_requestedParams['qty'], FILTER_SANITIZE_NUMBER_INT);
 		$cartItem = $this->_cartStorage->findBySid($storageId);
 
+        $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
+        if ($isAlreadyPayed === true) {
+            $this->_cartStorage->clean();
+            $this->_responseHelper->success(array('contentChanged' => '1', 'message' => $this->_translator->translate('Cart content has been changed')));
+        }
+
         if(!empty($this->_shoppingConfig['minimumOrder'])) {
             $minimumOrder = $cartItem['minimumOrder'];
             $inStockCount = $cartItem['inventory'];
@@ -532,6 +545,12 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _makeOptionCheckout() {
         $shoppingCart = Tools_ShoppingCart::getInstance();
+
+        $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
+        if (!$isAlreadyPayed === true) {
+            $shoppingCart->clean();
+        }
+
         if (count($shoppingCart->getContent()) === 0) {
             $shoppingCart->setShippingData(array());
             $shoppingCart->calculate(true);
