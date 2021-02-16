@@ -556,6 +556,7 @@ class Cart extends Tools_Cart_Cart {
         $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
         if ($isAlreadyPayed === true) {
             $shoppingCart->clean();
+            return $this->_view->render('checkout/keepshopping.phtml');
         }
 
         if (count($shoppingCart->getContent()) === 0) {
