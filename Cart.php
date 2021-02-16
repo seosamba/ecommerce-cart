@@ -556,10 +556,7 @@ class Cart extends Tools_Cart_Cart {
         $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
         if ($isAlreadyPayed === true) {
             $shoppingCart->clean();
-            $shoppingCart->setShippingData(array());
-            $shoppingCart->calculate(true);
-            $shoppingCart->save();
-            return $this->_view->render('checkout/keepshopping.phtml');
+            $this->_redirector->gotoUrlAndExit($this->_websiteUrl . $this->_seotoasterData['url']);
         }
 
         if (count($shoppingCart->getContent()) === 0) {
