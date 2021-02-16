@@ -80,6 +80,12 @@ $(function() {
 			success : function(response) {
                 if (!response.error) {
 	                hideSpinner();
+
+                    if (typeof response.responseText.contentChanged !== 'undefined') {
+                        showMessage(response.responseText.message, true);
+                        window.location.reload();
+                    }
+
 	                rmLink.parents('tr').remove();
                     if(response.responseText.minqty === false){
                         window.location.reload();

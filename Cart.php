@@ -464,6 +464,13 @@ class Cart extends Tools_Cart_Cart {
 		if (!$this->_request->isDelete()) {
 			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
+
+        $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
+        if ($isAlreadyPayed === true) {
+            $this->_cartStorage->clean();
+            $this->_responseHelper->success(array('contentChanged' => '1', 'message' => $this->_translator->translate('Cart content has been changed')));
+        }
+
 		if (isset($this->_requestedParams['all']) && $this->_requestedParams['all'] == 'all') {
 			foreach ($this->_requestedParams['sids'] as $sid) {
 				$this->_cartStorage->remove($sid['sid']);
