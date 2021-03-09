@@ -19,6 +19,7 @@ class Widgets_Cartsummary_Cartsummary extends Widgets_Abstract
         $this->_view->websiteUrl = $this->_websiteHelper->getUrl();
         $this->_cartContent      = Tools_ShoppingCart::getInstance();
         $this->_shoppingConfig   = Models_Mapper_ShoppingConfig::getInstance()->getConfigParams();
+        $this->_usNumericFormat  = $this->_shoppingConfig['usNumericFormat'];
     }
 
     protected function _load() {
@@ -43,6 +44,10 @@ class Widgets_Cartsummary_Cartsummary extends Widgets_Abstract
                 $summary['subTotal'] +=  $summary['subTotalTax'];
             }
             $subTotal = number_format(round($summary['subTotal'], 2), 2, '.', '');
+
+            if(!empty($this->_usNumericFormat)) {
+                $subTotal = number_format(round($summary['subTotal'], 2), 2);
+            }
         }
         return $subTotal;
     }
@@ -58,6 +63,10 @@ class Widgets_Cartsummary_Cartsummary extends Widgets_Abstract
             }
 
             $discount = number_format(round($summary['discount'], 2), 2, '.', '');
+
+            if(!empty($this->_usNumericFormat)) {
+                $discount = number_format(round($summary['discount'], 2), 2);
+            }
         }
 
         return $discount;
@@ -73,6 +82,10 @@ class Widgets_Cartsummary_Cartsummary extends Widgets_Abstract
                 $summary['shipping'] +=  $summary['shippingTax'];
             }
             $shipping = number_format(round($summary['shipping'], 2), 2, '.', '');
+
+            if(!empty($this->_usNumericFormat)) {
+                $shipping = number_format(round($summary['shipping'], 2), 2);
+            }
         }
         return $shipping;
     }
@@ -83,6 +96,10 @@ class Widgets_Cartsummary_Cartsummary extends Widgets_Abstract
         $totalTax = '';
         if(isset($summary['totalTax'])) {
             $totalTax = number_format(round($summary['totalTax'], 2), 2, '.', '');
+
+            if(!empty($this->_usNumericFormat)) {
+                $totalTax = number_format(round($summary['totalTax'], 2), 2);
+            }
         }
         return $totalTax;
     }
@@ -93,6 +110,10 @@ class Widgets_Cartsummary_Cartsummary extends Widgets_Abstract
         $total = '';
         if(isset($summary['total'])) {
             $total = number_format(round($summary['total'], 2), 2, '.', '');
+
+            if(!empty($this->_usNumericFormat)) {
+                $total = number_format(round($summary['total'], 2), 2);
+            }
         }
         return $total;
     }
