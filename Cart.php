@@ -461,7 +461,7 @@ class Cart extends Tools_Cart_Cart {
             $orderMinQty = $this->_analyzeOrderQuantity();
             $this->_responseHelper->success(array('sidQuantity' => count($this->_cartStorage->getContent()), 'message'=> $this->_translator->translate('Removed.'), 'minqty' => $orderMinQty));
         }
-		$this->_responseHelper->fail($this->_translator->translate('Cant remove product.'));
+		$this->_responseHelper->fail($this->_translator->translate('Can\'t remove product.'));
 	}
 
     protected function _analyzeOrderQuantity()
