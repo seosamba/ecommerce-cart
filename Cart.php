@@ -118,8 +118,13 @@ class Cart extends Tools_Cart_Cart {
     }
 
 	private function _initCurrency() {
+        $locale = self::DEFAULT_LOCALE;
 		if (!Zend_Registry::isRegistered('Zend_Currency')) {
-			$this->_currency = new Zend_Currency(self::DEFAULT_LOCALE);
+		    if(!empty($this->_shoppingConfig['currencyCountry'])) {
+                $locale = Zend_Locale::getLocaleToTerritory($this->_shoppingConfig['currencyCountry']);
+            }
+
+			$this->_currency = new Zend_Currency($locale);
 		} else {
 			$this->_currency = Zend_Registry::get('Zend_Currency');
 		}
@@ -639,9 +644,6 @@ class Cart extends Tools_Cart_Cart {
             $subtotalWithoutTax = true;
         }
 
-        $usNumericFormat = $this->_shoppingConfig['usNumericFormat'];
-
-        $this->_view->usNumericFormat = $usNumericFormat;
         $this->_view->subtotalWithoutTax = $subtotalWithoutTax;
         $this->_view->summary = $this->_cartStorage->calculate();
         $this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];

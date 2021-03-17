@@ -87,27 +87,22 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
             $this->_view->priceOption = 'price';
         }
 
-        $currency = Zend_Registry::isRegistered('Zend_Currency') ? Zend_Registry::get('Zend_Currency') : new Zend_Currency();
-        $usNumericFormat = $this->_shoppingConfig['usNumericFormat'];
+        $locale = Cart::DEFAULT_LOCALE;
+        if(!empty($this->_shoppingConfig['currencyCountry'])) {
+            $locale = Zend_Locale::getLocaleToTerritory($this->_shoppingConfig['currencyCountry']);
+        }
+
+        $currency = Zend_Registry::isRegistered('Zend_Currency') ? Zend_Registry::get('Zend_Currency') : new Zend_Currency($locale);
 
         $nocurrency = '';
         if(in_array('nocurrency', $this->_options)) {
             $nocurrency = 'nocurrency';
 
-            if(!empty($usNumericFormat)) {
-                $price = number_format(round($priceToShow, 2), 2);
-            } else {
-                $price = number_format(round($priceToShow, 2), 2, '.', '');
-            }
+            $price = number_format(round($priceToShow, 2), 2, '.', '');
 
             $this->_view->price = $price;
         } else {
-            if(!empty($usNumericFormat)) {
-                $currencySymbol = preg_replace('~[\w]~', '', $currency->getSymbol());
-                $price = number_format($priceToShow, 2) . ' ' . $currencySymbol;
-            } else {
-                $price = $currency->toCurrency($priceToShow);
-            }
+            $price = $currency->toCurrency($priceToShow);
 
             $this->_view->price = $price;
         }
