@@ -13,12 +13,31 @@ class Widgets_Cartsummary_Cartsummary extends Widgets_Abstract
 
     protected $_cacheable      = false;
 
+    /**
+     * @var null|Zend_Currency Zend_Currency holder
+     */
+    protected $_currency = null;
+
     protected function  _init() {
         parent::_init();
         $this->_websiteHelper    = Zend_Controller_Action_HelperBroker::getStaticHelper('website');
         $this->_view->websiteUrl = $this->_websiteHelper->getUrl();
         $this->_cartContent      = Tools_ShoppingCart::getInstance();
         $this->_shoppingConfig   = Models_Mapper_ShoppingConfig::getInstance()->getConfigParams();
+        $this->_initCurrency();
+    }
+
+    private function _initCurrency() {
+        $locale = Cart::DEFAULT_LOCALE;
+        if (!Zend_Registry::isRegistered('Zend_Currency')) {
+            if(!empty($this->_shoppingConfig['currencyCountry'])) {
+                $locale = Zend_Locale::getLocaleToTerritory($this->_shoppingConfig['currencyCountry']);
+            }
+
+            $this->_currency = new Zend_Currency($locale);
+        } else {
+            $this->_currency = Zend_Registry::get('Zend_Currency');
+        }
     }
 
     protected function _load() {
@@ -42,7 +61,7 @@ class Widgets_Cartsummary_Cartsummary extends Widgets_Abstract
             if(!empty($taxIncPrice)) {
                 $summary['subTotal'] +=  $summary['subTotalTax'];
             }
-            $subTotal = number_format(round($summary['subTotal'], 2), 2, '.', '');
+            $subTotal = trim(preg_replace('/[^0-9.,\s]/ui', '', $this->_currency->toCurrency($summary['subTotal'])), " ");
         }
         return $subTotal;
     }
@@ -56,8 +75,7 @@ class Widgets_Cartsummary_Cartsummary extends Widgets_Abstract
             if(!empty($taxIncPrice)) {
                 $summary['discount'] +=  $summary['discountTax'];
             }
-
-            $discount = number_format(round($summary['discount'], 2), 2, '.', '');
+            $discount = trim(preg_replace('/[^0-9.,\s]/ui', '', $this->_currency->toCurrency($summary['discount'])), " ");
         }
 
         return $discount;
@@ -72,7 +90,7 @@ class Widgets_Cartsummary_Cartsummary extends Widgets_Abstract
             if(!empty($taxIncPrice)) {
                 $summary['shipping'] +=  $summary['shippingTax'];
             }
-            $shipping = number_format(round($summary['shipping'], 2), 2, '.', '');
+            $shipping = trim(preg_replace('/[^0-9.,\s]/ui', '', $this->_currency->toCurrency($summary['shipping'])), " ");
         }
         return $shipping;
     }
@@ -82,7 +100,7 @@ class Widgets_Cartsummary_Cartsummary extends Widgets_Abstract
 
         $totalTax = '';
         if(isset($summary['totalTax'])) {
-            $totalTax = number_format(round($summary['totalTax'], 2), 2, '.', '');
+            $totalTax = trim(preg_replace('/[^0-9.,\s]/ui', '', $this->_currency->toCurrency($summary['totalTax'])), " ");
         }
         return $totalTax;
     }
@@ -92,7 +110,7 @@ class Widgets_Cartsummary_Cartsummary extends Widgets_Abstract
 
         $total = '';
         if(isset($summary['total'])) {
-            $total = number_format(round($summary['total'], 2), 2, '.', '');
+            $total = trim(preg_replace('/[^0-9.,\s]/ui', '', $this->_currency->toCurrency($summary['total'])), " ");
         }
         return $total;
     }
