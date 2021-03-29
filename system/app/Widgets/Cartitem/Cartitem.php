@@ -224,4 +224,23 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
         return $this->_cartContent[$sid]['brand'];
     }
 
+    protected function _renderTax($sid) {
+        $locale = Cart::DEFAULT_LOCALE;
+        if(!empty($this->_shoppingConfig['currencyCountry'])) {
+            $locale = Zend_Locale::getLocaleToTerritory($this->_shoppingConfig['currencyCountry']);
+        }
+
+        $currency = Zend_Registry::isRegistered('Zend_Currency') ? Zend_Registry::get('Zend_Currency') : new Zend_Currency($locale);
+
+        $tax = $this->_cartContent[$sid]['tax'];
+        if(in_array('nocurrency', $this->_options)) {
+            $tax = number_format(round($tax, 2), 2, '.', '');
+        } else {
+            $tax = $currency->toCurrency($tax);
+        }
+
+        return '<span class="toastercart-item-tax">' . $tax . '</span>';
+    }
+
+
 }
