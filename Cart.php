@@ -128,8 +128,13 @@ class Cart extends Tools_Cart_Cart {
     }
 
 	private function _initCurrency() {
+        $locale = self::DEFAULT_LOCALE;
 		if (!Zend_Registry::isRegistered('Zend_Currency')) {
-			$this->_currency = new Zend_Currency(self::DEFAULT_LOCALE);
+		    if(!empty($this->_shoppingConfig['currencyCountry'])) {
+                $locale = Zend_Locale::getLocaleToTerritory($this->_shoppingConfig['currencyCountry']);
+            }
+
+			$this->_currency = new Zend_Currency($locale);
 		} else {
 			$this->_currency = Zend_Registry::get('Zend_Currency');
 		}
@@ -226,6 +231,13 @@ class Cart extends Tools_Cart_Cart {
 		if (!$this->_request->isPost()) {
 			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
+
+        $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
+		if ($isAlreadyPayed === true) {
+            $cartStorage = Tools_ShoppingCart::getInstance();
+		    $cartStorage->clean();
+		    return $this->_responseHelper->response(array('redirect' => '', 'msg' => $this->_translator->translate('Cart content has been changed')), 1);
+        }
 
 		if (isset($this->_requestedParams['all']) && $this->_requestedParams['all'] == 'all') {
 			$allProducts = $this->_requestedParams['allProducts'];
@@ -401,6 +413,12 @@ class Cart extends Tools_Cart_Cart {
 		$newQty = filter_var($this->_requestedParams['qty'], FILTER_SANITIZE_NUMBER_INT);
 		$cartItem = $this->_cartStorage->findBySid($storageId);
 
+        $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
+        if ($isAlreadyPayed === true) {
+            $this->_cartStorage->clean();
+            $this->_responseHelper->success(array('contentChanged' => '1', 'message' => $this->_translator->translate('Cart content has been changed')));
+        }
+
         if(!empty($this->_shoppingConfig['minimumOrder'])) {
             $minimumOrder = $cartItem['minimumOrder'];
             $inStockCount = $cartItem['inventory'];
@@ -465,6 +483,13 @@ class Cart extends Tools_Cart_Cart {
 		if (!$this->_request->isDelete()) {
 			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
+
+        $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
+        if ($isAlreadyPayed === true) {
+            $this->_cartStorage->clean();
+            $this->_responseHelper->success(array('contentChanged' => '1', 'message' => $this->_translator->translate('Cart content has been changed')));
+        }
+
 		if (isset($this->_requestedParams['all']) && $this->_requestedParams['all'] == 'all') {
 			foreach ($this->_requestedParams['sids'] as $sid) {
 				$this->_cartStorage->remove($sid['sid']);
@@ -475,7 +500,7 @@ class Cart extends Tools_Cart_Cart {
             $orderMinQty = $this->_analyzeOrderQuantity();
             $this->_responseHelper->success(array('sidQuantity' => count($this->_cartStorage->getContent()), 'message'=> $this->_translator->translate('Removed.'), 'minqty' => $orderMinQty));
         }
-		$this->_responseHelper->fail($this->_translator->translate('Cant remove product.'));
+		$this->_responseHelper->fail($this->_translator->translate('Can\'t remove product.'));
 	}
 
     protected function _analyzeOrderQuantity()
@@ -546,6 +571,13 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _makeOptionCheckout() {
         $shoppingCart = Tools_ShoppingCart::getInstance();
+
+        $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
+        if ($isAlreadyPayed === true) {
+            $shoppingCart->clean();
+            $this->_redirector->gotoUrlAndExit($this->_websiteUrl . $this->_seotoasterData['url']);
+        }
+
         if (count($shoppingCart->getContent()) === 0) {
             $shoppingCart->setShippingData(array());
             $shoppingCart->calculate(true);
@@ -638,9 +670,6 @@ class Cart extends Tools_Cart_Cart {
             $subtotalWithoutTax = true;
         }
 
-        $usNumericFormat = $this->_shoppingConfig['usNumericFormat'];
-
-        $this->_view->usNumericFormat = $usNumericFormat;
         $this->_view->subtotalWithoutTax = $subtotalWithoutTax;
         $this->_view->summary = $this->_cartStorage->calculate();
         $this->_view->taxIncPrice = (bool)$this->_shoppingConfig['showPriceIncTax'];

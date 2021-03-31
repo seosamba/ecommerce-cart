@@ -37,7 +37,12 @@ $(function() {
                         window.location.href = checkoutUrl;
                     }
                 } else {
-                    showMessage(response.responseText.msg, 1);
+                    if (typeof response.responseText.redirect !== 'undefined') {
+                        showMessage(response.responseText.msg, 1);
+                        window.location.reload();
+                    } else {
+                        showMessage(response.responseText.msg, 1);
+                    }
                 }
             }
         });
