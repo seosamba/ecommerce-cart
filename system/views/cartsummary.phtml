@@ -1,10 +1,4 @@
 <div id="cart-summary">
-    <?php
-        if(!empty($this->usNumericFormat)) {
-            $currencySymbol = preg_replace('~[\w]~', '', $this->currencySymbol);
-        }
-    ?>
-
     <h3 class="checkout-widget-title">
 	    <?php echo $this->translate('Summary'); ?>
 	</h3>
@@ -12,17 +6,9 @@
 		<span><?php echo $this->translate('Subtotal'); ?>:</span>
 		<span id="subtotal-val">
         <?php if ($this->taxIncPrice) : ?>
-            <?php if(!empty($this->usNumericFormat)) :?>
-                <?php echo number_format($this->summary['subTotal']+$this->summary['subTotalTax'], 2) . '&nbsp;' . $currencySymbol; ?>
-            <?php else :?>
-                <?php echo $this->currency($this->summary['subTotal']+$this->summary['subTotalTax']); ?>
-            <?php endif;?>
+            <?php echo $this->currency($this->summary['subTotal']+$this->summary['subTotalTax']); ?>
         <?php else : ?>
-            <?php if(!empty($this->usNumericFormat)) :?>
-                <?php echo number_format($this->summary['subTotal'], 2) . '&nbsp;' . $currencySymbol; ?>
-            <?php else :?>
-                <?php echo $this->currency($this->summary['subTotal']); ?>
-            <?php endif;?>
+            <?php echo $this->currency($this->summary['subTotal']); ?>
         <?php endif; ?>  
         </span>
 	</div>
@@ -30,11 +16,7 @@
         <div class="cart-summary-row cart-subtotal-without-tax">
             <span><?php echo $this->translate('Subtotal without tax'); ?>:</span>
             <span id="subtotal-without-tax-val">
-                <?php if(!empty($this->usNumericFormat)) :?>
-                    <?php echo number_format($this->summary['subTotal'], 2) . '&nbsp;' . $currencySymbol; ?>
-                <?php else :?>
-                    <?php echo $this->currency($this->summary['subTotal']); ?>
-                <?php endif;?>
+                 <?php echo $this->currency($this->summary['subTotal']); ?>
             </span>
         </div>
     <?php endif;?>
@@ -42,34 +24,18 @@
         <div class="cart-summary-row cart-discount">
             <span><?php echo $this->translate('Discount'); ?></span>
             <?php if ($this->taxIncPrice) : ?>
-                <?php if(!empty($this->usNumericFormat)) :?>
-                    <span id="discount-val"><?php echo number_format($this->summary['discount']+$this->summary['discountTax'], 2) . '&nbsp;' . $currencySymbol; ?></span>
-                <?php else :?>
-                    <span id="discount-val"><?php echo $this->currency($this->summary['discount']+$this->summary['discountTax']); ?></span>
-                <?php endif;?>
+                <span id="discount-val"><?php echo $this->currency($this->summary['discount']+$this->summary['discountTax']); ?></span>
             <?php else:?>
-                <?php if(!empty($this->usNumericFormat)) :?>
-                    <span id="discount-val"><?php echo number_format($this->summary['discount'], 2) . '&nbsp;' . $currencySymbol; ?></span>
-                <?php else :?>
-                    <span id="discount-val"><?php echo $this->currency($this->summary['discount']); ?></span>
-                <?php endif;?>
+                <span id="discount-val"><?php echo $this->currency($this->summary['discount']); ?></span>
             <?php endif; ?>
         </div>
     <?php endif; ?>
     <div class="cart-summary-row cart-shipping">
         <span><?php echo $this->translate('Shipping'); ?>:</span>
         <?php if ($this->taxIncPrice) : ?>
-            <?php if(!empty($this->usNumericFormat)) :?>
-                <span id="shipping-val"><?php echo number_format($this->summary['shipping']+$this->summary['shippingTax'], 2) . '&nbsp;' . $currencySymbol; ?></span>
-            <?php else :?>
-                <span id="shipping-val"><?php echo $this->currency($this->summary['shipping']+$this->summary['shippingTax']); ?></span>
-            <?php endif;?>
+            <span id="shipping-val"><?php echo $this->currency($this->summary['shipping']+$this->summary['shippingTax']); ?></span>
         <?php else:?>
-            <?php if(!empty($this->usNumericFormat)) :?>
-                <span id="shipping-val"><?php echo number_format($this->summary['shipping'], 2) . '&nbsp;' . $currencySymbol; ?></span>
-            <?php else :?>
-                <span id="shipping-val"><?php echo $this->currency($this->summary['shipping']); ?></span>
-            <?php endif;?>
+            <span id="shipping-val"><?php echo $this->currency($this->summary['shipping']); ?></span>
         <?php endif;?>
     </div>
 	<div class="cart-summary-row cart-total-tax">
@@ -83,19 +49,11 @@
 		<?php else : ?>
 		<span><?php echo $this->translate('Total '.$taxName); ?>:</span>
 		<?php endif; ?>
-        <?php if(!empty($this->usNumericFormat)) :?>
-            <span id="totaltax-val"><?php echo number_format($this->summary['totalTax'], 2) . '&nbsp;' . $currencySymbol;?></span>
-        <?php else :?>
-            <span id="totaltax-val"><?php echo $this->currency($this->summary['totalTax']);?></span>
-        <?php endif;?>
+        <span id="totaltax-val"><?php echo $this->currency($this->summary['totalTax']);?></span>
 	</div>
 
 	<div class="cart-summary-row cart-total">
 		<span><?php echo $this->translate('Total'); ?>:</span>
-        <?php if(!empty($this->usNumericFormat)) :?>
-            <span id="total-val"><?php echo number_format($this->summary['total'], 2) . '&nbsp;' . $currencySymbol; ?></span>
-        <?php else :?>
-            <span id="total-val"><?php echo $this->currency($this->summary['total']); ?></span>
-        <?php endif;?>
+        <span id="total-val"><?php echo $this->currency($this->summary['total']); ?></span>
 	</div>
 </div>
