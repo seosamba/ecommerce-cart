@@ -7,7 +7,11 @@ $(function() {
         var gotocart = $(this).data('gotocart') === "no" ? true : false,
             pid  = $(this).data('pid'),
             qty = 1,
-            checkoutUrl =  $('#website_url').val() + 'plugin/cart/run/checkout';
+            checkoutUrl =  $('#website_url').val() + 'plugin/cart/run/checkout',
+            goToTheCart = $(this).data('gotothecart'),
+            yes = $(this).data('yes'),
+            no = $(this).data('no');
+
         if($('input[name="productquantity-' + pid + '"]').length > 0){
             qty = parseInt($('input[name="productquantity-' + pid + '"]').val());
             if(isNaN(qty)){
@@ -26,7 +30,7 @@ $(function() {
             success: function(response){
                 if (!response.error){
                     if (gotocart) {
-                        showConfirm("Go to the cart?", function () {
+                        showConfirmCustom(goToTheCart, yes, no,function () {
                             window.location.href = checkoutUrl;
                         }, function () {
                             window.location.reload();

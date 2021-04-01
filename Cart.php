@@ -531,6 +531,11 @@ class Cart extends Tools_Cart_Cart {
 			return $this->_view->render('addtocartcheckbox.phtml');
 		}
 		$this->_view->gotocart = array_search('gotocart', $this->_options) ? true : false;
+
+        $this->_view->goToTheCartTranslation = $this->_translator->translate('Go to the cart?');
+        $this->_view->yesTranslation = $this->_translator->translate('Yes');
+        $this->_view->noTranslation = $this->_translator->translate('No');
+
 		return $this->_view->render('addtocart.phtml');
 	}
 
