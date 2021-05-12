@@ -50,6 +50,9 @@ define([ 'backbone',
         },
         initMap: function () {
             var myOptions = this.initOptionsMap();
+            if($('#gmapsZoom').length) {
+                myOptions.zoom = parseInt($('#gmapsZoom').val());
+            }
             this.directionsDisplay = new google.maps.DirectionsRenderer();
             this.map = new google.maps.Map(document.getElementById('pickup-locations'), myOptions);
             this.directionsDisplay.setMap(this.map);
