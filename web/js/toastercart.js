@@ -10,7 +10,8 @@ $(function() {
             checkoutUrl =  $('#website_url').val() + 'plugin/cart/run/checkout',
             goToTheCart = $(this).data('gotothecart'),
             yes = $(this).data('yes'),
-            no = $(this).data('no');
+            no = $(this).data('no'),
+            htmlClass = 'add-to-cart-message';
 
         if($('input[name="productquantity-' + pid + '"]').length > 0){
             qty = parseInt($('input[name="productquantity-' + pid + '"]').val());
@@ -34,7 +35,7 @@ $(function() {
                             window.location.href = checkoutUrl;
                         }, function () {
                             window.location.reload();
-                        })
+                        }, htmlClass)
                     } else {
                         window.location.href = checkoutUrl;
                     }
