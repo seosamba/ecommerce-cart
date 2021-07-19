@@ -2,23 +2,30 @@
     <?php foreach($this->cartItem['options'] as $name => $optData): ?>
 	    <div class="options">
 		    <span><?php echo $name; ?>:&nbsp;</span><span><?php echo $optData['title']; ?></span>
-            <?php if (intval($optData['priceValue'])): ?>
-                <?php
-                if ($optData['priceType'] === 'unit') {
-                    if (!empty($this->cartItem['productDiscounts'])) {
-                        foreach ($this->cartItem['productDiscounts'] as $discountRule) {
-                            $optData['priceValue'] = Tools_DiscountTools::applyDiscountData($optData['priceValue'],
-                                $discountRule, false, true);
+            <?php if($optData['optionType'] == Models_Model_Option::TYPE_ADDITIONALPRICEFIELD):?>
+                <?php if(intval($optData['priceValue'])): ?>
+                    <?php $price = $optData['priceValue'] + round($optData['priceValue']*$this->taxRate, 2); ?>
+                    <span><?php echo ($optData['priceType'] == 'unit') ? $this->currency($price) : $optData['priceValue'] . '%'; ?></span>
+                <?php endif; ?>
+            <?php else:?>
+                <?php if (intval($optData['priceValue'])): ?>
+                    <?php
+                    if ($optData['priceType'] === 'unit') {
+                        if (!empty($this->cartItem['productDiscounts'])) {
+                            foreach ($this->cartItem['productDiscounts'] as $discountRule) {
+                                $optData['priceValue'] = Tools_DiscountTools::applyDiscountData($optData['priceValue'],
+                                    $discountRule, false, true);
+                            }
                         }
                     }
-                }
-                ?>
-                <?php $price = $optData['priceValue'] + round($optData['priceValue']*$this->taxRate, 2); ?>
-		        <span>(<?php echo $optData['priceSign'], ' ', (($optData['priceType'] == 'unit') ? $this->currency($price) : $optData['priceValue'] . '%'); ?>)</span>
-			<?php endif; ?>
-		    <?php if(intval($optData['weightValue'])): ?>
-                <span>(<?php echo $optData['weightSign'], ' ', $optData['weightValue'],' ', $this->weightSign; ?>)</span>
-            <?php endif; ?>
+                    ?>
+                    <?php $price = $optData['priceValue'] + round($optData['priceValue']*$this->taxRate, 2); ?>
+                    <span>(<?php echo $optData['priceSign'], ' ', (($optData['priceType'] == 'unit') ? $this->currency($price) : $optData['priceValue'] . '%'); ?>)</span>
+                <?php endif; ?>
+                <?php if(intval($optData['weightValue'])): ?>
+                    <span>(<?php echo $optData['weightSign'], ' ', $optData['weightValue'],' ', $this->weightSign; ?>)</span>
+                <?php endif; ?>
+           <?php endif; ?>
 	    </div>
 	<?php endforeach; ?>
 <?php endif; ?>

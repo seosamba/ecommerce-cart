@@ -7,7 +7,12 @@ $(function() {
         var gotocart = $(this).data('gotocart') === "no" ? true : false,
             pid  = $(this).data('pid'),
             qty = 1,
-            checkoutUrl =  $('#website_url').val() + 'plugin/cart/run/checkout';
+            checkoutUrl =  $('#website_url').val() + 'plugin/cart/run/checkout',
+            goToTheCart = $(this).data('gotothecart'),
+            yes = $(this).data('yes'),
+            no = $(this).data('no'),
+            htmlClass = 'add-to-cart-message';
+
         if($('input[name="productquantity-' + pid + '"]').length > 0){
             qty = parseInt($('input[name="productquantity-' + pid + '"]').val());
             if(isNaN(qty)){
@@ -26,13 +31,11 @@ $(function() {
             success: function(response){
                 if (!response.error){
                     if (gotocart) {
-                        smoke.confirm("<span>Success! Item(s) added to cart</span> You have added your selected item(s) to your cart. What do you want to do next?", function(e){
-                            if(e){
-                                window.location.href = checkoutUrl;
-                            }else{
-                                window.location.reload();
-                            }
-                        }, {classname : 'cart-info', ok : 'View Cart / Checkout', cancel : 'Continue Shopping'});
+                        showConfirmCustom(goToTheCart, yes, no,function () {
+                            window.location.href = checkoutUrl;
+                        }, function () {
+                            window.location.reload();
+                        }, htmlClass);
                     } else {
                         window.location.href = checkoutUrl;
                     }

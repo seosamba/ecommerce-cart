@@ -259,6 +259,7 @@ class Cart extends Tools_Cart_Cart {
 		$product = $this->_productMapper->find($productId);
 		$inStockCount = $product->getInventory();
         $productDisabled = $product->getEnabled();
+        $productNegativeStock = $product->getNegativeStock();
         if (!$productDisabled) {
             return $this->_responseHelper->response(
                 array('msg' => $this->_translator->translate('This product is not available')),
@@ -274,7 +275,9 @@ class Cart extends Tools_Cart_Cart {
             }
 
             if($inStockCount !== null && $addCount > $inStockCount) {
-                return $this->_responseHelper->response(array('msg' => $this->_translator->translate('You can\'t buy this product. Products left less than minimum quantity.')), 1);
+                if(empty($productNegativeStock)) {
+                    return $this->_responseHelper->response(array('msg' => $this->_translator->translate('You can\'t buy this product. Products left less than minimum quantity.')), 1);
+                }
             }
         }
 
@@ -310,12 +313,15 @@ class Cart extends Tools_Cart_Cart {
 			} else {
 				$inCartCount = 0;
 			}
-			if ($inStockCount <= 0) {
-				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $errMessageOutOfStock), 1);
-			}
-			if ($inStockCount - ($addCount + $inCartCount) < 0) {
-				return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $errMessageLimitQty), 1);
-			}
+
+			if(empty($productNegativeStock)) {
+                if ($inStockCount <= 0) {
+                    return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $errMessageOutOfStock), 1);
+                }
+                if ($inStockCount - ($addCount + $inCartCount) < 0) {
+                    return $this->_responseHelper->response(array('stock' => $inStockCount, 'msg' => $errMessageLimitQty), 1);
+                }
+            }
 		}
         if ($this->_shoppingConfig['throttleTransactions'] === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
             $throttleTransactionsLimitMessage = $this->_shoppingConfig['throttleTransactionsLimitMessage'];
@@ -412,6 +418,7 @@ class Cart extends Tools_Cart_Cart {
 		$storageId = filter_var($this->_requestedParams['sid'], FILTER_SANITIZE_STRING);
 		$newQty = filter_var($this->_requestedParams['qty'], FILTER_SANITIZE_NUMBER_INT);
 		$cartItem = $this->_cartStorage->findBySid($storageId);
+        $productNegativeStock = $cartItem['negativeStock'];
 
         $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
         if ($isAlreadyPayed === true) {
@@ -429,7 +436,9 @@ class Cart extends Tools_Cart_Cart {
             }
 
             if($inStockCount !== null && $newQty > $inStockCount) {
-                return $this->_responseHelper->fail(array('qty' => $prodQty, 'message' => $this->_translator->translate('You can\'t buy this product. Products left less than minimum quantity.')));
+                if(empty($productNegativeStock)) {
+                    return $this->_responseHelper->fail(array('qty' => $prodQty, 'message' => $this->_translator->translate('You can\'t buy this product. Products left less than minimum quantity.')));
+                }
             }
         }
 
@@ -464,7 +473,9 @@ class Cart extends Tools_Cart_Cart {
 					    array('message' => $this->_view->translate("Sorry, %1\$s is currently out of stock", $prod->getName()))
 					);
 				} elseif ($newQty > $inStock) {
-					$newQty = $inStock;
+                    if(empty($productNegativeStock)) {
+                        $newQty = $inStock;
+                    }
 				}
 			}
 		}
@@ -545,6 +556,11 @@ class Cart extends Tools_Cart_Cart {
 			return $this->_view->render('addtocartcheckbox.phtml');
 		}
 		$this->_view->gotocart = array_search('gotocart', $this->_options) ? true : false;
+
+        $this->_view->goToTheCartTranslation = $this->_translator->translate('Go to the cart?');
+        $this->_view->yesTranslation = $this->_translator->translate('Yes');
+        $this->_view->noTranslation = $this->_translator->translate('No');
+
 		return $this->_view->render('addtocart.phtml');
 	}
 

@@ -112,6 +112,9 @@
      'Add all to cart' => 'Ajouter tout au panier',
      'Inc. Tax' => 'Inc. Taxe',
      'Inc.  GST' => 'Inc. TPS',
-     'Inc. TVA' => 'Inc. TVA'
+     'Inc. TVA' => 'Inc. TVA',
+     'Go to the cart?' => 'Le produit a été ajouté dans votre panier. Voulez-vous voir votre panier?',
+     'Yes' => 'Oui',
+     'No' => 'No'
 
 ); ?>
