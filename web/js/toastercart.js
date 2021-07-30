@@ -11,7 +11,7 @@ $(function() {
             goToTheCart = $(this).data('gotothecart'),
             yes = $(this).data('yes'),
             no = $(this).data('no'),
-            htmlClass = 'add-to-cart-message';
+            htmlClass = $(this).data('htmlclass');
 
         if($('input[name="productquantity-' + pid + '"]').length > 0){
             qty = parseInt($('input[name="productquantity-' + pid + '"]').val());

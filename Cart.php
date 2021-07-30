@@ -560,6 +560,42 @@ class Cart extends Tools_Cart_Cart {
         $this->_view->goToTheCartTranslation = $this->_translator->translate('Go to the cart?');
         $this->_view->yesTranslation = $this->_translator->translate('Yes');
         $this->_view->noTranslation = $this->_translator->translate('No');
+        $this->_view->htmlClass = 'add-to-cart-message';
+
+        if(in_array('gotocart', $this->_options)) {
+
+            if(in_array('text', $this->_options)) {
+                $textKey = array_search('text', $this->_options);
+                $textMsg = $this->_options[$textKey+1];
+                if(!empty($textMsg)) {
+                    $this->_view->goToTheCartTranslation = $textMsg;
+                }
+            }
+
+            if(in_array('textyes', $this->_options)) {
+                $textyesKey = array_search('textyes', $this->_options);
+                $textyesMsg = $this->_options[$textyesKey+1];
+                if(!empty($textyesMsg)) {
+                    $this->_view->yesTranslation = $textyesMsg;
+                }
+            }
+
+            if(in_array('textno', $this->_options)) {
+                $textnoKey = array_search('textno', $this->_options);
+                $textnoMsg = $this->_options[$textnoKey+1];
+                if(!empty($textnoMsg)) {
+                    $this->_view->noTranslation = $textnoMsg;
+                }
+            }
+
+            if(in_array('class', $this->_options)) {
+                $classKey = array_search('class', $this->_options);
+                $classMsg = $this->_options[$classKey+1];
+                if(!empty($classMsg)) {
+                    $this->_view->htmlClass = $classMsg;
+                }
+            }
+        }
 
 		return $this->_view->render('addtocart.phtml');
 	}

@@ -21,6 +21,12 @@ weight_type - output type for package | product unit respectively (total|unit).
 {$store:cartsummary[:withouttax]} - Display information about checkout summary
   withouttax - dispaly addtional sub total without tax
 
+{$store:addtocart:{$product:id}[[[[:gotocart:text:Go to the cart?]:textyes:Yes]:textno:No]:class:cart-info]}
+gotocart - show confirm message
+text - display main text
+textyes - display yes text btn
+textno - display no text btn
+class - custom html class
 
 Magic spaces:
 
