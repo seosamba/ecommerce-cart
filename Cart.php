@@ -219,6 +219,14 @@ class Cart extends Tools_Cart_Cart {
 			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 
+        if (Tools_Misc::isStoreClosed() === true) {
+            $storeIsClosedMessage = Tools_Misc::getStoreIsClosedMessage();
+            return $this->_responseHelper->response(
+                array('msg' => $this->_translator->translate($storeIsClosedMessage)),
+                1
+            );
+        }
+
         $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
 		if ($isAlreadyPayed === true) {
             $cartStorage = Tools_ShoppingCart::getInstance();
@@ -717,7 +725,11 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionBuyersummary() {
-		$cart = Tools_ShoppingCart::getInstance();
+        if (Tools_Misc::isStoreClosed() === true) {
+            return '';
+        }
+
+	    $cart = Tools_ShoppingCart::getInstance();
 		if (sizeof($cart->getContent()) !== 0) {
 			if (isset(self::$_allowBuyerSummarRendering) && !self::$_allowBuyerSummarRendering) {
 				return '{$store:buyersummary}';
