@@ -219,6 +219,14 @@ class Cart extends Tools_Cart_Cart {
 			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 
+        if (Tools_Misc::isStoreClosed() === true) {
+            $storeIsClosedMessage = Tools_Misc::getStoreIsClosedMessage();
+            return $this->_responseHelper->response(
+                array('msg' => $this->_translator->translate($storeIsClosedMessage)),
+                1
+            );
+        }
+
         $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
 		if ($isAlreadyPayed === true) {
             $cartStorage = Tools_ShoppingCart::getInstance();
@@ -530,7 +538,14 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionAddtocart() {
-		if (isset($this->_options[1]) && $this->_options[1] == 'addall') {
+
+        if (Tools_Misc::isStoreClosed() === true) {
+            $storeIsClosedMessage = Tools_Misc::getStoreIsClosedMessage();
+            $this->_view->storeClosedMessage = $storeIsClosedMessage;
+            return $this->_view->render('store-is-closed.phtml');
+        }
+
+	    if (isset($this->_options[1]) && $this->_options[1] == 'addall') {
 			return $this->_view->render('addalltocart.phtml');
 		}
 		if (!isset($this->_options[1]) || !intval($this->_options[1])) {
@@ -609,6 +624,12 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _makeOptionCheckout() {
         $shoppingCart = Tools_ShoppingCart::getInstance();
+
+        if (Tools_Misc::isStoreClosed() === true) {
+            $storeIsClosedMessage = Tools_Misc::getStoreIsClosedMessage();
+            $this->_view->storeClosedMessage = $storeIsClosedMessage;
+            return $this->_view->render('store-is-closed.phtml');
+        }
 
         $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
         if ($isAlreadyPayed === true) {
@@ -704,7 +725,11 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionBuyersummary() {
-		$cart = Tools_ShoppingCart::getInstance();
+        if (Tools_Misc::isStoreClosed() === true) {
+            return '';
+        }
+
+	    $cart = Tools_ShoppingCart::getInstance();
 		if (sizeof($cart->getContent()) !== 0) {
 			if (isset(self::$_allowBuyerSummarRendering) && !self::$_allowBuyerSummarRendering) {
 				return '{$store:buyersummary}';
