@@ -746,6 +746,8 @@ class Cart extends Tools_Cart_Cart {
             }
             $this->_view->defaultPickup = $defaultPickup;
 
+            $this->_view->shoppingConfig = $this->_shoppingConfig;
+
 			$this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
 			$this->_view->yourInformation = $this->_checkoutSession->initialCustomerInfo;
 			$this->_view->shippingData = $cart->getShippingData();
