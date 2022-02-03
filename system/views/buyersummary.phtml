@@ -30,6 +30,9 @@
 		if ($this->shippingAddress) {
 			$fullname = trim($this->shippingAddress['firstname'] .' '. $this->shippingAddress['lastname']);
 			if (!empty($fullname)){ echo $fullname.'<br />'; }
+            if (!empty($this->shippingAddress['phone'])) {
+                echo $this->translate('Phone:') . $this->shippingAddress['phone_country_code_value'].$this->shippingAddress['phone'].'<br />';
+            }
 			if ($this->shippingData && $this->shippingData['service'] === Shopping::SHIPPING_PICKUP ) {?>
                 <?php if($this->defaultPickup === true):?>
                     <div class="shipping-client-pickup-info">
@@ -61,9 +64,6 @@
 				$state = Tools_Geo::getStateById($this->shippingAddress['state']);
 				$location = join(', ', array_filter(array($this->shippingAddress['city'], $state['name'], $this->shippingAddress['zip'], $this->shippingAddress['country'])));
 				if (!empty($location)){ echo $location.'<br />'; }
-			}
-			if (!empty($this->shippingAddress['phone'])) {
-				echo $this->translate('Phone:') . $this->shippingAddress['phone_country_code_value'].$this->shippingAddress['phone'].'<br />';
 			}
 		}
 		?>
