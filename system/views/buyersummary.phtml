@@ -33,6 +33,9 @@
             if (!empty($this->shippingAddress['phone'])) {
                 echo $this->translate('Phone:') . $this->shippingAddress['phone_country_code_value'].$this->shippingAddress['phone'].'<br />';
             }
+            if (!empty($this->shippingAddress['mobile'])) {
+                echo $this->translate('Mobile:') . $this->shippingAddress['mobile_country_code_value'].$this->shippingAddress['mobile'].'<br />';
+            }
 			if ($this->shippingData && $this->shippingData['service'] === Shopping::SHIPPING_PICKUP ) {?>
                 <?php if($this->defaultPickup === true):?>
                     <div class="shipping-client-pickup-info">
