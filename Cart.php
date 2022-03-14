@@ -227,6 +227,14 @@ class Cart extends Tools_Cart_Cart {
             );
         }
 
+        if (Tools_Misc::isStoreDisabled() === true) {
+            $storeIsClosedMessage = Tools_Misc::getStoreIsDisabledMessage();
+            return $this->_responseHelper->response(
+                array('msg' => $this->_translator->translate($storeIsClosedMessage)),
+                1
+            );
+        }
+
         $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
 		if ($isAlreadyPayed === true) {
             $cartStorage = Tools_ShoppingCart::getInstance();
@@ -545,6 +553,12 @@ class Cart extends Tools_Cart_Cart {
             return $this->_view->render('store-is-closed.phtml');
         }
 
+        if (Tools_Misc::isStoreDisabled() === true) {
+            $storeIsClosedMessage = Tools_Misc::getStoreIsDisabledMessage();
+            $this->_view->storeClosedMessage = $storeIsClosedMessage;
+            return $this->_view->render('store-is-closed.phtml');
+        }
+
 	    if (isset($this->_options[1]) && $this->_options[1] == 'addall') {
 			return $this->_view->render('addalltocart.phtml');
 		}
@@ -627,6 +641,12 @@ class Cart extends Tools_Cart_Cart {
 
         if (Tools_Misc::isStoreClosed() === true) {
             $storeIsClosedMessage = Tools_Misc::getStoreIsClosedMessage();
+            $this->_view->storeClosedMessage = $storeIsClosedMessage;
+            return $this->_view->render('store-is-closed.phtml');
+        }
+
+        if (Tools_Misc::isStoreDisabled() === true) {
+            $storeIsClosedMessage = Tools_Misc::getStoreIsDisabledMessage();
             $this->_view->storeClosedMessage = $storeIsClosedMessage;
             return $this->_view->render('store-is-closed.phtml');
         }
