@@ -483,10 +483,12 @@ class Cart extends Tools_Cart_Cart {
 		}
         if ($this->_cartStorage->updateQty($storageId, $newQty)) {
             $orderMinQty = $this->_analyzeOrderQuantity();
+            $orderMinAmount = $this->_analyzeOrderAmount();
             return $this->_responseHelper->success(array(
 				'sid' => $storageId,
 				'qty' => $newQty,
                 'minqty' => $orderMinQty,
+                'minAmount' => $orderMinAmount,
 				'msg' => $this->_view->translate("Sorry, we only have %1\$s %2\$s available in stock at the moment", $newQty, $prod->getName())
 			));
 		}
@@ -511,10 +513,47 @@ class Cart extends Tools_Cart_Cart {
 		}
 		if ($this->_cartStorage->remove($this->_requestedParams['sid'])) {
             $orderMinQty = $this->_analyzeOrderQuantity();
-            $this->_responseHelper->success(array('sidQuantity' => count($this->_cartStorage->getContent()), 'message'=> $this->_translator->translate('Removed.'), 'minqty' => $orderMinQty));
+            $orderMinAmount = $this->_analyzeOrderAmount();
+            $this->_responseHelper->success(
+                array(
+                    'sidQuantity' => count($this->_cartStorage->getContent()),
+                    'message' => $this->_translator->translate('Removed.'),
+                    'minqty' => $orderMinQty,
+                    'minAmount' => $orderMinAmount,
+                )
+            );
         }
 		$this->_responseHelper->fail($this->_translator->translate('Can\'t remove product.'));
 	}
+
+    protected function _analyzeOrderAmount()
+    {
+        $orderMinAmount = true;
+        $cartContent = $this->_cartStorage->getContent();
+        $minimumAmount = 0;
+        $previousAmountState = 0;
+        $orderConfig = Models_Mapper_ShippingConfigMapper::getInstance()->find(
+            Shopping::ORDER_CONFIG
+        );
+        if (!empty($cartContent) && !empty($orderConfig) && $orderConfig['enabled'] === 1) {
+            $amount = $this->_cartStorage->getSubTotal();
+
+            if (isset($this->_sessionHelper->orderAmountState)) {
+                $previousAmountState = $this->_sessionHelper->orderAmountState;
+            }
+
+            if (!empty($orderConfig['config']['minimumAmount'])) {
+                $minimumAmount = $orderConfig['config']['minimumAmount'];
+            }
+            if (($amount >= $minimumAmount && $previousAmountState < $minimumAmount) ||
+                ($previousAmountState >= $minimumAmount && $amount < $minimumAmount)
+            ) {
+                $orderMinAmount = false;
+            }
+            $this->_sessionHelper->orderAmountState = $amount;
+        }
+        return $orderMinAmount;
+    }
 
     protected function _analyzeOrderQuantity()
     {
@@ -1244,25 +1283,47 @@ class Cart extends Tools_Cart_Cart {
             });
 		}
 
+        $restrictionDeliveryOnly = false;
+		$restrictDelivery = false;
+
         if (!empty($orderConfig)) {
             $cartContent = $this->_cartStorage->getContent();
+            $minOrderLimit = 0;
+            $minimumAmount = 0;
             foreach($orderConfig as $orderConf){
                 if($orderConf['name'] === Shopping::ORDER_CONFIG){
                     $minOrderLimit = $orderConf['config']['quantity'];
+                    if (!empty($orderConf['config']['minimumAmount'])) {
+                        $minimumAmount = $orderConf['config']['minimumAmount'];
+                    }
+                    if (!empty($orderConf['config']['shippingRestrictionDeliveryOnly'])) {
+                        $restrictionDeliveryOnly = true;
+                    }
                 }
             }
             if (!empty($cartContent)) {
                 $quantity = $this->_cartStorage->findProductQuantityInCart();
+                $cartSubTotal = $this->_cartStorage->getSubTotal();
+                $this->_sessionHelper->orderAmountState = $cartSubTotal;
                 $this->_sessionHelper->orderQuantityState = $quantity;
-                if ($quantity < $minOrderLimit) {
-                    return '{$content:orderQuantityError:static}';
+                if ($quantity < $minOrderLimit || $cartSubTotal < $minimumAmount) {
+                    if ($restrictionDeliveryOnly === false) {
+                        return '{$content:orderQuantityError:static}';
+                    } else {
+                        $restrictDelivery = true;
+                    }
                 }
             }
         }
 
+        $this->_view->restrictDelivery = $restrictDelivery;
+        $this->_view->restrictDeliveryContentData = $this->_parseCheckoutContentData('{$content:orderQuantityError:static}');
+
 		if (is_null($pickup) || (bool)$pickup['enabled'] == false) {
 			if (empty($shippers)) {
-				return $this->_renderPaymentZone();
+				if ($restrictDelivery === false) {
+                    return $this->_renderPaymentZone();
+                }
 			}
 		}
 
@@ -1443,6 +1504,26 @@ class Cart extends Tools_Cart_Cart {
 			return '<div id="payment-zone">' . $parser->parse() . '</div>';
 		}
 	}
+
+    /**
+     * @param string $data
+     * @throws Exceptions_SeotoasterException
+     * @throws Zend_Exception
+     */
+	protected function _parseCheckoutContentData($data)
+    {
+        $themeData = Zend_Registry::get('theme');
+        $extConfig = Zend_Registry::get('extConfig');
+        $parserOptions = array(
+            'websiteUrl'   => $this->_websiteHelper->getUrl(),
+            'websitePath'  => $this->_websiteHelper->getPath(),
+            'currentTheme' => $extConfig['currentTheme'],
+            'themePath'    => $themeData['path'],
+        );
+        $parser = new Tools_Content_Parser($data, Tools_Misc::getCheckoutPage()->toArray(), $parserOptions);
+
+        return $parser->parse();
+    }
 
 	protected function _renderShippingMethods() {
 		if (false !== ($freeShipping = $this->_qualifyFreeShipping())) {
