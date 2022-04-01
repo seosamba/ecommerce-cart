@@ -170,6 +170,7 @@
 
 <?php if ($this->shippingForm) : ?>
 <div id="checkout-shipping-form" style="<?php if ($this->pickupForm && !$this->shippingForm->isErrors()): ?>display: none;<?php endif; ?>">
+    <?php if ($this->restrictDelivery === false): ?>
     <h3 class="checkout-forms-header">
 	    <?php echo $this->shippingForm->getLegend(); ?>
 	    <?php if ($this->pickupForm) : ?>
@@ -297,6 +298,10 @@
                 <?php echo $this->shippingForm->checkout;?>
             </form>
 </div>
+    <?php else :?>
+        <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
+        <?php echo $this->restrictDeliveryContentData;?>
+    <?php endif;?>
 <?php endif; ?>
     <style>
         #pickup-locations img{max-width: none;}

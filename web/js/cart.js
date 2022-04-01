@@ -47,6 +47,9 @@ $(function() {
                     if(response.responseText.minqty === false){
                         window.location.reload();
                     }
+                    if(response.responseText.minAmount === false){
+                        window.location.reload();
+                    }
                     if (response.responseText.sidQuantity === 0) {
                         window.location.reload();
                     }
@@ -88,6 +91,9 @@ $(function() {
 
 	                rmLink.parents('tr').remove();
                     if(response.responseText.minqty === false){
+                        window.location.reload();
+                    }
+                    if(response.responseText.minAmount === false){
                         window.location.reload();
                     }
                     if (response.responseText.sidQuantity == 0) {
