@@ -11,7 +11,8 @@ nocurrency - displayed price without currency
 {$cartitem:mpn} - Displays the MPN (manufacture product number) in the cart.
 {$cartitem:description[:desc_size]} - Displays a brief or a full description of the product in the cart.
 desc_size -  the type of product description output (short|full|maximum number of output symbols).
-{$cartitem:tax} - Displays product tax in the cart.
+{$cartitem:tax[:nocurrency]} - Displays product tax in the cart.
+nocurrency - displayed price without currency
 {$cartitem:weight[:weight_type]} - Displays the weight of the product for one unit or for a package in the cart.
 weight_type - output type for package | product unit respectively (total|unit).
 {$cartitem:qty} - Displays product number field in the cart.
@@ -20,6 +21,12 @@ weight_type - output type for package | product unit respectively (total|unit).
 {$store:cartsummary[:withouttax]} - Display information about checkout summary
   withouttax - dispaly addtional sub total without tax
 
+{$store:addtocart:{$product:id}[[[[:gotocart:text:Go to the cart?]:textyes:Yes]:textno:No]:class:cart-info]}
+gotocart - show confirm message
+text - display main text
+textyes - display yes text btn
+textno - display no text btn
+class - custom html class
 
 Magic spaces:
 

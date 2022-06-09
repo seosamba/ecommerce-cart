@@ -17,7 +17,7 @@
 	<div id="checkout-address-preview">
 		<h3 class="checkout-widget-title <?php if ($this->shippingAddress): ?>disabled<?php endif; ?>">
 			<?php if ($this->shippingData && $this->shippingData['service'] === Shopping::SHIPPING_PICKUP ):?>
-			<?php echo $this->translate('Pickup information'); ?>
+			<?php echo $this->translate('Pickup location'); ?>
 			<?php else : ?>
 			<?php echo $this->translate('Shipping information'); ?>
 			<?php endif; ?>
@@ -30,10 +30,36 @@
 		if ($this->shippingAddress) {
 			$fullname = trim($this->shippingAddress['firstname'] .' '. $this->shippingAddress['lastname']);
 			if (!empty($fullname)){ echo $fullname.'<br />'; }
-			if ($this->shippingData && $this->shippingData['service'] === Shopping::SHIPPING_PICKUP ) {
-
-			} else {
-				if (!empty($this->shippingAddress['email'])) { echo $this->shippingAddress['email'] .'<br />'; }
+            if (!empty($this->shippingAddress['phone'])) {
+                echo $this->translate('Phone:') . $this->shippingAddress['phone_country_code_value'].$this->shippingAddress['phone'].'<br />';
+            }
+            if (!empty($this->shippingAddress['mobile'])) {
+                echo $this->translate('Mobile:') . $this->shippingAddress['mobile_country_code_value'].$this->shippingAddress['mobile'].'<br />';
+            }
+			if ($this->shippingData && $this->shippingData['service'] === Shopping::SHIPPING_PICKUP ) {?>
+                <?php if($this->defaultPickup === true):?>
+                    <div class="shipping-client-pickup-info">
+                       <p class="company"><?php echo $this->shoppingConfig['company'];?></p>
+                       <p class="phone"><?php echo $this->translate('Phone').': '.$this->shoppingConfig['phone'];?></p>
+                       <p class="street-address"><?php echo $this->shoppingConfig['address1'].' '. $this->shoppingConfig['address2'];?></p>
+                       <p class="locality"><?php echo $this->shoppingConfig['city'].($this->shoppingConfig['city']&&($this->shoppingConfig['state'] || $this->shoppingConfig['zip'])?',':'');?></p>
+                       <p class="region"><?php $state = Tools_Geo::getStateById($this->shoppingConfig['state']); echo $state['state']; ?></p>
+                       <p class="postal-code"><?php echo $this->shoppingConfig['zip'];?></p>
+                       <p><?php echo $this->shoppingConfig['country'];?></p>
+                    </div>
+                <?php else: ?>
+                    <div class="shipping-client-pickup-info">
+                        <p class="company"><?php echo $this->shippingAddress['company'];?></p>
+                        <p class="phone"><?php echo $this->translate('Phone').': '.$this->shippingAddress['phone'];?></p>
+                        <p class="street-address"><?php echo $this->shippingAddress['address1'].' '. $this->shippingAddress['address2'];?></p>
+                        <p class="locality"><?php echo $this->shippingAddress['city'].($this->shippingAddress['city']&&($this->shippingAddress['state'] || $this->shippingAddress['zip'])?',':'');?></p>
+                        <p class="region"><?php $state = Tools_Geo::getStateById($this->shippingAddress['state']); echo $state['state']; ?></p>
+                        <p class="postal-code"><?php echo $this->shippingAddress['zip'];?></p>
+                        <p><?php echo $this->shippingAddress['country'];?></p>
+                    </div>
+                <?php endif;?>
+            <?php } else {
+                if (!empty($this->shippingAddress['email'])) { echo $this->shippingAddress['email'] .'<br />'; }
 				if (!empty($this->shippingAddress['company'])) { echo $this->shippingAddress['company'] .'<br />'; }
 				$addrLine = trim($this->shippingAddress['address1'] .' '. $this->shippingAddress['address2']);
 				if (!empty($addrLine)){ echo $addrLine.'<br />'; }
@@ -41,9 +67,6 @@
 				$state = Tools_Geo::getStateById($this->shippingAddress['state']);
 				$location = join(', ', array_filter(array($this->shippingAddress['city'], $state['name'], $this->shippingAddress['zip'], $this->shippingAddress['country'])));
 				if (!empty($location)){ echo $location.'<br />'; }
-			}
-			if (!empty($this->shippingAddress['phone'])) {
-				echo $this->translate('Phone:') . $this->shippingAddress['phone_country_code_value'].$this->shippingAddress['phone'].'<br />';
 			}
 		}
 		?>
@@ -75,6 +98,9 @@
                 }
                 echo $pickupLabel . '<br />';
             } else {
+                if (empty($this->shippingData['service'])) {
+                    $this->shippingData['service'] = '';
+                }
                 echo isset($this->shippingServiceLabel) ? $this->shippingServiceLabel . ': ' . $this->shippingData['type'] : $this->translate($this->shippingData['service']) . ': ' . $this->shippingData['type'];
             }
             ?>

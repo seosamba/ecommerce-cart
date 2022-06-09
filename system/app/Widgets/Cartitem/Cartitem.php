@@ -87,14 +87,24 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
             $this->_view->priceOption = 'price';
         }
 
-        $currency = Zend_Registry::isRegistered('Zend_Currency') ? Zend_Registry::get('Zend_Currency') : new Zend_Currency();
+        $locale = Cart::DEFAULT_LOCALE;
+        if(!empty($this->_shoppingConfig['currencyCountry'])) {
+            $locale = Zend_Locale::getLocaleToTerritory($this->_shoppingConfig['currencyCountry']);
+        }
+
+        $currency = Zend_Registry::isRegistered('Zend_Currency') ? Zend_Registry::get('Zend_Currency') : new Zend_Currency($locale);
 
         $nocurrency = '';
         if(in_array('nocurrency', $this->_options)) {
             $nocurrency = 'nocurrency';
-            $this->_view->price = number_format(round($priceToShow, 2), 2, '.', '');
+
+            $price = number_format(round($priceToShow, 2), 2, '.', '');
+
+            $this->_view->price = $price;
         } else {
-            $this->_view->price = $currency->toCurrency($priceToShow);
+            $price = $currency->toCurrency($priceToShow);
+
+            $this->_view->price = $price;
         }
 
         $this->_view->nocurrency = $nocurrency;
@@ -124,6 +134,15 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
 			$folder = 'product';
 		}
 		$photoSrc = $this->_cartContent[$sid]['photo'];
+
+		if(empty($photoSrc)) {
+            $productMapper = Models_Mapper_ProductMapper::getInstance();
+            $productObject = $productMapper->find($this->_cartContent[$sid]['product_id']);
+
+            if($productObject instanceof Models_Model_Product) {
+                $photoSrc = $productObject->getPhoto();
+            }
+        }
 
         if (preg_match('~^https?://.*~', $photoSrc)) {
             $tmp = parse_url($photoSrc);
@@ -204,5 +223,24 @@ class Widgets_Cartitem_Cartitem extends Widgets_Abstract{
     {
         return $this->_cartContent[$sid]['brand'];
     }
+
+    protected function _renderTax($sid) {
+        $locale = Cart::DEFAULT_LOCALE;
+        if(!empty($this->_shoppingConfig['currencyCountry'])) {
+            $locale = Zend_Locale::getLocaleToTerritory($this->_shoppingConfig['currencyCountry']);
+        }
+
+        $currency = Zend_Registry::isRegistered('Zend_Currency') ? Zend_Registry::get('Zend_Currency') : new Zend_Currency($locale);
+
+        $tax = $this->_cartContent[$sid]['tax'];
+        if(in_array('nocurrency', $this->_options)) {
+            $tax = number_format(round($tax, 2), 2, '.', '');
+        } else {
+            $tax = $currency->toCurrency($tax);
+        }
+
+        return '<span class="toastercart-item-tax">' . $tax . '</span>';
+    }
+
 
 }

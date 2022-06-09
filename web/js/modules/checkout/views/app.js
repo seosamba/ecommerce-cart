@@ -39,9 +39,20 @@ define([ 'backbone',
             }
 
             refreshCartSummary();
+            if ($('#payment-zone').data('throttle') === 1) {
+                let throttleMessage = $('#payment-zone').data('throttle-message');
+                if (_.isEmpty(throttleMessage)) {
+                    showMessage(_.isUndefined(i18n['Due to unprecedented orders volume, and in order to maintain quality of service, our online shop is open for a limited amount of time every day. We are no longer accepting orders today, please try to come back earlier tomorrow to place your order. We apologize for the inconvenience.']) ? 'Due to unprecedented orders volume, and in order to maintain quality of service, our online shop is open for a limited amount of time every day. We are no longer accepting orders today, please try to come back earlier tomorrow to place your order. We apologize for the inconvenience.' : i18n['Due to unprecedented orders volume, and in order to maintain quality of service, our online shop is open for a limited amount of time every day. We are no longer accepting orders today, please try to come back earlier tomorrow to place your order. We apologize for the inconvenience.'], true);
+                } else {
+                    showMessage(throttleMessage, true);
+                }
+            }
         },
         initMap: function () {
             var myOptions = this.initOptionsMap();
+            if($('#gmapsZoom').length) {
+                myOptions.zoom = parseInt($('#gmapsZoom').val());
+            }
             this.directionsDisplay = new google.maps.DirectionsRenderer();
             this.map = new google.maps.Map(document.getElementById('pickup-locations'), myOptions);
             this.directionsDisplay.setMap(this.map);
@@ -113,7 +124,7 @@ define([ 'backbone',
         checkoutAction: function(e) {
             e.preventDefault();
             var target = $(e.currentTarget).data('targetid');
-            if (target && $(target).size()){
+            if (target && $(target).length){
                 $(target).show();
                 $(e.currentTarget).closest('p.checkout-button').hide();
             }

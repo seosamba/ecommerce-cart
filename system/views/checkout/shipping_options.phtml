@@ -85,7 +85,12 @@
             <?php else:?>
                 <?php if(!empty($this->locationList)):?>
                     <select name="location-list-pickup" id="location-list-pickup">
-                        <option value="-1"><?php echo $this->translate('Select pickup location');?></option>
+                        <?php $defaultSelection = $this->translate('Select pickup location');?>
+                        <?php if(!empty($this->pickupLocationConfig['title'])):?>
+                            <?php $defaultSelection = $this->pickupLocationConfig['title'];?>
+                        <?php endif;?>
+
+                        <option value="-1"><?php echo $defaultSelection;?></option>
                         <?php foreach($this->locationList as $pickupLocation):?>
                             <option value="<?php echo $pickupLocation['id'];?>"><?php echo $pickupLocation['city'];?> (<?php echo $pickupLocation['country'];?>)</option>
                         <?php endforeach;?>
@@ -137,15 +142,18 @@
                 <?php endif;?>
                 <a href="<?php echo $websiteUrlCheckout;?>" class="checkout-edit" title="<?php echo $this->translate('Edit location');?>"><?php echo '[&nbsp;'.$this->translate('edit').'&nbsp;]';?></a>
             </h3>
+             </div>
         <?php endif;?>
         <div id="pickup-result"></div>
-        </div>
         <div id="pickup-map-locations" class="hidden" style="width:100%; padding: 0px;">
             <?php
             $googleApiKey = '';
             if(!empty($this->googleApiKey)){
                 $googleApiKey = '&key='. $this->googleApiKey;
             }?>
+            <?php if(!empty($this->pickupLocationConfig['gmapsZoom'])):?>
+                <input type="hidden" id="gmapsZoom" name="gmapsZoom" value="<?php echo $this->pickupLocationConfig['gmapsZoom'];?>" />
+            <?php endif;?>
             <script src="https://maps.googleapis.com/maps/api/js?v=3.exp<?php echo $googleApiKey;?>"></script>
             <ul id="pickup-location-grid"></ul>
             <div class="pickup-locations" id="pickup-locations" style="width:100%; height:600px"></div>
@@ -162,6 +170,7 @@
 
 <?php if ($this->shippingForm) : ?>
 <div id="checkout-shipping-form" style="<?php if ($this->pickupForm && !$this->shippingForm->isErrors()): ?>display: none;<?php endif; ?>">
+    <?php if ($this->restrictDelivery === false): ?>
     <h3 class="checkout-forms-header">
 	    <?php echo $this->shippingForm->getLegend(); ?>
 	    <?php if ($this->pickupForm) : ?>
@@ -289,6 +298,10 @@
                 <?php echo $this->shippingForm->checkout;?>
             </form>
 </div>
+    <?php else :?>
+        <a href="#back" class="back-button">&laquo;&nbsp<?php echo $this->translate('back'); ?></a>
+        <?php echo $this->restrictDeliveryContentData;?>
+    <?php endif;?>
 <?php endif; ?>
     <style>
         #pickup-locations img{max-width: none;}

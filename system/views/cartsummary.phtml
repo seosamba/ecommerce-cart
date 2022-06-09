@@ -16,7 +16,7 @@
         <div class="cart-summary-row cart-subtotal-without-tax">
             <span><?php echo $this->translate('Subtotal without tax'); ?>:</span>
             <span id="subtotal-without-tax-val">
-                <?php echo $this->currency($this->summary['subTotal']); ?>
+                 <?php echo $this->currency($this->summary['subTotal']); ?>
             </span>
         </div>
     <?php endif;?>
@@ -49,11 +49,11 @@
 		<?php else : ?>
 		<span><?php echo $this->translate('Total '.$taxName); ?>:</span>
 		<?php endif; ?>
-		<span id="totaltax-val"><?php echo $this->currency($this->summary['totalTax']);?></span>
+        <span id="totaltax-val"><?php echo $this->currency($this->summary['totalTax']);?></span>
 	</div>
 
 	<div class="cart-summary-row cart-total">
 		<span><?php echo $this->translate('Total'); ?>:</span>
-		<span id="total-val"><?php echo $this->currency($this->summary['total']); ?></span>
+        <span id="total-val"><?php echo $this->currency($this->summary['total']); ?></span>
 	</div>
 </div>

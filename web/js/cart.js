@@ -15,15 +15,15 @@ $(function() {
 
     $(document).on('change', 'input.product-qty', function() {
         var self = this;
-		var sid = $(this).data('sid');
+		var sid = $(self).data('sid');
 		var nocurrency = $('.toastercart-item-price').data('nocurrency');
         var sidsQuantity = $('.toastercart-item-qty').length;
-        var qty = parseInt($(this).val());
+        var qty = parseInt($(self).val());
         if (isNaN(qty)){
-            $(this).addClass('notvalid').val('').focus();
+            $(self).addClass('notvalid').val('').focus();
             return false;
         }
-        $(this).val(qty);
+        $(self).val(qty);
 
 		$.ajax({
 			url      : $('#website_url').val()+'plugin/cart/run/cart',
@@ -47,10 +47,20 @@ $(function() {
                     if(response.responseText.minqty === false){
                         window.location.reload();
                     }
+                    if(response.responseText.minAmount === false){
+                        window.location.reload();
+                    }
                     if (response.responseText.sidQuantity === 0) {
                         window.location.reload();
                     }
+                    if (typeof response.responseText.contentChanged !== 'undefined') {
+                        showMessage(response.responseText.message, true);
+                        window.location.reload();
+                    }
                     refreshPrice(sid, sidsQuantity, nocurrency);
+                } else {
+                    showMessage(response.responseText.message, true);
+                    $(self).val(response.responseText.qty);
                 }
                 refreshCartSummary();
             },
@@ -73,8 +83,17 @@ $(function() {
 			success : function(response) {
                 if (!response.error) {
 	                hideSpinner();
+
+                    if (typeof response.responseText.contentChanged !== 'undefined') {
+                        showMessage(response.responseText.message, true);
+                        window.location.reload();
+                    }
+
 	                rmLink.parents('tr').remove();
                     if(response.responseText.minqty === false){
+                        window.location.reload();
+                    }
+                    if(response.responseText.minAmount === false){
                         window.location.reload();
                     }
                     if (response.responseText.sidQuantity == 0) {

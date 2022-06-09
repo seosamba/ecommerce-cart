@@ -90,7 +90,7 @@
      'The requested quantity is not available' => 'Quantité désirée n\'est pas disponible',
      'Direct access not allowed' => 'Accès direct non autorisé',
      'Removed.' => 'Supprimé(e/s).',
-     'Cant remove product.' => 'Impossible de supprimer un produit.',
+     'Can\'t remove product.' => 'Impossible de supprimer un produit.',
      'Product id is missing!' => 'L\'ID de produit n\'est pas indiqué',
      'empty cart content' => 'contenu du panier est vide',
      'pickup not configured' => 'Poste de distribution n\'est pas configuré',
@@ -104,7 +104,17 @@
      'pickup not configured' => 'l\'information sur le poste de distribution n\'est pas configurée',
      'Sorry, we can\'t ship to your location at this time' => 'Désolé, impossible d\'expédier à votre endroit pour le moment',
      'The closest points to your location' => 'Les points les plus proches de vous',
-     'Subtotal without tax' => 'Sous-total (HT)'
-
+     'Subtotal without tax' => 'Sous-total (HT)',
+     'Cart content has been changed' => 'Le contenu du panier a été modifié',
+     'You can add minimum' => 'Vous pouvez ajouter au minimum',
+     'products' => 'produits',
+     'You can\'t buy this product. Products left less than minimum quantity.' => 'Impossible d\'ajouter ce produit. Quantité actuelle des produits est inférieure au minimum qui reste.',
+     'Add all to cart' => 'Ajouter tout au panier',
+     'Inc. Tax' => 'Inc. Taxe',
+     'Inc.  GST' => 'Inc. TPS',
+     'Inc. TVA' => 'Inc. TVA',
+     'Go to the cart?' => 'Le produit a été ajouté dans votre panier. Voulez-vous voir votre panier?',
+     'Yes' => 'Oui',
+     'No' => 'No'
 
 ); ?>
