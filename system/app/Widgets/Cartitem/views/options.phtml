@@ -1,5 +1,12 @@
 <?php if(isset($this->cartItem['options'])): ?>
     <?php foreach($this->cartItem['options'] as $name => $optData): ?>
+        <?php $hideDefaultOption = $optData['hideDefaultOption'];?>
+        <?php $isDefault = $optData['isDefault'];?>
+        <?php $hideOption = false;?>
+        <?php if ($isDefault == '1' && $hideDefaultOption == '1'):?>
+            <?php $hideOption = true;?>
+        <?php endif;?>
+        <?php if ($hideOption === false):?>
 	    <div class="options">
 		    <span><?php echo $name; ?>:&nbsp;</span><span><?php echo $optData['title']; ?></span>
             <?php if($optData['optionType'] == Models_Model_Option::TYPE_ADDITIONALPRICEFIELD):?>
@@ -27,5 +34,6 @@
                 <?php endif; ?>
            <?php endif; ?>
 	    </div>
+        <?php endif;?>
 	<?php endforeach; ?>
 <?php endif; ?>

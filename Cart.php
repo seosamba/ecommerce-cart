@@ -232,6 +232,22 @@ class Cart extends Tools_Cart_Cart {
 			throw new Exceptions_SeotoasterPluginException($this->_translator->translate('Direct access not allowed'));
 		}
 
+        if (Tools_Misc::isStoreClosed() === true) {
+            $storeIsClosedMessage = Tools_Misc::getStoreIsClosedMessage();
+            return $this->_responseHelper->response(
+                array('msg' => $this->_translator->translate($storeIsClosedMessage)),
+                1
+            );
+        }
+
+        if (Tools_Misc::isStoreDisabled() === true) {
+            $storeIsClosedMessage = Tools_Misc::getStoreIsDisabledMessage();
+            return $this->_responseHelper->response(
+                array('msg' => $this->_translator->translate($storeIsClosedMessage)),
+                1
+            );
+        }
+
         $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
 		if ($isAlreadyPayed === true) {
             $cartStorage = Tools_ShoppingCart::getInstance();
@@ -481,10 +497,12 @@ class Cart extends Tools_Cart_Cart {
 		}
         if ($this->_cartStorage->updateQty($storageId, $newQty)) {
             $orderMinQty = $this->_analyzeOrderQuantity();
+            $orderMinAmount = $this->_analyzeOrderAmount();
             return $this->_responseHelper->success(array(
 				'sid' => $storageId,
 				'qty' => $newQty,
                 'minqty' => $orderMinQty,
+                'minAmount' => $orderMinAmount,
 				'msg' => $this->_view->translate("Sorry, we only have %1\$s %2\$s available in stock at the moment", $newQty, $prod->getName())
 			));
 		}
@@ -509,10 +527,47 @@ class Cart extends Tools_Cart_Cart {
 		}
 		if ($this->_cartStorage->remove($this->_requestedParams['sid'])) {
             $orderMinQty = $this->_analyzeOrderQuantity();
-            $this->_responseHelper->success(array('sidQuantity' => count($this->_cartStorage->getContent()), 'message'=> $this->_translator->translate('Removed.'), 'minqty' => $orderMinQty));
+            $orderMinAmount = $this->_analyzeOrderAmount();
+            $this->_responseHelper->success(
+                array(
+                    'sidQuantity' => count($this->_cartStorage->getContent()),
+                    'message' => $this->_translator->translate('Removed.'),
+                    'minqty' => $orderMinQty,
+                    'minAmount' => $orderMinAmount,
+                )
+            );
         }
 		$this->_responseHelper->fail($this->_translator->translate('Can\'t remove product.'));
 	}
+
+    protected function _analyzeOrderAmount()
+    {
+        $orderMinAmount = true;
+        $cartContent = $this->_cartStorage->getContent();
+        $minimumAmount = 0;
+        $previousAmountState = 0;
+        $orderConfig = Models_Mapper_ShippingConfigMapper::getInstance()->find(
+            Shopping::ORDER_CONFIG
+        );
+        if (!empty($cartContent) && !empty($orderConfig) && $orderConfig['enabled'] === 1) {
+            $amount = $this->_cartStorage->getSubTotal();
+
+            if (isset($this->_sessionHelper->orderAmountState)) {
+                $previousAmountState = $this->_sessionHelper->orderAmountState;
+            }
+
+            if (!empty($orderConfig['config']['minimumAmount'])) {
+                $minimumAmount = $orderConfig['config']['minimumAmount'];
+            }
+            if (($amount >= $minimumAmount && $previousAmountState < $minimumAmount) ||
+                ($previousAmountState >= $minimumAmount && $amount < $minimumAmount)
+            ) {
+                $orderMinAmount = false;
+            }
+            $this->_sessionHelper->orderAmountState = $amount;
+        }
+        return $orderMinAmount;
+    }
 
     protected function _analyzeOrderQuantity()
     {
@@ -544,7 +599,20 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionAddtocart() {
-		if (isset($this->_options[1]) && $this->_options[1] == 'addall') {
+
+        if (Tools_Misc::isStoreClosed() === true) {
+            $storeIsClosedMessage = Tools_Misc::getStoreIsClosedMessage();
+            $this->_view->storeClosedMessage = $storeIsClosedMessage;
+            return $this->_view->render('store-is-closed.phtml');
+        }
+
+        if (Tools_Misc::isStoreDisabled() === true) {
+            $storeIsClosedMessage = Tools_Misc::getStoreIsDisabledMessage();
+            $this->_view->storeClosedMessage = $storeIsClosedMessage;
+            return $this->_view->render('store-is-closed.phtml');
+        }
+
+	    if (isset($this->_options[1]) && $this->_options[1] == 'addall') {
 			return $this->_view->render('addalltocart.phtml');
 		}
 		if (!isset($this->_options[1]) || !intval($this->_options[1])) {
@@ -623,6 +691,18 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _makeOptionCheckout() {
         $shoppingCart = Tools_ShoppingCart::getInstance();
+
+        if (Tools_Misc::isStoreClosed() === true) {
+            $storeIsClosedMessage = Tools_Misc::getStoreIsClosedMessage();
+            $this->_view->storeClosedMessage = $storeIsClosedMessage;
+            return $this->_view->render('store-is-closed.phtml');
+        }
+
+        if (Tools_Misc::isStoreDisabled() === true) {
+            $storeIsClosedMessage = Tools_Misc::getStoreIsDisabledMessage();
+            $this->_view->storeClosedMessage = $storeIsClosedMessage;
+            return $this->_view->render('store-is-closed.phtml');
+        }
 
         $isAlreadyPayed = Tools_ShoppingCart::verifyIfAlreadyPayed();
         if ($isAlreadyPayed === true) {
@@ -730,7 +810,11 @@ class Cart extends Tools_Cart_Cart {
 	}
 
 	protected function _makeOptionBuyersummary() {
-		$cart = Tools_ShoppingCart::getInstance();
+        if (Tools_Misc::isStoreClosed() === true) {
+            return '';
+        }
+
+	    $cart = Tools_ShoppingCart::getInstance();
 		if (sizeof($cart->getContent()) !== 0) {
 			if (isset(self::$_allowBuyerSummarRendering) && !self::$_allowBuyerSummarRendering) {
 				return '{$store:buyersummary}';
@@ -746,6 +830,8 @@ class Cart extends Tools_Cart_Cart {
                 }
             }
             $this->_view->defaultPickup = $defaultPickup;
+
+            $this->_view->shoppingConfig = $this->_shoppingConfig;
 
 			$this->_view->returnAllowed = $this->_checkoutSession->returnAllowed;
 			$this->_view->yourInformation = $this->_checkoutSession->initialCustomerInfo;
@@ -1249,25 +1335,47 @@ class Cart extends Tools_Cart_Cart {
             });
 		}
 
+        $restrictionDeliveryOnly = false;
+		$restrictDelivery = false;
+
         if (!empty($orderConfig)) {
             $cartContent = $this->_cartStorage->getContent();
+            $minOrderLimit = 0;
+            $minimumAmount = 0;
             foreach($orderConfig as $orderConf){
                 if($orderConf['name'] === Shopping::ORDER_CONFIG){
                     $minOrderLimit = $orderConf['config']['quantity'];
+                    if (!empty($orderConf['config']['minimumAmount'])) {
+                        $minimumAmount = $orderConf['config']['minimumAmount'];
+                    }
+                    if (!empty($orderConf['config']['shippingRestrictionDeliveryOnly'])) {
+                        $restrictionDeliveryOnly = true;
+                    }
                 }
             }
             if (!empty($cartContent)) {
                 $quantity = $this->_cartStorage->findProductQuantityInCart();
+                $cartSubTotal = $this->_cartStorage->getSubTotal();
+                $this->_sessionHelper->orderAmountState = $cartSubTotal;
                 $this->_sessionHelper->orderQuantityState = $quantity;
-                if ($quantity < $minOrderLimit) {
-                    return '{$content:orderQuantityError:static}';
+                if ($quantity < $minOrderLimit || $cartSubTotal < $minimumAmount) {
+                    if ($restrictionDeliveryOnly === false) {
+                        return '{$content:orderQuantityError:static}';
+                    } else {
+                        $restrictDelivery = true;
+                    }
                 }
             }
         }
 
+        $this->_view->restrictDelivery = $restrictDelivery;
+        $this->_view->restrictDeliveryContentData = $this->_parseCheckoutContentData('{$content:orderQuantityError:static}');
+
 		if (is_null($pickup) || (bool)$pickup['enabled'] == false) {
 			if (empty($shippers)) {
-				return $this->_renderPaymentZone();
+				if ($restrictDelivery === false) {
+                    return $this->_renderPaymentZone();
+                }
 			}
 		}
 
@@ -1519,6 +1627,26 @@ class Cart extends Tools_Cart_Cart {
         );
         $parser = new Tools_Content_Parser($zoneTmpl, Tools_Misc::getCheckoutPage()->toArray(),
             $parserOptions);
+
+        return $parser->parse();
+    }
+
+    /**
+     * @param string $data
+     * @throws Exceptions_SeotoasterException
+     * @throws Zend_Exception
+     */
+	protected function _parseCheckoutContentData($data)
+    {
+        $themeData = Zend_Registry::get('theme');
+        $extConfig = Zend_Registry::get('extConfig');
+        $parserOptions = array(
+            'websiteUrl'   => $this->_websiteHelper->getUrl(),
+            'websitePath'  => $this->_websiteHelper->getPath(),
+            'currentTheme' => $extConfig['currentTheme'],
+            'themePath'    => $themeData['path'],
+        );
+        $parser = new Tools_Content_Parser($data, Tools_Misc::getCheckoutPage()->toArray(), $parserOptions);
 
         return $parser->parse();
     }
