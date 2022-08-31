@@ -29,12 +29,12 @@
 		<?php
 		if ($this->shippingAddress) {
 			$fullname = trim($this->shippingAddress['firstname'] .' '. $this->shippingAddress['lastname']);
-			if (!empty($fullname)){ echo $fullname.'<br />'; }
+			if (!empty($fullname)){ echo '<p class="fullname">'.$fullname.'</p>'; }
             if (!empty($this->shippingAddress['phone'])) {
-                echo $this->translate('Phone:') . $this->shippingAddress['phone_country_code_value'].$this->shippingAddress['phone'].'<br />';
+                echo '<p class="phone">'.$this->translate('Phone:') . $this->shippingAddress['phone_country_code_value'].$this->shippingAddress['phone'].'</p>';
             }
             if (!empty($this->shippingAddress['mobile'])) {
-                echo $this->translate('Mobile:') . $this->shippingAddress['mobile_country_code_value'].$this->shippingAddress['mobile'].'<br />';
+                echo ' <p class="mobile">'.$this->translate('Mobile:') . $this->shippingAddress['mobile_country_code_value'].$this->shippingAddress['mobile'].'</p>';
             }
 			if ($this->shippingData && $this->shippingData['service'] === Shopping::SHIPPING_PICKUP ) {?>
                 <?php if($this->defaultPickup === true):?>
