@@ -40,6 +40,12 @@ class Cart extends Tools_Cart_Cart {
 
     const DEFAULT_RELATED_QUANTITY = '20';
 
+    const DESTINATION_NATIONAL = 'national';
+
+    const DESTINATION_INTERNATIONAL = 'international';
+
+    const DESTINATION_ZONE = 'zone';
+
     /**
      * Add password fields in the registration form at the checkout
      */
@@ -1665,7 +1671,9 @@ class Cart extends Tools_Cart_Cart {
 			$shippingServices = array_map(function ($shipper) {
 				return !in_array($shipper['name'], array(Shopping::SHIPPING_TRACKING_URL, Shopping::SHIPPING_MARKUP, Shopping::SHIPPING_PICKUP, Shopping::SHIPPING_FREESHIPPING, Shopping::ORDER_CONFIG, Shopping::SHIPPING_RESTRICTION_ZONES)) ? array(
 					'name'  => $shipper['name'],
-					'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null
+					'title' => isset($shipper['config']) && isset($shipper['config']['title']) ? $shipper['config']['title'] : null,
+                    'restrictedType' => isset($shipper['config']) && isset($shipper['config']['restrictedType']) ? $shipper['config']['restrictedType'] : null,
+                    'restrictZones' => isset($shipper['config']) && isset($shipper['config']['restrictZones']) ? $shipper['config']['restrictZones'] : null,
 				) : null;
 			}, $shippingServices);
 
@@ -1686,6 +1694,33 @@ class Cart extends Tools_Cart_Cart {
         if (!empty($this->_shoppingConfig['skipSingleShippingResult'])) {
             if (false !== ($singleShipmentResult = $this->_qualifySingleShippingServiceResult())) {
                 return $singleShipmentResult;
+            }
+        }
+
+        if (!empty($shippingServices)) {
+            $shoppingConfig = Models_Mapper_ShoppingConfig::getInstance()->getConfigParams();
+            $deliveryAddress = Tools_ShoppingCart::getAddressById(
+                Tools_ShoppingCart::getInstance()->getShippingAddressKey()
+            );
+            foreach ($shippingServices as $key => $shippingService) {
+                if (!empty($shippingService['restrictedType'])) {
+                    $restrictedType = $shippingService['restrictedType'];
+                    $deliveryType = $shoppingConfig['country'] == $deliveryAddress['country'] ? Forms_Shipping_FreeShipping::DESTINATION_NATIONAL : Forms_Shipping_FreeShipping::DESTINATION_INTERNATIONAL;
+                    if ($restrictedType == self::DESTINATION_NATIONAL && $deliveryType !== self::DESTINATION_NATIONAL) {
+                        unset($shippingServices[$key]);
+                    }
+
+                    if ($restrictedType == self::DESTINATION_INTERNATIONAL && $deliveryType !== self::DESTINATION_INTERNATIONAL) {
+                        unset($shippingServices[$key]);
+                    }
+
+                    if (!empty($shippingService['restrictZones']) && $restrictedType == self::DESTINATION_ZONE) {
+                        $zoneId = Tools_Tax_Tax::getZone($deliveryAddress, false);
+                        if (!in_array($zoneId, $shippingService['restrictZones'])) {
+                            unset($shippingServices[$key]);
+                        }
+                    }
+                }
             }
         }
 
