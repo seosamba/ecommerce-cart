@@ -154,7 +154,7 @@
             <?php if(!empty($this->pickupLocationConfig['gmapsZoom'])):?>
                 <input type="hidden" id="gmapsZoom" name="gmapsZoom" value="<?php echo $this->pickupLocationConfig['gmapsZoom'];?>" />
             <?php endif;?>
-            <script src="https://maps.googleapis.com/maps/api/js?v=3.exp<?php echo $googleApiKey;?>"></script>
+            <script async src="https://maps.googleapis.com/maps/api/js?<?php echo $googleApiKey;?>&callback=defaultInitMap"></script>
             <ul id="pickup-location-grid"></ul>
             <div class="pickup-locations" id="pickup-locations" style="width:100%; height:600px"></div>
 
@@ -307,6 +307,11 @@
         #pickup-locations img{max-width: none;}
     </style>
     <script type="text/javascript">
+        function defaultInitMap() {
+            // Hook for Required parameter callback
+            //https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=defaultInitMap
+            return true;
+        }
         $(function(){
             var mobileMasks = JSON.parse('<?php echo json_encode($this->mobileMasks);?>'),
                 mobileCountryCode =  $('#checkout-user-address select[name="mobilecountrycode"]').val(),
