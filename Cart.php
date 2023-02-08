@@ -1071,9 +1071,11 @@ class Cart extends Tools_Cart_Cart {
                         array(
                             'country' => isset($this->_shoppingConfig['country']) ? $this->_shoppingConfig['country'] : null,
                             'state' => isset($this->_shoppingConfig['state']) ? $this->_shoppingConfig['state'] : null,
-                            'zip' => isset($this->_shoppingConfig['zip']) ? $this->_shoppingConfig['zip'] : null
+                            'zip' => isset($this->_shoppingConfig['zip']) ? $this->_shoppingConfig['zip'] : null,
+                            'customer_notes' => $address['notes']
                         )
                     );
+                    $cart->setNotes($address['notes']);
                 } else {
                     $pickupLocationConfigMapper = Store_Mapper_PickupLocationConfigMapper::getInstance();
                     if (!isset($address['pickupLocationId']) || $address['pickupLocationId'] === '') {
