@@ -54,3 +54,5 @@ MAGICSPACE: cartsummary
     {$cartsummary:totaltax}
     {$cartsummary:total}
 {/cartsummary}
+
+{cartnotempty}{/cartnotempty} - display content if cart is not empty
