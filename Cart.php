@@ -1564,6 +1564,11 @@ class Cart extends Tools_Cart_Cart {
 			}
 		}
 
+
+        if(in_array('shipping-sort', $this->_options)) {
+            $this->_view->shippingSort = true;
+        }
+
         if (!empty($this->_shoppingConfig['skipSingleShippingResult'])) {
             if (false !== ($singleShipmentResult = $this->_qualifySingleShippingServiceResult())) {
                 return $singleShipmentResult;
