@@ -332,7 +332,7 @@ class Cart extends Tools_Cart_Cart {
                 }
             }
 		}
-        if ($this->_shoppingConfig['throttleTransactions'] === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
+        if (isset($this->_shoppingConfig['throttleTransactions']) && $this->_shoppingConfig['throttleTransactions'] === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
             $throttleTransactionsLimitMessage = $this->_shoppingConfig['throttleTransactionsLimitMessage'];
             $throttleTransactionsLimitMessage = !empty($throttleTransactionsLimitMessage) ? $throttleTransactionsLimitMessage : Tools_Misc::THROTTLE_TRANSACTIONS_DEFAULT_MESSAGE;
             return $this->_responseHelper->response(
