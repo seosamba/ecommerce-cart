@@ -1503,7 +1503,7 @@ class Cart extends Tools_Cart_Cart {
 				'themePath'    => $themeData['path'],
 			);
 			$parser = new Tools_Content_Parser($paymentZoneTmpl, Tools_Misc::getCheckoutPage()->toArray(), $parserOptions);
-            if ($this->_shoppingConfig['throttleTransactions'] === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
+            if (isset($this->_shoppingConfig['throttleTransactions']) && $this->_shoppingConfig['throttleTransactions'] === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
                 $throttleTransactionsLimitMessage = $this->_shoppingConfig['throttleTransactionsLimitMessage'];
                 $throttleTransactionsLimitMessage = !empty($throttleTransactionsLimitMessage) ? $throttleTransactionsLimitMessage : Tools_Misc::THROTTLE_TRANSACTIONS_DEFAULT_MESSAGE;
                 return '<div id="payment-zone" data-throttle="1" data-throttle-message="' . $throttleTransactionsLimitMessage . '"><p class="payment-zone-message">' . $throttleTransactionsLimitMessage . '</p></div>';
