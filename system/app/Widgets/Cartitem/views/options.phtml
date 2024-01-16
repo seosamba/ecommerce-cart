@@ -9,7 +9,7 @@
         <?php if ($hideOption === false):?>
             <div class="options">
                 <span><?php echo $name; ?>:&nbsp;</span>
-                <?php if($optData['optionType'] == Models_Model_Option::TYPE_ADDITIONALPRICEFIELD):?>
+                <?php if(!empty($optData['optionType']) && $optData['optionType'] == Models_Model_Option::TYPE_ADDITIONALPRICEFIELD):?>
                     <?php if(intval($optData['priceValue'])): ?>
                         <?php $price = $optData['priceValue'] + round($optData['priceValue']*$this->taxRate, 2); ?>
                         <span><?php echo ($optData['priceType'] == 'unit') ? $this->currency($price) : $optData['priceValue'] . '%'; ?></span>
