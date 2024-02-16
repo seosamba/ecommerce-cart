@@ -56,3 +56,5 @@ MAGICSPACE: cartsummary
 {/cartsummary}
 
 {cartnotempty}{/cartnotempty} - display content if cart is not empty
+
+{freecart}{/freecart} - display content in case cart has atleast one product and cart total is zero
