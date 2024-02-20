@@ -21,7 +21,6 @@ class Widgets_Cartsummary_Cartsummary extends Widgets_Abstract
     protected function  _init() {
         parent::_init();
         $this->_websiteHelper    = Zend_Controller_Action_HelperBroker::getStaticHelper('website');
-        $this->_view->websiteUrl = $this->_websiteHelper->getUrl();
         $this->_cartContent      = Tools_ShoppingCart::getInstance();
         $this->_shoppingConfig   = Models_Mapper_ShoppingConfig::getInstance()->getConfigParams();
         $this->_initCurrency();

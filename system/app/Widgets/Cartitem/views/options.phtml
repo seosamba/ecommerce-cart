@@ -1,7 +1,13 @@
 <?php if(isset($this->cartItem['options'])): ?>
     <?php foreach($this->cartItem['options'] as $name => $optData): ?>
-	    <?php $hideDefaultOption = $optData['hideDefaultOption'];?>
-	    <?php $isDefault = $optData['isDefault'];?>
+        <?php $hideDefaultOption = '';?>
+        <?php if(!empty($optData['hideDefaultOption'])) :?>
+            <?php $hideDefaultOption = $optData['hideDefaultOption'];?>
+        <?php endif;?>
+        <?php $isDefault = '';?>
+        <?php if(!empty($optData['isDefault'])) :?>
+            <?php $isDefault = $optData['isDefault'];?>
+        <?php endif;?>
         <?php $hideOption = false;?>
         <?php if ($isDefault == '1' && $hideDefaultOption == '1'):?>
             <?php $hideOption = true;?>
