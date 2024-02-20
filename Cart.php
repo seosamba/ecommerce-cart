@@ -454,7 +454,11 @@ class Cart extends Tools_Cart_Cart {
             if (!empty($cartItem['options'])) {
                 $options = array();
                 foreach ($cartItem['options'] as  $optionData) {
-                    $options[$optionData['option_id']] = $optionData['id'];
+                    if (isset($optionData['id'])) {
+                        $options[$optionData['option_id']] = $optionData['id'];
+                    } else {
+                        $options[$optionData['option_id']] = null;
+                    }
                 }
                 $customInventory = Tools_Misc::applyInventory($cartItem['id'], $options, $newQty, Tools_InventoryObserver::INVENTORY_IN_STOCK_METHOD);
 
