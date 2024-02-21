@@ -7,7 +7,6 @@
 class MagicSpaces_Freecart_Freecart extends Tools_MagicSpaces_Abstract
 {
 
-    protected $_parseBefore = true;
 
     public function __construct($name = '', $content = '', $toasterData = array())
     {
@@ -17,19 +16,6 @@ class MagicSpaces_Freecart_Freecart extends Tools_MagicSpaces_Abstract
 
     protected function _run()
     {
-        $shoppingCart = Tools_ShoppingCart::getInstance();
-        $total = $shoppingCart->getTotal();
-        $cartContent =  $shoppingCart->getContent();
-        if (!empty($total)) {
-            $this->_sessionHelper->paymentZoneFreeTmpl = null;
-            return '';
-        }
-
-        if (empty($total) && empty($cartContent)) {
-            $this->_sessionHelper->paymentZoneFreeTmpl = null;
-            return '';
-        }
-
         $tmp = $this->_content;
         $this->_content = $this->_findCheckoutTemplateContent();
         $paymentZoneTemplate = $this->_parse();

@@ -6,7 +6,6 @@
  */
 class MagicSpaces_Paymentgateways_Paymentgateways extends Tools_MagicSpaces_Abstract {
 
-    protected $_parseBefore = true;
 
 	public function __construct($name = '', $content = '', $toasterData = array()) {
 		parent::__construct($name, $content, $toasterData);
@@ -14,13 +13,6 @@ class MagicSpaces_Paymentgateways_Paymentgateways extends Tools_MagicSpaces_Abst
 	}
 
 	protected function _run() {
-        $shoppingCart = Tools_ShoppingCart::getInstance();
-        $total = $shoppingCart->getTotal();
-        if (empty($total)) {
-            $this->_sessionHelper->paymentZoneTmpl = null;
-            return '';
-        }
-
 	    $tmp = $this->_content;
 		$this->_content = $this->_findCheckoutTemplateContent();
 		$paymentZoneTemplate = $this->_parse();

@@ -1508,6 +1508,22 @@ class Cart extends Tools_Cart_Cart {
                 'themePath' => $themeData['path'],
             );
 
+            $shoppingCart = Tools_ShoppingCart::getInstance();
+            $total = $shoppingCart->getTotal();
+            $cartContent =  $shoppingCart->getContent();
+
+            if (!empty($total)) {
+                $paymentZoneFreeTmpl = null;
+            }
+
+            if (empty($total) && empty($cartContent)) {
+                $paymentZoneFreeTmpl = null;
+            }
+
+            if (empty($total)) {
+                $paymentZoneTmpl = null;
+            }
+
             $parseZone = '';
             if ($paymentZoneTmpl !== null) {
                 $parseZone = $paymentZoneTmpl;
