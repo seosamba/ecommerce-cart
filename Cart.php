@@ -1497,16 +1497,43 @@ class Cart extends Tools_Cart_Cart {
 
 	protected function _renderPaymentZone() {
 		$paymentZoneTmpl = isset($this->_sessionHelper->paymentZoneTmpl) ? $this->_sessionHelper->paymentZoneTmpl : null;
-		if ($paymentZoneTmpl !== null) {
-			$themeData = Zend_Registry::get('theme');
-			$extConfig = Zend_Registry::get('extConfig');
-			$parserOptions = array(
-				'websiteUrl'   => $this->_websiteHelper->getUrl(),
-				'websitePath'  => $this->_websiteHelper->getPath(),
-				'currentTheme' => $extConfig['currentTheme'],
-				'themePath'    => $themeData['path'],
-			);
-			$parser = new Tools_Content_Parser($paymentZoneTmpl, Tools_Misc::getCheckoutPage()->toArray(), $parserOptions);
+		$paymentZoneFreeTmpl = isset($this->_sessionHelper->paymentZoneFreeTmpl) ? $this->_sessionHelper->paymentZoneFreeTmpl : null;
+		if ($paymentZoneTmpl !== null || $paymentZoneFreeTmpl !== null) {
+            $themeData = Zend_Registry::get('theme');
+            $extConfig = Zend_Registry::get('extConfig');
+            $parserOptions = array(
+                'websiteUrl' => $this->_websiteHelper->getUrl(),
+                'websitePath' => $this->_websiteHelper->getPath(),
+                'currentTheme' => $extConfig['currentTheme'],
+                'themePath' => $themeData['path'],
+            );
+
+            $shoppingCart = Tools_ShoppingCart::getInstance();
+            $total = $shoppingCart->getTotal();
+            $cartContent =  $shoppingCart->getContent();
+
+            if (!empty($total)) {
+                $paymentZoneFreeTmpl = null;
+            }
+
+            if (empty($total) && empty($cartContent)) {
+                $paymentZoneFreeTmpl = null;
+            }
+
+            if (empty($total)) {
+                $paymentZoneTmpl = null;
+            }
+
+            $parseZone = '';
+            if ($paymentZoneTmpl !== null) {
+                $parseZone = $paymentZoneTmpl;
+            }
+
+            if ($paymentZoneFreeTmpl !== null) {
+                $parseZone = $paymentZoneFreeTmpl;
+            }
+
+			$parser = new Tools_Content_Parser($parseZone, Tools_Misc::getCheckoutPage()->toArray(), $parserOptions);
             if (isset($this->_shoppingConfig['throttleTransactions']) && $this->_shoppingConfig['throttleTransactions'] === 'true' && Tools_Misc::checkThrottleTransactionsLimit() === false) {
                 $throttleTransactionsLimitMessage = $this->_shoppingConfig['throttleTransactionsLimitMessage'];
                 $throttleTransactionsLimitMessage = !empty($throttleTransactionsLimitMessage) ? $throttleTransactionsLimitMessage : Tools_Misc::THROTTLE_TRANSACTIONS_DEFAULT_MESSAGE;
