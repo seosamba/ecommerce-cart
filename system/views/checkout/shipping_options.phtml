@@ -155,6 +155,9 @@
             <?php if(!empty($this->pickupLocationConfig['gmapsZoom'])):?>
                 <input type="hidden" id="gmapsZoom" name="gmapsZoom" value="<?php echo $this->pickupLocationConfig['gmapsZoom'];?>" />
             <?php endif;?>
+            <?php if(!empty($this->pickupLocationConfig['mapId'])):?>
+                <input type="hidden" id="mapId" name="mapId" value="<?php echo $this->pickupLocationConfig['mapId'];?>" />
+            <?php endif;?>
             <script>
                 function defaultInitMap() {
                     // Hook for Required parameter callback
@@ -162,7 +165,7 @@
                     return true;
                 }
             </script>
-            <script src="https://maps.googleapis.com/maps/api/js?<?php echo $googleApiKey;?>&callback=defaultInitMap"></script>
+            <script src="https://maps.googleapis.com/maps/api/js?<?php echo $googleApiKey;?>&callback=defaultInitMap&v=quarterly"></script>
             <ul id="pickup-location-grid"></ul>
             <div class="pickup-locations" id="pickup-locations" style="width:100%; height:600px"></div>
 
