@@ -48,13 +48,17 @@ define([ 'backbone',
                 }
             }
         },
-        initMap: function () {
+        initMap: async function () {
             var myOptions = this.initOptionsMap();
             if($('#gmapsZoom').length) {
                 myOptions.zoom = parseInt($('#gmapsZoom').val());
             }
+            if($('#mapId').length) {
+                myOptions.mapId = $('#mapId').val();
+            }
             this.directionsDisplay = new google.maps.DirectionsRenderer();
             this.map = new google.maps.Map(document.getElementById('pickup-locations'), myOptions);
+            this.advancedMarkerElement = await google.maps.importLibrary("marker");
             this.directionsDisplay.setMap(this.map);
             this.directionsService = new google.maps.DirectionsService();
 
@@ -219,6 +223,7 @@ define([ 'backbone',
         initOptionsMap: function() {
             return {
                zoom: 18,
+               mapId: 'DEMO_MAP_ID',
                center: new google.maps.LatLng(48, 2),
                mapTypeControlOptions: {
                     style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
@@ -228,12 +233,15 @@ define([ 'backbone',
                zoomControl: true,
                scrollwheel: false,
                mapTypeId: google.maps.MapTypeId.ROADMAP,
-               streetViewControl: true,
-               panControl: true
+               streetViewControl: false,
+               panControl: true,
             }
         },
         addMarkers: function(marker, userLocation, withoutSearch){
+            this.userLocation = userLocation;
+            var self = this;
             //default image
+            var markerIcon = document.createElement("img");
             var imageName = 'https://www.google.com/intl/en_us/mapfiles/ms/micons/red-dot.png';
             //user location image
             var userLocationImageName = 'https://www.google.com/intl/en_us/mapfiles/ms/micons/green-dot.png';
@@ -261,20 +269,23 @@ define([ 'backbone',
 
             //infoWindows data
             this.infoWindowsData.push(infoWindow);
-            var newMarker = new google.maps.Marker({
-                map: this.map,
-                title: marker.name,
-                position: latLng,
-                icon: imageName,
-                infoWindow:this.infoWindowsData,
-                directionsService:this.directionsService,
-                directionsDisplay:this.directionsDisplay,
-                userLocation:userLocation
-            });
-            if(typeof marker.userLocation === 'undefined'){
-                newMarker.set("id", marker.id);
-                newMarker.set("price", marker.price);
 
+            markerIcon.src = imageName;
+
+            var newMarker = new google.maps.marker.AdvancedMarkerElement(
+                {
+                    map: this.map,
+                    title: marker.name,
+                    position: latLng,
+                    gmpClickable: true,
+                    content: markerIcon,
+                });
+
+            self.infoWindowsData = this.infoWindowsData;
+            self.directionsService = this.directionsService;
+            self.directionsDisplay = this.directionsDisplay;
+
+            if(typeof marker.userLocation === 'undefined'){
                 google.maps.event.addListener(this.map, 'click', function() {
                     infoWindow.close();
                 });
@@ -283,8 +294,8 @@ define([ 'backbone',
                     //map route
                     //display only with search by pickup locations
                     if(!withoutSearch){
-                        var end = new google.maps.LatLng(parseFloat(this.position.lat()), parseFloat(this.position.lng()));
-                        var start = this.userLocation;
+                        var end = latLng;
+                        var start = self.userLocation;
 
                         var request = {
                             origin:start,
@@ -292,8 +303,8 @@ define([ 'backbone',
                             travelMode: google.maps.TravelMode.DRIVING
                         };
 
-                        var directionDisplay = this.directionsDisplay;
-                        this.directionsService.route(request, function(response, status) {
+                        var directionDisplay = self.directionsDisplay;
+                        self.directionsService.route(request, function(response, status) {
                         if (status == google.maps.DirectionsStatus.OK) {
                             directionDisplay.setDirections(response);
                             directionDisplay.setOptions( { suppressMarkers: true } );
@@ -301,18 +312,19 @@ define([ 'backbone',
                         });
                     }
                     //remove all opened info windows
-                    for (var i=0;i<this.infoWindow.length;i++) {
-                        this.infoWindow[i].close();
+                    for (var i=0;i<self.infoWindowsData.length;i++) {
+                        self.infoWindowsData[i].close();
                     }
                     //calculate shipping tax
                     var currentMap = this;
+                    currentMap.id = marker.id;
+                    currentMap.price = marker.price;
 
                     $.post($('#website_url').val()+'plugin/cart/run/pickupLocationTax/', {locationId:currentMap.id, price:currentMap.price}, function(response){
                         response.responseText.i18n = i18n;
                         infoWindow.setContent(_.template(PickupInfoWindowTemplate, response.responseText));
-                        infoWindow.open(currentMap.map, currentMap);
+                        infoWindow.open(newMarker.map, currentMap);
                     }, 'json');
-                    //infoWindow.open(this.map, this);
                 });
                 google.maps.event.addListener(infoWindow,'open',function(){
                     infoWindow.close();
