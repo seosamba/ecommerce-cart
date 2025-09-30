@@ -1,0 +1,9 @@
+{
+  "name": "seosamba/ecommerce-cart",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "EcommerceCart\\": "src/"
+    }
+  }
+}
